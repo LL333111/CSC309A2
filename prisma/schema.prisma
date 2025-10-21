@@ -41,6 +41,7 @@ model User {
   avatarUrl   String?
   password    String?
   promotions  Promotion[]
+  suspicious  Boolean  @default(false)
 }
 
 model Promotion {

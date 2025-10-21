@@ -215,22 +215,28 @@ app.route("/users")
             limit = 10;
         }
         // apply all filters
-        let results = await prisma.user.findMany({
-            where: where,
-            select: {
-                id: true,
-                utorid: true,
-                name: true,
-                email: true,
-                birthday: true,
-                role: true,
-                points: true,
-                createdAt: true,
-                lastLogin: true,
-                verified: true,
-                avatarUrl: true,
-            }
-        });
+        let results;
+        try {
+            results = await prisma.user.findMany({
+                where: where,
+                select: {
+                    id: true,
+                    utorid: true,
+                    name: true,
+                    email: true,
+                    birthday: true,
+                    role: true,
+                    points: true,
+                    createdAt: true,
+                    lastLogin: true,
+                    verified: true,
+                    avatarUrl: true,
+                }
+            });
+        } catch(error) {
+            console.log(error);
+            return res.status(400).json({message: "Failed to create new user"});
+        }
         return res.status(200).json({
             count: results.length,
             results: results.slice((page-1)*limit, ((page-1)*limit)+limit)
@@ -261,39 +267,44 @@ app.route("/users/:userId")
         // get user's information by userId
         // 2 cases: cashier && manager or higher
         let result;
-        if (req.role == "cashier") {
-            result = await prisma.user.findUnique({
-                where: {
-                    id: userId
-                },
-                select: {
-                    id: true,
-                    utorid: true,
-                    name: true,
-                    points: true,
-                    verified: true,
-                    promotions: true
-                }
-            })
-        } else {
-            result = await prisma.user.findUnique({
-                where: {
-                    id: userId
-                },
-                select: {
-                    id: true,
-                    utorid: true,
-                    name: true,
-                    email: true,
-                    birthday: true,
-                    role: true,
-                    points: true,
-                    createdAt: true,
-                    verified: true,
-                    avatarUrl: true,
-                    promotions: true
-                }
-            })
+        try {
+            if (req.role == "cashier") {
+                result = await prisma.user.findUnique({
+                    where: {
+                        id: userId
+                    },
+                    select: {
+                        id: true,
+                        utorid: true,
+                        name: true,
+                        points: true,
+                        verified: true,
+                        promotions: true
+                    }
+                })
+            } else {
+                result = await prisma.user.findUnique({
+                    where: {
+                        id: userId
+                    },
+                    select: {
+                        id: true,
+                        utorid: true,
+                        name: true,
+                        email: true,
+                        birthday: true,
+                        role: true,
+                        points: true,
+                        createdAt: true,
+                        verified: true,
+                        avatarUrl: true,
+                        promotions: true
+                    }
+                })
+            }
+        } catch(error) {
+            console.log(error);
+            return res.status(400).json({message: "Failed to create new user"});
         }
         // error handling - 404 Not Found
         if (result === null) {
@@ -302,7 +313,113 @@ app.route("/users/:userId")
         res.status(200).json(result);
     })
     .patch(JWTBearer, async(req,res) => {
-        res.status(200).json();
+        // error handle - 401 Unauthorized
+        // no auth:
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - 403 Forbidden
+        // if not "Manager or higher"
+        if (req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Manager or highe"});
+        }
+        // error handling - 400 Bad Request.
+        let {email, verified, suspicious, role} = req.body;
+        // extra field
+        const allowedFields = ["email", "verified", "suspicious", "role"];
+        const extraFields = Object.keys(req.body).filter((field) => {
+            return !allowedFields.includes(field);
+        });
+        if (extraFields.length > 0) {
+            return res.status(400).json({
+                "Bad Request": "Include extra fields",
+                extraFields,
+            });
+        }
+        // process userId
+        const userId = parseInt(req.params.userId)
+        // error handling - 400 Bad Request
+        if (Number.isNaN(userId)) {
+                return res.status(400).json({ "Bad Request": "Invalid userId" });
+        }
+        // error handling - 404 Not Found
+        let user;
+        try {
+            user = await prisma.user.findMany({
+                where: {
+                    id: userId
+                }
+            })
+        } catch(error) {
+            console.log(error);
+            return res.status(400).json({message: "Failed to create new user"});
+        }
+        if (user.length === 0) {
+            return res.status(404).json({ "Not Found": "User not found" });
+        }
+        // error handling - 400 Bad Request
+        // set data meanwhile
+        let data = {};
+        let select = {
+            id: true,
+            utorid: true,
+            name: true
+        };
+        // not satisfy description
+        if (email !== undefined) {
+            if (typeof(email) !== "string" || !/^[^@]+@mail.utoronto.ca$/.test(email)) {
+                return res.status(400).json({ "Bad Request": "Invalid email" });
+            }
+            data.email = email;
+            select.email = true;
+        }
+        if (verified !== undefined) {
+            if (typeof(verified) !== "boolean" || verified !== true) {
+                return res.status(400).json({ "Bad Request":"Invalid verified" });
+            }
+            data.verified = verified;
+            select.verified = true;
+        }
+        if (suspicious !== undefined) {
+            if (typeof(suspicious) !== "boolean") {
+                return res.status(400).json({ "Bad Request":"Invalid suspicious" });
+            }
+            data.suspicious = suspicious;
+            select.suspicious = true;
+        }
+        if (role !== undefined) {
+            if (req.role === "manager") {
+                if (typeof(role) !== "string" || (role !== "cashier" && role !== "regular")) {
+                    return res.status(400).json({ "Bad Request":"Invalid role" });
+                }
+            } else {
+                if (typeof(role) !== "string" || (role !== "cashier" && role !== "regular" && role !== "manager" && role !== "superuser")) {
+                    return res.status(400).json({ "Bad Request":"Invalid role" });
+                }
+            }
+            // 正确的 权限 + role 组合
+            // 但是提拔user 需要suspicious为false
+            if (user[0].role === "regular" && role === "cashier" && user[0].suspicious === true) {
+                return res.status(400).json({ "Bad Request":"Invalid role (suspicious)" })
+            }
+            data.role = role;
+            select.role = true;
+        }
+        // update
+        let result;
+        try {
+            result = await prisma.user.update({
+                where: {
+                    id: userId
+                },
+                data: data,
+                select: select
+            });
+        } catch(error) {
+            console.log(error);
+            return res.status(400).json({message: "Failed to create new user"});
+        }
+        res.status(200).json(result);
     })
     .all((req,res) => {
         res.status(405).json({"Method Not Allowed": "Try Get & Post"});
