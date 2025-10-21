@@ -28,6 +28,27 @@ enum PromotionType {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  username String
+  id          Int      @id @default(autoincrement())
+  utorid      String   @unique
+  name        String
+  email       String   @unique
+  birthday    String?
+  role        RoleType @default(regular)
+  points      Int      @default(0)
+  createdAt   String
+  lastLogin   String?
+  verified    Boolean  @default(false)
+  avatarUrl   String?
+  password    String?
+  promotions  Promotion[]
+}
+
+model Promotion {
+  id          Int     @id @default(autoincrement())
+  name        String
+  minSpending Int?
+  rate        Int?
+  points      Int     @default(0)
+  userId      Int
+  user        User    @relation(fields: [userId],references: [id])
 }
