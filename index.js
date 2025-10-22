@@ -32,34 +32,39 @@ require('dotenv').config();
 
 const jwt = require('jsonwebtoken');
 const { v1: uuidv4 } = require('uuid');
-const { tr } = require("zod/v4/locales");
+const { tr, no } = require("zod/v4/locales");
+
+// recording (like constant)
+let lastResetAt;
+let lastResetIP
 
 // Middleware
 // check input json
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    return res.status(400).json({ "Bad Request": 'Invalid JSON input' });
+    return res.status(499).json({ "message": 'Invalid JSON input' });
   }
   next();
 });
 
 // handle JWT Bearer
-const JWTBearer = (req, res, next) => {
-    const JWTBearer = req.headers['authorization']; 
-    // error handle - no auth || not JWT Bearer auth
-    if (!JWTBearer || !JWTBearer.startsWith("Bearer ")) { 
+const bearerToken = (req, res, next) => {
+    const jwtHeader = req.headers['authorization']; 
+    // error handle - no auth
+    if (!jwtHeader) { 
         req.role = null;
         return next();
     }
-    let encoding = JWTBearer.split(" ")[1];
-    let role = jwt.verify(encoding, process.env.JWT_SECRET);
-    req.role = role.role;
+    let encoding = jwtHeader.split(" ")[1];
+    let user = jwt.verify(encoding, process.env.JWT_SECRET);
+    req.user = user;
+    req.role = user.role;
     next();
 };
 
 // end points
 app.route("/users")
-    .post(JWTBearer, async(req,res) => {
+    .post(bearerToken, async(req,res) => {
         // error handle - 401 Unauthorized
         // no auth:
         if (!req.role) {
@@ -109,30 +114,34 @@ app.route("/users")
             });
         } catch(error) {
             console.log(error);
-            return res.status(400).json({message: "Failed to find user"});
+            return res.status(499).json({message: "Failed to find user"});
         }
         if (checjExists.length !== 0) {
             return res.status(409).json({ "Conflict":"user with that utorid already exists" });
         }
-        // create user
-        let createdAt = new Date()
         let newUser;
+        // create resetToken & expiresAt
+        const resetToken = uuidv4();
+        let createdAt = new Date();
+        lastResetAt = createdAt;
+        lastResetIP = req.ip;
+        const expiresAt = (new Date(createdAt.getTime() + (7 * 24 * 60 * 60 * 1000))).toISOString();
         try {
+            // create user
             newUser = await prisma.user.create({
                 data: {
                     utorid,
                     name,
                     email,
-                    createdAt: createdAt.toISOString()
+                    createdAt: createdAt.toISOString(),
+                    resetToken,
+                    expiresAt,
                 }
             });
         } catch(error) {
             console.log(error);
-            return res.status(400).json({message: "Failed to create new user"});
+            return res.status(499).json({message: "Failed to create new user"});
         }
-        // create resetToken & expiresAt
-        const resetToken = uuidv4();
-        const expiresAt = (new Date(createdAt.getTime() + (7 * 24 * 60 * 60 * 1000))).toISOString();
         return res.status(201).json({
             id: newUser.id,
             utorid: newUser.utorid,
@@ -143,7 +152,7 @@ app.route("/users")
             resetToken: resetToken
         });
     })
-    .get(JWTBearer, async(req,res) => {
+    .get(bearerToken, async(req,res) => {
         // error handle - 401 Unauthorized
         // no auth:
         if (!req.role) {
@@ -235,7 +244,7 @@ app.route("/users")
             });
         } catch(error) {
             console.log(error);
-            return res.status(400).json({message: "Failed to create new user"});
+            return res.status(499).json({message: "Failed to find user"});
         }
         return res.status(200).json({
             count: results.length,
@@ -247,7 +256,7 @@ app.route("/users")
     });
 
 app.route("/users/:userId")
-    .get(JWTBearer, async(req,res) => {
+    .get(bearerToken, async(req,res) => {
         // error handle - 401 Unauthorized
         // no auth:
         if (!req.role) {
@@ -304,15 +313,16 @@ app.route("/users/:userId")
             }
         } catch(error) {
             console.log(error);
-            return res.status(400).json({message: "Failed to create new user"});
+            return res.status(499).json({message: "Failed to find user"});
         }
         // error handling - 404 Not Found
         if (result === null) {
+            console.log("/users/:userId no user");
             return res.status(404).json({ "Not Found": "User not found" });
         }
         res.status(200).json(result);
     })
-    .patch(JWTBearer, async(req,res) => {
+    .patch(bearerToken, async(req,res) => {
         // error handle - 401 Unauthorized
         // no auth:
         if (!req.role) {
@@ -352,9 +362,10 @@ app.route("/users/:userId")
             })
         } catch(error) {
             console.log(error);
-            return res.status(400).json({message: "Failed to create new user"});
+            return res.status(499).json({message: "Failed to find user"});
         }
         if (user.length === 0) {
+            console.log("/users/:userId no user");
             return res.status(404).json({ "Not Found": "User not found" });
         }
         // error handling - 400 Bad Request
@@ -417,9 +428,205 @@ app.route("/users/:userId")
             });
         } catch(error) {
             console.log(error);
-            return res.status(400).json({message: "Failed to create new user"});
+            return res.status(499).json({message: "Failed to update user"});
         }
         res.status(200).json(result);
+    })
+    .all((req,res) => {
+        res.status(405).json({"Method Not Allowed": "Try Get & Post"});
+    });
+
+app.route("/auth/tokens")
+    .post(async(req,res) => {
+        // error handling - 400 Bad Request.
+        const {utorid, password} = req.body;
+        // invalid payload:
+        // missing required field & not appropriate type
+        if(!utorid || !password || typeof(utorid) !== "string" || typeof(password) !== "string") {
+            return res.status(400).json({ "Bad Request": "Invalid payload" });
+        }
+        // extra field
+        const allowedFields = ["utorid", "password"];
+        const extraFields = Object.keys(req.body).filter((field) => {
+            return !allowedFields.includes(field);
+        });
+        if (extraFields.length > 0) {
+            return res.status(400).json({
+                "Bad Request": "Include extra fields",
+                extraFields,
+            });
+        }
+        // not satisfy description
+        if (!/^[a-zA-Z0-9]{7,8}$/.test(utorid)) {
+            return res.status(400).json({ "Bad Request": "Invalid utorid" });
+        }
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,20}$/.test(password)) {
+            return res.status(400).json({ "Bad Request": "Invalid password" });
+        }
+        // find user by utorid
+        let user;
+        user = await prisma.user.findUnique({
+            where: {
+                utorid: utorid
+            }
+        });
+        // error handling - 404 Not Found
+        if (user === null) {
+            console.log("/auth/tokens no user");
+            return res.status(404).json({message: "No user with given utorid"});
+        }
+        if (user.password === null || user.password !== password) {
+            return res.status(401).json({message: "Incorrect password"});
+        }
+        let tokenPayload = {
+            id: user.id,
+            utorid: user.utorid,
+            role: user.role
+        };
+        const expiresAt = new Date(Date.now() + (24 * 60 * 60 * 1000));
+        return res.status(200).json({
+            "token": jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: "1d" }),
+            "expiresAt": expiresAt.toISOString()
+        })
+    })
+    .all((req,res) => {
+        res.status(405).json({"Method Not Allowed": "Try Get & Post"});
+    });
+
+app.route("/auth/resets")
+    .post(async(req,res) => {
+        // error handling - 400 Bad Request.
+        const {utorid} = req.body;
+        // invalid payload:
+        // missing required field & not appropriate type
+        if(!utorid || typeof(utorid) !== "string") {
+            return res.status(400).json({ "Bad Request": "Invalid payload" });
+        }
+        // extra field
+        const allowedFields = ["utorid"];
+        const extraFields = Object.keys(req.body).filter((field) => {
+            return !allowedFields.includes(field);
+        });
+        if (extraFields.length > 0) {
+            return res.status(400).json({
+                "Bad Request": "Include extra fields",
+                extraFields,
+            });
+        }
+        // not satisfy description
+        if (!/^[a-zA-Z0-9]{7,8}$/.test(utorid)) {
+            return res.status(400).json({ "Bad Request": "Invalid utorid" });
+        }
+        // error handle - 429 Too Many Requests
+        let now = new Date();
+        if (now - lastResetAt < 60000 && req.ip === lastResetIP) {
+            return res.status(429).json({message: "Too Many Requests"});
+        }
+        // find user by utorid
+        let user;
+        try {
+            user = await prisma.user.findUnique({
+                where: {
+                    utorid: utorid
+                }
+            })
+        } catch(error) {
+            console.log(error);
+            return res.status(499).json({message: "Failed to find user"});
+        }
+        // erroe handle - 404 Not Found
+        if (user === null) {
+            console.log("/auth/resets no user");
+            return res.status(404).json({message: "No user with given utorid"});
+        }
+        // update
+        const resetToken = uuidv4();
+        lastResetIP = req.ip;
+        lastResetAt = new Date();
+        const expiresAt = new Date(lastResetAt + (7 * 24 * 60 * 60 * 1000)).toISOString();
+        let updateUser;
+        try {
+            updateUser = await prisma.user.update({
+                where: {
+                    utorid
+                },
+                data: {
+                    resetToken,
+                    expiresAt,
+                }
+            })
+        } catch(error) {
+            console.log(error);
+            return res.status(499).json({message: "Failed to update user"});
+        }
+        return res.status(202).json({
+            "resetToken": updateUser.resetToken,
+            "expiresAt": updateUser.expiresAt
+        });
+    })
+    .all((req,res) => {
+        res.status(405).json({"Method Not Allowed": "Try Get & Post"});
+    });
+
+app.route("/auth/resets/:resetToken")
+    .post(async(req,res) => {
+        const token = req.params.resetToken;
+        // error handling - 400 Bad Request.
+        const { utorid, password} = req.body;
+        // invalid payload:
+        // missing required field & not appropriate type
+        if(!utorid || !password || typeof(utorid) !== "string" || typeof(password) !== "string") {
+            return res.status(400).json({ "Bad Request": "Invalid payload" });
+        }
+        // extra field
+        const allowedFields = ["utorid", "password"];
+        const extraFields = Object.keys(req.body).filter((field) => {
+            return !allowedFields.includes(field);
+        });
+        if (extraFields.length > 0) {
+            return res.status(400).json({
+                "Bad Request": "Include extra fields",
+                extraFields,
+            });
+        }
+        // not satisfy description
+        if (!/^[a-zA-Z0-9]{7,8}$/.test(utorid)) {
+            return res.status(400).json({ "Bad Request": "Invalid utorid" });
+        }
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,20}$/.test(password)) {
+            return res.status(400).json({ "Bad Request": "Invalid password" });
+        }
+        // find user
+        let user;
+        user = await prisma.user.findMany({
+            where: {
+                resetToken: token
+            }
+        });
+        // error handle - 404 Not Found
+        if (user.length === 0) {
+            console.log("/auth/resets/:resetToken no user");
+            return res.status(404).json({ "Not Found": "Token not found" });
+        }
+        user = user[0];
+        // error handle - 401 Unauthorized
+        if (user.utorid !== utorid) {
+            return res.status(401).json({ "Unauthorized": "Token does not match user" });
+        }
+        // error handle - 410 Gone
+        if (user.expiresAt === "gone") {
+            return res.status(410).json({ "Gone": "Token expired" });
+        }
+        // reset password
+        await prisma.user.update({
+            where: {
+                resetToken: token
+            },
+            data: {
+                password: password
+            }
+        });
+        res.status(200).json(1);
     })
     .all((req,res) => {
         res.status(405).json({"Method Not Allowed": "Try Get & Post"});
