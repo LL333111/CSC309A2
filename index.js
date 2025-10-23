@@ -301,7 +301,7 @@ app.route("/users/:userId")
         const userId = parseInt(req.params.userId)
         // error handling - 400 Bad Request
         if (Number.isNaN(userId)) {
-                return res.status(400).json({ "Bad Request": "Invalid userId" });
+            return res.status(400).json({ "Bad Request": "Invalid userId" });
         }
         // get user's information by userId
         // 2 cases: cashier && manager or higher
@@ -364,6 +364,11 @@ app.route("/users/:userId")
         }
         // error handling - 400 Bad Request.
         let {email, verified, suspicious, role} = req.body;
+        console.log(req.body);
+        // no fields
+        if (!email && verified === undefined && suspicious === undefined && !role) {
+            return res.status(400).json({ "Bad Request": "No update fields provided" })
+        }
         // extra field
         const allowedFields = ["email", "verified", "suspicious", "role"];
         const extraFields = Object.keys(req.body).filter((field) => {
@@ -381,6 +386,8 @@ app.route("/users/:userId")
         if (Number.isNaN(userId)) {
                 return res.status(400).json({ "Bad Request": "Invalid userId" });
         }
+        console.log(req.role);
+        console.log(userId);
         // error handling - 404 Not Found
         let user;
         try {
@@ -396,6 +403,7 @@ app.route("/users/:userId")
         if (user.length === 0) {
             return res.status(404).json({ "Not Found": "User not found" });
         }
+        console.log(user);
         // error handling - 400 Bad Request
         // set data meanwhile
         let data = {};
@@ -405,39 +413,34 @@ app.route("/users/:userId")
             name: true
         };
         // not satisfy description
-        if (email !== undefined) {
+        if (email !== undefined && email !== null) {
             if (typeof(email) !== "string" || !/^[^@]+@mail.utoronto.ca$/.test(email)) {
                 return res.status(400).json({ "Bad Request": "Invalid email" });
             }
             data.email = email;
             select.email = true;
         }
-        if (verified !== undefined) {
+        if (verified !== undefined && verified !== null) {
             if (typeof(verified) !== "boolean" || verified !== true) {
                 return res.status(400).json({ "Bad Request":"Invalid verified" });
             }
             data.verified = verified;
             select.verified = true;
         }
-        if (suspicious !== undefined) {
+        if (suspicious !== undefined && suspicious !== null) {
             if (typeof(suspicious) !== "boolean") {
                 return res.status(400).json({ "Bad Request":"Invalid suspicious" });
             }
             data.suspicious = suspicious;
             select.suspicious = true;
         }
-        if (role !== undefined) {
-            if (req.role === "manager") {
-                if (typeof(role) !== "string" || (role !== "cashier" && role !== "regular")) {
-                    return res.status(400).json({ "Bad Request":"Invalid role" });
-                }
-            } else {
-                if (typeof(role) !== "string" || (role !== "cashier" && role !== "regular" && role !== "manager" && role !== "superuser")) {
-                    return res.status(400).json({ "Bad Request":"Invalid role" });
-                }
+        if (role !== undefined && role !== null) {
+            if (typeof(role) !== "string" || (role !== "cashier" && role !== "regular" && role !== "manager" && role !== "superuser")) {
+                return res.status(400).json({ "Bad Request":"Invalid role" });
             }
-            // 正确的 权限 + role 组合
-            // 但是提拔user 需要suspicious为false
+            if (req.role === "manager" && (role === "manager" || role === "superuser")) {
+                return res.status(403).json({ "Bad Request":"Unauthorized role change" });
+            }
             if (user[0].role === "regular" && role === "cashier" && user[0].suspicious === true) {
                 return res.status(400).json({ "Bad Request":"Invalid role (suspicious)" })
             }
