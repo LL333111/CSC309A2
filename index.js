@@ -406,6 +406,68 @@ app.route("/users/me")
         res.status(405).json({"Method Not Allowed": "Try Get & Post"});
     });
 
+app.route("/users/me/password")
+    .patch(bearerToken, async(req,res) => {
+        // error handle - 401 Unauthorized
+        // no auth:
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - 403 Forbidden
+        // if not "Regular or higher"
+        if (req.role !== "regular" && req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Regular or higher"});
+        }
+        // error handling - 400 Bad Request.
+        const {old, new: newPassword} = req.body;
+        // invalid payload:
+        // missing required field & not appropriate type
+        if(!old || !newPassword ||
+            typeof(old) !== "string" || typeof(newPassword) !== "string") {
+            return res.status(400).json({ "Bad Request": "Invalid payload" });
+        }
+        // extra field
+        const allowedFields = ["old", "new"];
+        const extraFields = Object.keys(req.body).filter((field) => {
+            return !allowedFields.includes(field);
+        });
+        if (extraFields.length > 0) {
+            return res.status(400).json({
+                "Bad Request": "Include extra fields",
+                extraFields,
+            });
+        }
+        // check old password
+        let user = await prisma.user.findUnique({
+            where: {
+                id: req.user.id
+            }
+        });
+        // error handling - 404 Not Found
+        if (user === null) {
+            return res.status(404).json({ "Not Found": "User not found" });
+        }
+        if (user.password !== old) {
+            return res.status(403).json({ "Unauthorized": "Incorrect old password" });
+        }
+        // not satisfy description
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,20}$/.test(newPassword)) {
+            return res.status(400).json({ "Bad Request": "Invalid password" });
+        }
+        // update
+        await prisma.user.update({
+            where: {
+                id: req.user.id
+            },
+            data: {
+                password: newPassword
+            }
+        });
+        res.status(200).json();
+    })
+    .all((req,res) => {
+        res.status(405).json({"Method Not Allowed": "Try Get & Post"});
+    });
 
 app.route("/users/:userId")
     .get(bearerToken, async(req,res) => {
