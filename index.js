@@ -84,7 +84,16 @@ const bearerToken = (req, res, next) => {
         return next();
     }
     let encoding = jwtHeader.split(" ")[1];
-    let user = jwt.verify(encoding, process.env.JWT_SECRET);
+    let user;
+    try {
+        user = jwt.verify(encoding, process.env.JWT_SECRET);
+    } catch (error) {
+        return res.status(401).json({ "Unauthorized": "Invalid token" });
+    }
+    if (!user.role) { 
+        req.role = null;
+        return next();
+    }
     req.user = user;
     req.role = user.role;
     next();
@@ -304,7 +313,6 @@ app.route("/users/me")
                 extraFields,
             });
         }
-        console.log(req.body);
         // find user by id
         // req.user.id
         let user = await prisma.user.findUnique({
@@ -403,7 +411,7 @@ app.route("/users/me")
         res.status(200).json(user);
     })
     .all((req,res) => {
-        res.status(405).json({"Method Not Allowed": "Try Get & Post"});
+        res.status(405).json({"Method Not Allowed": "Try Get & Patch"});
     });
 
 app.route("/users/me/password")
@@ -644,7 +652,7 @@ app.route("/users/:userId")
         res.status(200).json(result);
     })
     .all((req,res) => {
-        res.status(405).json({"Method Not Allowed": "Try Get & Post"});
+        res.status(405).json({"Method Not Allowed": "Try Get & Patch"});
     });
 
 app.route("/auth/tokens")
@@ -708,7 +716,7 @@ app.route("/auth/tokens")
         })
     })
     .all((req,res) => {
-        res.status(405).json({"Method Not Allowed": "Try Get & Post"});
+        res.status(405).json({"Method Not Allowed": "Try Post"});
     });
 
 app.route("/auth/resets")
@@ -782,7 +790,7 @@ app.route("/auth/resets")
         });
     })
     .all((req,res) => {
-        res.status(405).json({"Method Not Allowed": "Try Get & Post"});
+        res.status(405).json({"Method Not Allowed": "Try Post"});
     });
 
 app.route("/auth/resets/:resetToken")
@@ -842,7 +850,91 @@ app.route("/auth/resets/:resetToken")
                 password: password
             }
         });
-        res.status(200).json(1);
+        res.status(200).json();
+    })
+    .all((req,res) => {
+        res.status(405).json({"Method Not Allowed": "Try Post"});
+    });
+
+app.route("/events")
+    .post(bearerToken, async(req,res) => {
+        // error handle - 401 Unauthorized
+        // no auth:
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - 403 Forbidden
+        // if not "Manager or higher"
+        if (req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Manager or higher"});
+        }
+        // error handling - 400 Bad Request.
+        const {name, description, location, startTime, endTime, capacity, points} = req.body;
+        // invalid payload:
+        // missing required field & not appropriate type
+        if(!name || !description || !location || !startTime || !endTime || points === undefined ||
+            typeof(name) !== "string" || typeof(description) !== "string" || 
+            typeof(location) !== "string" || typeof(startTime) !== "string" || 
+            typeof(endTime) !== "string" || typeof(points) !== "number") {
+            return res.status(400).json({ "Bad Request": "Invalid payload" });
+        }
+        // extra field
+        const allowedFields = ["name", "description", "location", "startTime", "endTime", "capacity", "points"];
+        const extraFields = Object.keys(req.body).filter((field) => {
+            return !allowedFields.includes(field);
+        });
+        if (extraFields.length > 0) {
+            return res.status(400).json({
+                "Bad Request": "Include extra fields",
+                extraFields,
+            });
+        }
+        // not satisfy description
+        let data = {};
+        if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}\+\d{2}:\d{2}$/.test(startTime)) {
+            return res.status(400).json({ "Bad Request": "Invalid startTime" });
+        }
+        if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}\+\d{2}:\d{2}$/.test(endTime) || startTime >= endTime) {
+            return res.status(400).json({ "Bad Request": "Invalid endTime" });
+        }
+        if (!Number.isInteger(points) || points <= 0) {
+            return res.status(400).json({ "Bad Request": "Invalid points" });
+        }
+        if (typeof(capacity) === "number") {
+            if (capacity <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid capacity" });
+            }
+            data.capacity = parseInt(capacity);
+        }
+        // init data
+        data.name = name;
+        data.description = description;
+        data.location = location;
+        data.startTime = startTime;
+        data.endTime = endTime;
+        data.pointsRemain = points;
+        // create event
+        let result = await prisma.event.create({
+            data: data,
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                location: true,
+                startTime: true,
+                endTime: true,
+                capacity: true,
+                pointsRemain: true,
+                pointsAwarded: true,
+                published: true,
+                organizers: true,
+                guests: true
+            }
+        });
+        res.status(201).json(result);
+    })
+    .get(bearerToken, async(req,res) => {
+        res.status(200).json();
     })
     .all((req,res) => {
         res.status(405).json({"Method Not Allowed": "Try Get & Post"});
