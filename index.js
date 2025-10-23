@@ -25,6 +25,7 @@ const app = express();
 app.use(express.json());
 
 // ADD YOUR WORK HERE
+// import
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
@@ -33,16 +34,43 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const { v1: uuidv4 } = require('uuid');
 const { tr, no } = require("zod/v4/locales");
+const { promise } = require("zod/v4");
 
 // recording (like constant)
 let lastResetAt = "0000-00-00T00:00:00.000Z";
 let lastResetIP = "";
 
+// function
+function isValidBirthday(dateString) {
+  // check YYYY-MM-DD
+  let regex = /^(19[0-9]{2}|20[0-1][0-9]|202[0-5])-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/;
+  if (!regex.test(dateString)) {
+    return false;
+  }
+
+  // analyse data
+  let parts = dateString.split('-');
+  let year = parseInt(parts[0], 10);
+  let month = parseInt(parts[1], 10);
+  let day = parseInt(parts[2], 10);
+
+  // check data valid
+  let date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day) {
+    return false;
+  }
+
+  // check range 1900-01-01 to 2025-12-31
+  let start = new Date(1900, 0, 1);
+  let end = new Date(2025, 11, 31);
+  return date >= start && date <= end;
+}
+
 // Middleware
 // check input json
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    return res.status(499).json({ "message": 'Invalid JSON input' });
+    return res.status(400).json({ "message": 'Invalid JSON input' });
   }
   next();
 });
@@ -248,22 +276,26 @@ app.route("/users")
     });
 
 app.route("/users/me")
-    .patch(async(req,res) => {
+    .patch(bearerToken, async(req,res) => {
         // error handle - 401 Unauthorized
         // no auth:
         if (!req.role) {
             return res.status(401).json({ "Unauthorized": "No authorization" });
         }
         // error handling - 403 Forbidden
-        // if not "Regular or highe"
+        // if not "Regular or higher"
         if (req.role !== "regular" && req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
-            return res.status(403).json({ "Forbidden": "Manager or higher"});
+            return res.status(403).json({ "Forbidden": "Regular or higher"});
         }
         // error handling - 400 Bad Request.
-        let {name, email, birthday, avatar} = req.query;
+        let {name, email, birthday, avatar} = req.body;
+        // no fields
+        if (!name && !email && !birthday && !avatar) {
+            return res.status(400).json({ "Bad Request":"No update field provied" })
+        }
         // extra field
-        const allowedFields = ["name", "role", "verified", "activated", "page", "limit"];
-        const extraFields = Object.keys(req.query).filter((field) => {
+        const allowedFields = ["name", "email", "birthday", "avatar"];
+        const extraFields = Object.keys(req.body).filter((field) => {
             return !allowedFields.includes(field);
         });
         if (extraFields.length > 0) {
@@ -272,13 +304,103 @@ app.route("/users/me")
                 extraFields,
             });
         }
-        // set filter(where) meanwhile
-        let where ={};
+        console.log(req.body);
+        // find user by id
+        // req.user.id
+        let user = await prisma.user.findUnique({
+            where: {
+                id: req.user.id
+            }
+        });
+        // error handle - 404 Not Found
+        if (user === null) {
+            return res.status(404).json({ "Not Found":"User not found" });
+        }
+        // set data meanwhile
+        let data ={};
         // not satisfy description
-        res.status(200).json();
+        if (name !== undefined && name !== null) {
+            if (typeof(name) !== "string" || !/^.{1,50}$/.test(name)) {
+                return res.status(400).json({ "Bad Request": "Invalid name" });
+            }
+            data.name = name;
+        }
+        if (email !== undefined && email !== null) {
+            if (typeof(email) !== "string" || !/^[^@]+@mail.utoronto.ca$/.test(email)) {
+                return res.status(400).json({ "Bad Request": "Invalid email" });
+            }
+            data.email = email;
+        }
+        if (birthday !== undefined && birthday !== null) {
+            if (typeof(birthday) !== "string" || !isValidBirthday(birthday)) {
+                return res.status(400).json({ "Bad Request": "Invalid birthday" });
+            }
+            data.birthday = birthday;
+        }
+        if (avatar !== undefined && avatar !== null) {
+            if (typeof(avatar) !== "string" || !/\/uploads\/avatars\/[a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg)$/i.test(avatar)) {
+                return res.status(400).json({ "Bad Request": "Invalid avatar" });
+            }
+            data.avatar = avatar;
+        }
+        // update
+        let result = await prisma.user.update({
+            where: {
+                id: req.user.id
+            },
+            data: data,
+            select: {
+                id: true,
+                utorid: true,
+                name: true,
+                email: true,
+                birthday: true,
+                role: true,
+                points: true,
+                createdAt: true,
+                lastLogin: true,
+                verified: true,
+                avatarUrl: true
+            }
+        });
+        res.status(200).json(result);
     })
-    .get(async(req,res) => {
-        res.status(200).json();
+    .get(bearerToken, async(req,res) => {
+        // error handle - 401 Unauthorized
+        // no auth:
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - 403 Forbidden
+        // if not "Regular or higher"
+        if (req.role !== "regular" && req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Regular or higher"});
+        }
+        // find user by id
+        let user = await prisma.user.findUnique({
+            where: {
+                id: req.user.id
+            },
+            select: {
+                id: true,
+                utorid: true,
+                name: true,
+                email: true,
+                birthday: true,
+                role: true,
+                points: true,
+                createdAt: true,
+                lastLogin: true,
+                verified: true,
+                avatarUrl: true,
+                promotions: true
+            }
+        });
+        // error handling - 404 Not Found
+        if (user === null) {
+            return res.status(404).json({ "Not Found": "User not found" });
+        }
+        res.status(200).json(user);
     })
     .all((req,res) => {
         res.status(405).json({"Method Not Allowed": "Try Get & Post"});
@@ -364,9 +486,8 @@ app.route("/users/:userId")
         }
         // error handling - 400 Bad Request.
         let {email, verified, suspicious, role} = req.body;
-        console.log(req.body);
         // no fields
-        if (!email && verified === undefined && suspicious === undefined && !role) {
+        if (!email && (verified === undefined || verified === null) && (suspicious === undefined || suspicious === null) && !role) {
             return res.status(400).json({ "Bad Request": "No update fields provided" })
         }
         // extra field
@@ -386,8 +507,6 @@ app.route("/users/:userId")
         if (Number.isNaN(userId)) {
                 return res.status(400).json({ "Bad Request": "Invalid userId" });
         }
-        console.log(req.role);
-        console.log(userId);
         // error handling - 404 Not Found
         let user;
         try {
@@ -403,7 +522,6 @@ app.route("/users/:userId")
         if (user.length === 0) {
             return res.status(404).json({ "Not Found": "User not found" });
         }
-        console.log(user);
         // error handling - 400 Bad Request
         // set data meanwhile
         let data = {};
