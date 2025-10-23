@@ -35,8 +35,8 @@ const { v1: uuidv4 } = require('uuid');
 const { tr, no } = require("zod/v4/locales");
 
 // recording (like constant)
-let lastResetAt;
-let lastResetIP
+let lastResetAt = "0000-00-00T00:00:00.000Z";
+let lastResetIP = "";
 
 // Middleware
 // check input json
@@ -123,8 +123,6 @@ app.route("/users")
         // create resetToken & expiresAt
         const resetToken = uuidv4();
         let createdAt = new Date();
-        lastResetAt = createdAt;
-        lastResetIP = req.ip;
         const expiresAt = (new Date(createdAt.getTime() + (7 * 24 * 60 * 60 * 1000))).toISOString();
         try {
             // create user
@@ -179,15 +177,9 @@ app.route("/users")
         // set filter(where) meanwhile
         let where ={};
         // not satisfy description
-        // if (name !== undefined && !/^.{1,50}$/.test(name)) {
-        //     return res.status(400).json({ "Bad Request": "Invalid name" });
-        // }
         if (name !== undefined) {
             where.name = name;
         } 
-        if (role !== undefined && (role !== "regular" && role !== "cashier" && role !== "manager" && role !== "superuser")) {
-            return res.status(400).json({ "Bad Request": "Invalid role" });
-        }
         if (role !== undefined) {
             if (role !== "regular" && role !== "cashier" && role !== "manager" && role !== "superuser") {
                 return res.status(400).json({ "Bad Request": "Invalid role" });
@@ -209,7 +201,7 @@ app.route("/users")
         // if no inout page or limit, set them to default value
         if (page !== undefined) {
             page = parseInt(page);
-            if (Number.isNaN(page)) {
+            if (Number.isNaN(page) || page <= 0) {
                 return res.status(400).json({ "Bad Request": "Invalid page" });
             }
         } else { // no input page
@@ -217,7 +209,7 @@ app.route("/users")
         }
         if (limit !== undefined) {
             limit = parseInt(limit);
-            if (Number.isNaN(limit)) {
+            if (Number.isNaN(limit) || limit <= 0) {
                 return res.status(400).json({ "Bad Request": "Invalid limit" });
             }
         } else { // no input limit
@@ -254,6 +246,44 @@ app.route("/users")
     .all((req,res) => {
         res.status(405).json({"Method Not Allowed": "Try Get & Post"});
     });
+
+app.route("/users/me")
+    .patch(async(req,res) => {
+        // error handle - 401 Unauthorized
+        // no auth:
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - 403 Forbidden
+        // if not "Regular or highe"
+        if (req.role !== "regular" && req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Manager or higher"});
+        }
+        // error handling - 400 Bad Request.
+        let {name, email, birthday, avatar} = req.query;
+        // extra field
+        const allowedFields = ["name", "role", "verified", "activated", "page", "limit"];
+        const extraFields = Object.keys(req.query).filter((field) => {
+            return !allowedFields.includes(field);
+        });
+        if (extraFields.length > 0) {
+            return res.status(400).json({
+                "Bad Request": "Include extra fields",
+                extraFields,
+            });
+        }
+        // set filter(where) meanwhile
+        let where ={};
+        // not satisfy description
+        res.status(200).json();
+    })
+    .get(async(req,res) => {
+        res.status(200).json();
+    })
+    .all((req,res) => {
+        res.status(405).json({"Method Not Allowed": "Try Get & Post"});
+    });
+
 
 app.route("/users/:userId")
     .get(bearerToken, async(req,res) => {
@@ -317,7 +347,6 @@ app.route("/users/:userId")
         }
         // error handling - 404 Not Found
         if (result === null) {
-            console.log("/users/:userId no user");
             return res.status(404).json({ "Not Found": "User not found" });
         }
         res.status(200).json(result);
@@ -365,7 +394,6 @@ app.route("/users/:userId")
             return res.status(499).json({message: "Failed to find user"});
         }
         if (user.length === 0) {
-            console.log("/users/:userId no user");
             return res.status(404).json({ "Not Found": "User not found" });
         }
         // error handling - 400 Bad Request
@@ -472,7 +500,6 @@ app.route("/auth/tokens")
         });
         // error handling - 404 Not Found
         if (user === null) {
-            console.log("/auth/tokens no user");
             return res.status(404).json({message: "No user with given utorid"});
         }
         if (user.password === null || user.password !== password) {
@@ -483,6 +510,14 @@ app.route("/auth/tokens")
             utorid: user.utorid,
             role: user.role
         };
+        await prisma.user.update({
+            where: {
+                utorid: utorid
+            },
+            data: {
+                lastLogin: (new Date()).toISOString()
+            }
+        });
         const expiresAt = new Date(Date.now() + (24 * 60 * 60 * 1000));
         return res.status(200).json({
             "token": jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: "1d" }),
@@ -536,7 +571,6 @@ app.route("/auth/resets")
         }
         // erroe handle - 404 Not Found
         if (user === null) {
-            console.log("/auth/resets no user");
             return res.status(404).json({message: "No user with given utorid"});
         }
         // update
@@ -605,7 +639,6 @@ app.route("/auth/resets/:resetToken")
         });
         // error handle - 404 Not Found
         if (user.length === 0) {
-            console.log("/auth/resets/:resetToken no user");
             return res.status(404).json({ "Not Found": "Token not found" });
         }
         user = user[0];
@@ -620,7 +653,7 @@ app.route("/auth/resets/:resetToken")
         // reset password
         await prisma.user.update({
             where: {
-                resetToken: token
+                id: user.id
             },
             data: {
                 password: password

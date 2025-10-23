@@ -23,11 +23,13 @@ async function createsu() {
   await prisma.user.create({ 
     data: {
       utorid,
+      name: "",
       email,
       password,
       role: "superuser",
-      name: "",
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      lastLogin: "2025-10-23T01:26:41.709Z",
+      verified: true
     }
   });
 }
