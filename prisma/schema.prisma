@@ -63,6 +63,7 @@ model Event {
   capacity      Int?     // 限制参与人数 无限制为 null
   organizers    User[]   @relation("EventOrganizers")
   guests        User[]   @relation("EventGuests")
+  numGuests     Int      @default(0)  // 当前参与人数
 }
 
 model Promotion {

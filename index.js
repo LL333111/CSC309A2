@@ -235,7 +235,7 @@ app.route("/users")
             }
             where.lastLogin = activated === "true"? { not: null } : null;
         }
-        // if no inout page or limit, set them to default value
+        // if no input page or limit, set them to default value
         if (page !== undefined) {
             page = parseInt(page);
             if (Number.isNaN(page) || page <= 0) {
@@ -910,8 +910,8 @@ app.route("/events")
         data.name = name;
         data.description = description;
         data.location = location;
-        data.startTime = startTime;
-        data.endTime = endTime;
+        data.startTime = startTime.split('.')[0] + 'Z';
+        data.endTime = endTime.split('.')[0] + 'Z';
         data.pointsRemain = points;
         // create event
         let result = await prisma.event.create({
@@ -934,7 +934,137 @@ app.route("/events")
         res.status(201).json(result);
     })
     .get(bearerToken, async(req,res) => {
-        res.status(200).json();
+        // error handle - 401 Unauthorized
+        // no auth:
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - 403 Forbidden
+        // if not "Regular or higher"
+        if (req.role !== "regular" && req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Regular or higher"});
+        }
+        // error handling - 400 Bad Request.
+        let {name, location, started, ended, showFull, page, limit, published} = req.query;
+        // extra field
+        const allowedFields = ["name", "location", "started", "ended", "showFull", "page", "limit", "published"];
+        const extraFields = Object.keys(req.query).filter((field) => {
+            return !allowedFields.includes(field);
+        });
+        if (extraFields.length > 0) {
+            return res.status(400).json({
+                "Bad Request": "Include extra fields",
+                extraFields,
+            });
+        }
+        // set filter(where) meanwhile
+        console.log(req.role);
+        console.log(req.query);
+        let where ={};
+        // not satisfy description
+        if (name !== undefined && name !== null) {
+            where.name = name;
+        } 
+        if (location !== undefined && location !== null) {
+            where.location = location;
+        } 
+        if (started !== undefined && started !== null) {
+            if (!(started === "true" || started === "false")) {
+                return res.status(400).json({ "Bad Request":"Invalid started" });
+            }
+            if (started === "true") {
+                where.startTime = { lt: (new Date()).toISOString() };
+            } else {
+                where.startTime = { gte: (new Date()).toISOString() };
+            }
+        }
+        if (ended !== undefined && ended !== null) {
+            if (!(ended === "true" || ended === "false")) {
+                return res.status(400).json({ "Bad Request":"Invalid started" });
+            }
+            if (started !== undefined && started !== null) {
+                return res.status(400).json({ "Bad Request":"Not permitted to use both started and ended" });
+            }
+            if (ended === "true") {
+                where.endTime = { lt: (new Date()).toISOString() };
+            } else {
+                where.endTime = { gte: (new Date()).toISOString() };
+            }
+        }
+        if (showFull !== undefined && showFull !== null) {
+            if (!(showFull === "true" || showFull === "false")) {
+                return res.status(400).json({ "Bad Request":"Invalid showFull" });
+            }
+            if (showFull === "true") {
+                // no filter
+            } else {
+                where.OR = [
+                    { capacity: null },
+                    { attendees: { lt: prisma.event.capacity } }
+                ];
+            }
+        }
+        // if no input page or limit, set them to default value
+        if (page !== undefined) {
+            page = parseInt(page);
+            if (Number.isNaN(page) || page <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid page" });
+            }
+        } else { // no input page
+            page = 1;
+        }
+        if (limit !== undefined) {
+            limit = parseInt(limit);
+            if (Number.isNaN(limit) || limit <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid limit" });
+            }
+        } else { // no input limit
+            limit = 10;
+        }
+        //published filter
+        if (published !== undefined && published !== null) {
+            if (!(published === "true" || published === "false")) {
+                return res.status(400).json({ "Bad Request":"Invalid published" });
+            }
+            if (req.role === "regular" || req.role === "cashier") {
+                return res.status(403).json({ "Forbidden":"Not permit to use published filter" });
+            }
+            where.published = published === "true";
+        } else {
+            if (req.role === "regular") {
+                where.published = false;
+            }
+        }
+        // set select
+        let select = {
+            id: true,
+            name: true,
+            location: true,
+            startTime: true,
+            endTime: true,
+            capacity: true,
+            numGuests: true,
+        }
+        if (req.role !== "regular" && req.role !== "cashier") {
+            select.pointsRemain = true;
+            select.pointsAwarded = true;
+            select.published = true;
+        }
+        // apply all filters
+        let results;
+        try {
+            results = await prisma.event.findMany({
+                where: where,
+                select: select
+            });
+        } catch(error) {
+            console.log(error);
+            return res.status(499).json({message: "Failed to find user"});
+        }
+        return res.status(200).json({
+            count: results.length,
+            results: results.slice((page-1)*limit, ((page-1)*limit)+limit)
+        });
     })
     .all((req,res) => {
         res.status(405).json({"Method Not Allowed": "Try Get & Post"});
