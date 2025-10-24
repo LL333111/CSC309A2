@@ -1070,14 +1070,204 @@ app.route("/events")
         res.status(405).json({"Method Not Allowed": "Try Get & Post"});
     });
 
-let time = 0;
+app.route("/events/:eventId")
+    .get(bearerToken, async(req,res) => {
+        res.status(405).json();
+    })
+    .patch(bearerToken, async(req,res) => {
+        // error handle - 401 Unauthorized
+        // no auth:
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - 403 Forbidden
+        // get organizers of the event
+        const eventId = parseInt(req.params.eventId)
+        if (Number.isNaN(eventId)) {
+            return res.status(400).json({ "Bad Request": "Invalid eventId" });
+        }
+        let event = await prisma.event.findUnique({
+            where: {
+                id: eventId
+            },
+            include: {
+                organizers: true
+            }
+        });
+        if (event === null) {
+            return res.status(404).json({ "Not Found": "Event not found" });
+        }
+        console.log(event);
+        // get organizer ids
+        const organizerIds = event.organizers.map((org) => org.id);
+        // if not organizer && not "Manager or higher"
+        if (!organizerIds.includes(req.user.id) && req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Manager or higher or organizer"});
+        }
+        // error handling - 400 Bad Request.
+        let {name, description, location, startTime, endTime, capacity, points, published} = req.body;
+        // extra field
+        const allowedFields = ["name", "description", "location", "startTime", "endTime", "capacity", "points", "published"];
+        const extraFields = Object.keys(req.body).filter((field) => {
+            return !allowedFields.includes(field);
+        });
+        if (extraFields.length > 0) {
+            return res.status(400).json({
+                "Bad Request": "Include extra fields",
+                extraFields,
+            });
+        }
+        // not satisfy description
+        let data = {};
+        let select = {
+            id: true,
+            name: true,
+            location: true
+        };
+        if (name !== undefined && name !== null) {
+            if (typeof(name) !== "string") {
+                return res.status(400).json({ "Bad Request": "Invalid name" });
+            }
+            if ((new Date(event.startTime)).toISOString() <= (new Date()).toISOString()) {
+                return res.status(400).json({ "Bad Request": "Cannot update name of started event" });
+            }
+            data.name = name;
+            select.name = true;
+        }
+        if (description !== undefined && description !== null) {
+            if (typeof(description) !== "string") {
+                return res.status(400).json({ "Bad Request": "Invalid description" });
+            }
+            if ((new Date(event.startTime)).toISOString() <= (new Date()).toISOString()) {
+                return res.status(400).json({ "Bad Request": "Cannot update description of started event" });
+            }
+            data.description = description;
+            select.description = true;
+        }
+        if (location !== undefined && location !== null) {
+            if (typeof(location) !== "string") {
+                return res.status(400).json({ "Bad Request": "Invalid location" });
+            }
+            if ((new Date(event.startTime)).toISOString() <= (new Date()).toISOString()) {
+                return res.status(400).json({ "Bad Request": "Cannot update location of started event" });
+            }
+            data.location = location;
+            // location is always selected
+        }
+        if (startTime !== undefined && startTime !== null) {
+            if (typeof(startTime) !== "string") {
+                return res.status(400).json({ "Bad Request": "Invalid startTime" });
+            }
+            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}\+\d{2}:\d{2}$/.test(startTime) || (new Date(startTime)).toISOString() <= (new Date()).toISOString()) {
+                return res.status(400).json({ "Bad Request": "Invalid startTime" });
+            }
+            if ((new Date(event.startTime)).toISOString() <= (new Date()).toISOString()) {
+                return res.status(400).json({ "Bad Request": "Cannot update startTime of started event" });
+            }
+            if (endTime === undefined && endTime === null) { // 10
+                // check id startTime < existing endTime
+                if (startTime >= event.endTime) {
+                    return res.status(400).json({ "Bad Request": "Invalid startTime" });
+                }
+            }
+            data.startTime = startTime.split('.')[0] + 'Z';
+            select.startTime = true;
+        }
+        if (endTime !== undefined && endTime !== null) {
+            if (typeof(endTime) !== "string") {
+                return res.status(400).json({ "Bad Request": "Invalid endTime" });
+            }
+            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}\+\d{2}:\d{2}$/.test(endTime) || (new Date(endTime)).toISOString() <= (new Date()).toISOString()) {
+                return res.status(400).json({ "Bad Request": "Invalid endTime" });
+            }
+            if ((new Date(event.endTime)).toISOString() <= (new Date()).toISOString()) {
+                return res.status(400).json({ "Bad Request": "Cannot update endTime of ended event" });
+            }
+            if (startTime === undefined && startTime === null) { // 01
+                // check endTime > existing startTime
+                if (endTime <= event.startTime) {
+                    return res.status(400).json({ "Bad Request": "Invalid endTime" });
+                }
+            } else { // 11
+                // startTime is also provided
+                // check endTime > startTime
+                if (startTime >= endTime) {
+                    return res.status(400).json({ "Bad Request": "Invalid startTime and endTime" });
+                }
+            }
+            data.endTime = endTime.split('.')[0] + 'Z';
+            select.endTime = true;
+        }
+        if (capacity !== undefined) {
+            if (typeof(capacity) !== "number" && capacity !== null) {
+                return res.status(400).json({ "Bad Request": "Invalid capacity" });
+            }
+            if (typeof(capacity) === "number" && capacity <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid capacity" });
+            }
+            // special checks
+            if ((new Date(event.startTime)).toISOString() <= (new Date()).toISOString()) {
+                return res.status(400).json({ "Bad Request": "Cannot update capacity of started event" });
+            }
+            if (capacity !== null) {
+                if (event.capacity === null || capacity < event.capacity ) {
+                    if (capacity < event.numGuests) {
+                        return res.status(400).json({ "Bad Request": "Invalid capacity" });
+                    }
+                }
+            }
+            data.capacity = capacity === null ? null : parseInt(capacity);
+            select.capacity = true;
+        }
+        if (points !== undefined && points !== null) {
+            if (req.role !== "manager" && req.role !== "superuser") {
+                return res.status(403).json({ "Forbidden": "Manager or higher"});
+            }
+            if (typeof(points) !== "number") {
+                return res.status(400).json({ "Bad Request": "Invalid points" });
+            }
+            if (points <= 0 || !Number.isInteger(points)) {
+                return res.status(400).json({ "Bad Request": "Invalid points" });
+            }
+            if (points < (event.pointsAwarded + event.pointsRemain)) {
+                if (points < event.pointsAwarded) {
+                    return res.status(400).json({ "Bad Request": "Invalid points" });
+                }
+            }
+            data.pointsRemain = points - event.pointsAwarded;
+            select.pointsRemain = true;
+        }
+        if (published !== undefined && published !== null) {
+            if (req.role !== "manager" && req.role !== "superuser") {
+                return res.status(403).json({ "Forbidden": "Manager or higher"});
+            }
+            if (typeof(published) !== "boolean" || published !== true) {
+                return res.status(400).json({ "Bad Request": "Invalid published" });
+            }
+            data.published = published;
+            select.published = true;
+        }
+        // update
+        let result = await prisma.event.update({
+            where: {
+                id: eventId
+            },
+            data: data,
+            select: select
+        });
+        res.status(200).json(result);
+    })
+    .delete(bearerToken, async(req,res) => {
+        res.status(405).json();
+    })
+    .all((req,res) => {
+        res.status(405).json({"Method Not Allowed": "Try Get, Patch & Delete"});
+    });
 
 app.route("/events/:eventId/organizers")
     .post(bearerToken, async(req,res) => {
         // error handle - 401 Unauthorized
         // no auth:
-        console.log(`${time} 1`);
-        console.log(req.body);
         if (!req.role) {
             return res.status(401).json({ "Unauthorized": "No authorization" });
         }
@@ -1086,7 +1276,6 @@ app.route("/events/:eventId/organizers")
         if (req.role !== "manager" && req.role !== "superuser") {
             return res.status(403).json({ "Forbidden": "Manager or higher"});
         }
-        console.log(`${time} 2`);
         // error handling - 400 Bad Request.
         const {utorid} = req.body;
         // invalid payload:
@@ -1094,7 +1283,6 @@ app.route("/events/:eventId/organizers")
         if(!utorid || typeof(utorid) !== "string") {
             return res.status(400).json({ "Bad Request": "Invalid payload" });
         }
-        console.log(`${time} 3`);
         // extra field
         const allowedFields = ["utorid"];
         const extraFields = Object.keys(req.body).filter((field) => {
@@ -1106,48 +1294,40 @@ app.route("/events/:eventId/organizers")
                 extraFields
             });
         }
-        console.log(`${time} 4`);
         // not satisfy description
         if (!/^[a-zA-Z0-9]{7,8}$/.test(utorid)) {
             return res.status(400).json({ "Bad Request": "Invalid utorid" });
         }
-        console.log(`${time} 5`);
         // find user by utorid
         let user = await prisma.user.findUnique({
             where: {
                 utorid
             }
         });
-        console.log(`${time} 6`);
         // error handling - 404 Not Found
         if (user === null) {
             return res.status(404).json({ "Not Found": "User not found" });
         }
-        console.log(`${time} 7`);
         // process eventId
         const eventId = parseInt(req.params.eventId)
         // error handling - 400 Bad Request
         if (Number.isNaN(eventId)) {
             return res.status(400).json({ "Bad Request": "Invalid eventId" });
         }
-        console.log(`${time} 8`);
         // find event by eventId
         let event = await prisma.event.findUnique({
             where: {
                 id: eventId
             }
         });
-        console.log(`${time} 9`);
         // error handling - 404 Not Found
         if (event === null) {
             return res.status(404).json({ "Not Found": "Event not found" });
         }
-        console.log(`${time} 10`);
         // error handle - 410 Gone
         if (event.endTime < (new Date()).toISOString()) {
             return res.status(410).json({ "Gone": "Event has ended" });
         }
-        console.log(`${time} 11`);
         // error handle - 400 Bad Request
         // check if user is already an guest
         let guests = await prisma.event.findMany({
@@ -1160,11 +1340,9 @@ app.route("/events/:eventId/organizers")
                 }
             }
         });
-        console.log(`${time} 12`);
         if (guests.length > 0) {
             return res.status(400).json({ "Bad Request": "User is already an guests" });
         }
-        console.log(`${time} 13`);
         // add organizer
         let result = await prisma.event.update({
             where: {
@@ -1182,14 +1360,12 @@ app.route("/events/:eventId/organizers")
                 organizers: true
             }
         });
-        console.log(`${time} 13`);
-        time += 1;
         res.status(201).json(result);
     })
     .all((req,res) => {
         res.status(405).json({"Method Not Allowed": "Try Post"});
     });
-    
+
 const server = app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
