@@ -33,7 +33,7 @@ require('dotenv').config();
 
 const jwt = require('jsonwebtoken');
 const { v1: uuidv4 } = require('uuid');
-const { tr, no } = require("zod/v4/locales");
+const { tr, no, ca, id } = require("zod/v4/locales");
 const { promise } = require("zod/v4");
 
 // recording (like constant)
@@ -1073,6 +1073,7 @@ app.route("/events")
     .all((req, res) => {
         res.status(405).json({ "Method Not Allowed": "Try Get & Post" });
     });
+
 
 app.route("/events/:eventId")
     .get(bearerToken, async (req, res) => {
@@ -2127,8 +2128,27 @@ app.route("/promotions/:promotionId")
     .all((req, res) => {
         res.status(405).json({ "Method Not Allowed": "Try Get & Patch & Delete" });
     });
+app.route("/transactions")
+    .post(bearerToken, async (req, res) => {
+        // Check authentication first
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // check role
+        if (req.role != "cashier" || req.role != "superuser" || req.role != "manager") {
+            return res.status(403).json({ "Forbidden": "Not permited to create a transactions" });
+        }
+        const { utorid, type, spent, promotionIds, remark } = req.body;
+        // vaid required data
+        if (!utorid || typeof (utorid) !== "string" ||
+            !type || typeof (type) !== "string" ||)
 
 
+
+
+
+
+    })
 const server = app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
