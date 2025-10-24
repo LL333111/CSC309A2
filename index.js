@@ -958,8 +958,6 @@ app.route("/events")
             });
         }
         // set filter(where) meanwhile
-        console.log(req.user);
-        console.log(req.query);
         let where ={};
         // not satisfy description
         if (name !== undefined && name !== null) {
@@ -1067,8 +1065,6 @@ app.route("/events")
             console.log(error);
             return res.status(499).json({message: "Failed to find user"});
         }
-        console.log(results);
-        console.log(results.slice((page-1)*limit, ((page-1)*limit)+limit));
         return res.status(200).json({
             count: results.length,
             results: results.slice((page-1)*limit, ((page-1)*limit)+limit)
@@ -1372,6 +1368,82 @@ app.route("/events/:eventId/organizers")
     .all((req,res) => {
         res.status(405).json({"Method Not Allowed": "Try Post"});
     });
+
+app.route("/events/:eventId/organizers/:userId")
+    .delete(bearerToken, async(req,res) => {
+        // error handle - 401 Unauthorized
+        // no auth:
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - 403 Forbidden
+        // if not "Manager or higher"
+        if (req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Manager or higher"});
+        }
+        // process eventId
+        const eventId = parseInt(req.params.eventId)
+        // error handling - 400 Bad Request
+        if (Number.isNaN(eventId)) {
+            return res.status(400).json({ "Bad Request": "Invalid eventId" });
+        }
+        // find event by eventId
+        let event = await prisma.event.findUnique({
+            where: {
+                id: eventId
+            }
+        });
+        // error handling - 404 Not Found
+        if (event === null) {
+            return res.status(404).json({ "Not Found": "Event not found" });
+        }
+        // process userId
+        const userId = parseInt(req.params.userId)
+        // error handling - 400 Bad Request
+        if (Number.isNaN(userId)) {
+            return res.status(400).json({ "Bad Request": "Invalid userId" });
+        }
+        // find event by eventId
+        let user = await prisma.event.findUnique({
+            where: {
+                id: userId
+            }
+        });
+        // error handling - 404 Not Found
+        if (user === null) {
+            return res.status(404).json({ "Not Found": "User not found" });
+        }
+        // error handle - 400 Bad Request
+        // check if user is an organizer
+        let guests = await prisma.event.findMany({
+            where: {
+                id: eventId,
+                organizers: {
+                    some: {
+                        id: userId
+                    }
+                }
+            }
+        });
+        if (guests.length === 0) {
+            return res.status(400).json({ "Bad Request": "User is not an organizer" });
+        }
+        // remove organizer
+        await prisma.event.update({
+            where: {
+                id: eventId
+            },
+            data:{
+                organizers: {
+                    disconnect: { id: userId }
+                }
+            }
+        });
+        res.status(204).json();
+    })
+    .all((req,res) => {
+        res.status(405).json({"Method Not Allowed": "Try Delete"});
+    });    
 
 app.route("/events/:eventId/guests")
     .post(bearerToken, async(req,res) => {
