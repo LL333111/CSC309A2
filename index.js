@@ -33,7 +33,7 @@ require('dotenv').config();
 
 const jwt = require('jsonwebtoken');
 const { v1: uuidv4 } = require('uuid');
-const { tr, no, ca } = require("zod/v4/locales");
+const { tr, no, ca, id } = require("zod/v4/locales");
 const { promise } = require("zod/v4");
 
 // recording (like constant)
@@ -1097,7 +1097,6 @@ app.route("/events/:eventId")
         if (event === null) {
             return res.status(404).json({ "Not Found": "Event not found" });
         }
-        console.log(event);
         // get organizer ids
         const organizerIds = event.organizers.map((org) => org.id);
         // if not organizer && not "Manager or higher"
@@ -1360,6 +1359,134 @@ app.route("/events/:eventId/organizers")
                 organizers: true
             }
         });
+        res.status(201).json(result);
+    })
+    .all((req,res) => {
+        res.status(405).json({"Method Not Allowed": "Try Post"});
+    });
+
+app.route("/events/:eventId/guests")
+    .post(bearerToken, async(req,res) => {
+        // error handle - 401 Unauthorized
+        // no auth:
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - 403 Forbidden
+        // get organizers of the event
+        // process eventId
+        const eventId = parseInt(req.params.eventId)
+        if (Number.isNaN(eventId)) {
+            return res.status(400).json({ "Bad Request": "Invalid eventId" });
+        }
+        // find event by eventId
+        let event = await prisma.event.findUnique({
+            where: {
+                id: eventId
+            },
+            include: {
+                organizers: true
+            }
+        });
+        if (event === null) {
+            return res.status(404).json({ "Not Found": "Event not found" });
+        }
+        // get organizer ids
+        const organizerIds = event.organizers.map((org) => org.id);
+        // if not organizer && not "Manager or higher"
+        if (!organizerIds.includes(req.user.id) && req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Manager or higher or organizer"});
+        }
+        // error handle - 404 Not Found
+        if (event.published === false) {
+            return res.status(404).json({ "Not Found":"Not visible yet" });
+        }
+        // error handle - 400 Bad Request.
+        const {utorid} = req.body;
+        // invalid payload:
+        // missing required field & not appropriate type
+        if(!utorid || typeof(utorid) !== "string") {
+            return res.status(400).json({ "Bad Request": "Invalid payload" });
+        }
+        // extra field
+        const allowedFields = ["utorid"];
+        const extraFields = Object.keys(req.body).filter((field) => {
+            return !allowedFields.includes(field);
+        });
+        if (extraFields.length > 0) {
+            return res.status(400).json({
+                "Bad Request": "Include extra fields",
+                extraFields
+            });
+        }
+        // not satisfy description
+        if (!/^[a-zA-Z0-9]{7,8}$/.test(utorid)) {
+            return res.status(400).json({ "Bad Request": "Invalid utorid" });
+        }
+        // find user by utorid
+        let user = await prisma.user.findUnique({
+            where: {
+                utorid
+            },
+            select: {
+                id: true,
+                utorid: true,
+                name: true
+            }
+        });
+        // error handling - 404 Not Found
+        if (user === null) {
+            return res.status(404).json({ "Not Found": "User not found" });
+        }
+        // error handle - 410 Gone
+        if (event.endTime < (new Date()).toISOString()) {
+            return res.status(410).json({ "Gone": "Event has ended" });
+        }
+        if (event.capacity !== null) {
+            if (event.numGuests >= event.capacity) {
+                return res.status(410).json({ "Gone": "Event is full" });
+            }
+        }
+        // error handle - 400 Bad Request
+        // check if user is already an organizer
+        let organizers = await prisma.event.findMany({
+            where: {
+                id: eventId,
+                organizers: {
+                    some: {
+                        id: user.id
+                    }
+                }
+            }
+        });
+        if (organizers.length > 0) {
+            return res.status(400).json({ "Bad Request": "User is already an organizer" });
+        }
+        // add guest
+        let newEvent = await prisma.event.update({
+            where: {
+                id: eventId
+            },
+            data: {
+                guests: {
+                    connect: { id: user.id }
+                },
+                numGuests: { increment: 1 }
+            },
+            select: {
+                id: true,
+                name: true,
+                location: true,
+                numGuests: true
+            }
+        });
+        let result = {
+            id: newEvent.id,
+            name: newEvent.name,
+            location: newEvent.location,
+            guestAdded: user,
+            numGuests: newEvent.numGuests
+        };
         res.status(201).json(result);
     })
     .all((req,res) => {
