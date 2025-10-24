@@ -45,7 +45,7 @@ model User {
   resetToken  String?   // reset token
   expiresAt   String?   // reset token expires At
 
-  guestsEvent Event[] @relation("EventOrganizers")
+  guestsEvent Event[]  @relation("EventOrganizers")
   organizersEvent Event[] @relation("EventGuests")
 }
 
