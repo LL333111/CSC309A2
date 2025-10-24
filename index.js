@@ -1261,7 +1261,75 @@ app.route("/events/:eventId")
         res.status(200).json(result);
     })
     .delete(bearerToken, async(req,res) => {
-        res.status(405).json();
+        // error handle - 401 Unauthorized
+        // no auth:
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - 403 Forbidden
+        // if not "Manager or higher"
+        if (req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Manager or higher"});
+        }
+        // process eventId
+        const eventId = parseInt(req.params.eventId)
+        // error handling - 400 Bad Request
+        if (Number.isNaN(eventId)) {
+            return res.status(400).json({ "Bad Request": "Invalid eventId" });
+        }
+        // find event by eventId
+        let event = await prisma.event.findUnique({
+            where: {
+                id: eventId
+            },
+            include: {
+                organizers: true,
+                guests: true
+            }
+        });
+        // error handling - 404 Not Found
+        if (event === null) {
+            return res.status(404).json({ "Not Found": "Event not found" });
+        }
+        // error handle - 400 Bad Request
+        if (event.published === true) {
+            return res.status(400).json({ "Bad Request": "Event has already been published" });
+        }
+        // disconnect all organizers and guests
+        const organizerIds = event.organizers.map((org) => org.id);
+        for (let oid of organizerIds) {
+            await prisma.event.update({
+                where: {
+                    id: eventId
+                },
+                data: {
+                    organizers: {
+                        disconnect: { id: oid}
+                    }
+                }
+            });
+        }
+        const guestsIds = event.guests.map((org) => org.id);
+        for (let gid of guestsIds) {
+            await prisma.event.update({
+                where: {
+                    id: eventId
+                },
+                data: {
+                    guests: {
+                        disconnect: { id: gid}
+                    },
+                    numGuests: { decrement: 1 }
+                }
+            });
+        }
+        // delete event
+        await prisma.event.delete({
+            where: {
+                id: eventId
+            }
+        });
+        res.status(204).json();
     })
     .all((req,res) => {
         res.status(405).json({"Method Not Allowed": "Try Get, Patch & Delete"});
