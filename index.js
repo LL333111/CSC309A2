@@ -42,44 +42,44 @@ let lastResetIP = "";
 
 // function
 function isValidBirthday(dateString) {
-  // check YYYY-MM-DD
-  let regex = /^(19[0-9]{2}|20[0-1][0-9]|202[0-5])-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/;
-  if (!regex.test(dateString)) {
-    return false;
-  }
+    // check YYYY-MM-DD
+    let regex = /^(19[0-9]{2}|20[0-1][0-9]|202[0-5])-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/;
+    if (!regex.test(dateString)) {
+        return false;
+    }
 
-  // analyse data
-  let parts = dateString.split('-');
-  let year = parseInt(parts[0], 10);
-  let month = parseInt(parts[1], 10);
-  let day = parseInt(parts[2], 10);
+    // analyse data
+    let parts = dateString.split('-');
+    let year = parseInt(parts[0], 10);
+    let month = parseInt(parts[1], 10);
+    let day = parseInt(parts[2], 10);
 
-  // check data valid
-  let date = new Date(year, month - 1, day);
-  if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day) {
-    return false;
-  }
+    // check data valid
+    let date = new Date(year, month - 1, day);
+    if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day) {
+        return false;
+    }
 
-  // check range 1900-01-01 to 2025-12-31
-  let start = new Date(1900, 0, 1);
-  let end = new Date(2025, 11, 31);
-  return date >= start && date <= end;
+    // check range 1900-01-01 to 2025-12-31
+    let start = new Date(1900, 0, 1);
+    let end = new Date(2025, 11, 31);
+    return date >= start && date <= end;
 }
 
 // Middleware
 // check input json
 app.use((err, req, res, next) => {
-  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    return res.status(400).json({ "message": 'Invalid JSON input' });
-  }
-  next();
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        return res.status(400).json({ "message": 'Invalid JSON input' });
+    }
+    next();
 });
 
 // handle JWT Bearer
 const bearerToken = (req, res, next) => {
-    const jwtHeader = req.headers['authorization']; 
+    const jwtHeader = req.headers['authorization'];
     // error handle - no auth
-    if (!jwtHeader) { 
+    if (!jwtHeader) {
         req.role = null;
         return next();
     }
@@ -90,7 +90,7 @@ const bearerToken = (req, res, next) => {
     } catch (error) {
         return res.status(401).json({ "Unauthorized": "Invalid token" });
     }
-    if (!user.role) { 
+    if (!user.role) {
         req.role = null;
         return next();
     }
@@ -101,7 +101,7 @@ const bearerToken = (req, res, next) => {
 
 // end points
 app.route("/users")
-    .post(bearerToken, async(req,res) => {
+    .post(bearerToken, async (req, res) => {
         // error handle - 401 Unauthorized
         // no auth:
         if (!req.role) {
@@ -110,14 +110,14 @@ app.route("/users")
         // error handling - 403 Forbidden
         // if not "Cashier or higher"
         if (req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
-            return res.status(403).json({ "Forbidden": "Cashier or higher"});
+            return res.status(403).json({ "Forbidden": "Cashier or higher" });
         }
         // error handling - 400 Bad Request.
-        const {utorid, name, email} = req.body;
+        const { utorid, name, email } = req.body;
         // invalid payload:
         // missing required field & not appropriate type
-        if(!utorid || !name || !email || 
-            typeof(utorid) !== "string" || typeof(name) !== "string" || typeof(email) !== "string") {
+        if (!utorid || !name || !email ||
+            typeof (utorid) !== "string" || typeof (name) !== "string" || typeof (email) !== "string") {
             return res.status(400).json({ "Bad Request": "Invalid payload" });
         }
         // extra field
@@ -145,16 +145,16 @@ app.route("/users")
         let checjExists;
         try {
             checjExists = await prisma.user.findMany({
-                where:{
+                where: {
                     utorid
                 }
             });
-        } catch(error) {
+        } catch (error) {
             console.log(error);
-            return res.status(499).json({message: "Failed to find user"});
+            return res.status(499).json({ message: "Failed to find user" });
         }
         if (checjExists.length !== 0) {
-            return res.status(409).json({ "Conflict":"user with that utorid already exists" });
+            return res.status(409).json({ "Conflict": "user with that utorid already exists" });
         }
         let newUser;
         // create resetToken & expiresAt
@@ -173,9 +173,9 @@ app.route("/users")
                     expiresAt,
                 }
             });
-        } catch(error) {
+        } catch (error) {
             console.log(error);
-            return res.status(499).json({message: "Failed to create new user"});
+            return res.status(499).json({ message: "Failed to create new user" });
         }
         return res.status(201).json({
             id: newUser.id,
@@ -187,7 +187,7 @@ app.route("/users")
             resetToken: resetToken
         });
     })
-    .get(bearerToken, async(req,res) => {
+    .get(bearerToken, async (req, res) => {
         // error handle - 401 Unauthorized
         // no auth:
         if (!req.role) {
@@ -196,10 +196,10 @@ app.route("/users")
         // error handling - 403 Forbidden
         // if not "Manager or higher"
         if (req.role !== "manager" && req.role !== "superuser") {
-            return res.status(403).json({ "Forbidden": "Manager or higher"});
+            return res.status(403).json({ "Forbidden": "Manager or higher" });
         }
         // error handling - 400 Bad Request.
-        let {name, role, verified, activated, page, limit} = req.query;
+        let { name, role, verified, activated, page, limit } = req.query;
         // extra field
         const allowedFields = ["name", "role", "verified", "activated", "page", "limit"];
         const extraFields = Object.keys(req.query).filter((field) => {
@@ -212,11 +212,11 @@ app.route("/users")
             });
         }
         // set filter(where) meanwhile
-        let where ={};
+        let where = {};
         // not satisfy description
         if (name !== undefined) {
             where.name = name;
-        } 
+        }
         if (role !== undefined) {
             if (role !== "regular" && role !== "cashier" && role !== "manager" && role !== "superuser") {
                 return res.status(400).json({ "Bad Request": "Invalid role" });
@@ -225,15 +225,15 @@ app.route("/users")
         }
         if (verified !== undefined) {
             if (!(verified === "true" || verified === "false")) {
-                return res.status(400).json({ "Bad Request":"Invalid verified" });
+                return res.status(400).json({ "Bad Request": "Invalid verified" });
             }
             where.verified = verified === "true";
         }
         if (activated !== undefined) {
             if (!(activated === "true" || activated === "false")) {
-                return res.status(400).json({ "Bad Request":"Invalid activated" });
+                return res.status(400).json({ "Bad Request": "Invalid activated" });
             }
-            where.lastLogin = activated === "true"? { not: null } : null;
+            where.lastLogin = activated === "true" ? { not: null } : null;
         }
         // if no input page or limit, set them to default value
         if (page !== undefined) {
@@ -271,21 +271,21 @@ app.route("/users")
                     avatarUrl: true,
                 }
             });
-        } catch(error) {
+        } catch (error) {
             console.log(error);
-            return res.status(499).json({message: "Failed to find user"});
+            return res.status(499).json({ message: "Failed to find user" });
         }
         return res.status(200).json({
             count: results.length,
-            results: results.slice((page-1)*limit, ((page-1)*limit)+limit)
+            results: results.slice((page - 1) * limit, ((page - 1) * limit) + limit)
         });
     })
-    .all((req,res) => {
-        res.status(405).json({"Method Not Allowed": "Try Get & Post"});
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Get & Post" });
     });
 
 app.route("/users/me")
-    .patch(bearerToken, async(req,res) => {
+    .patch(bearerToken, async (req, res) => {
         // error handle - 401 Unauthorized
         // no auth:
         if (!req.role) {
@@ -294,13 +294,13 @@ app.route("/users/me")
         // error handling - 403 Forbidden
         // if not "Regular or higher"
         if (req.role !== "regular" && req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
-            return res.status(403).json({ "Forbidden": "Regular or higher"});
+            return res.status(403).json({ "Forbidden": "Regular or higher" });
         }
         // error handling - 400 Bad Request.
-        let {name, email, birthday, avatar} = req.body;
+        let { name, email, birthday, avatar } = req.body;
         // no fields
         if (!name && !email && !birthday && !avatar) {
-            return res.status(400).json({ "Bad Request":"No update field provied" })
+            return res.status(400).json({ "Bad Request": "No update field provied" })
         }
         // extra field
         const allowedFields = ["name", "email", "birthday", "avatar"];
@@ -322,31 +322,31 @@ app.route("/users/me")
         });
         // error handle - 404 Not Found
         if (user === null) {
-            return res.status(404).json({ "Not Found":"User not found" });
+            return res.status(404).json({ "Not Found": "User not found" });
         }
         // set data meanwhile
-        let data ={};
+        let data = {};
         // not satisfy description
         if (name !== undefined && name !== null) {
-            if (typeof(name) !== "string" || !/^.{1,50}$/.test(name)) {
+            if (typeof (name) !== "string" || !/^.{1,50}$/.test(name)) {
                 return res.status(400).json({ "Bad Request": "Invalid name" });
             }
             data.name = name;
         }
         if (email !== undefined && email !== null) {
-            if (typeof(email) !== "string" || !/^[^@]+@mail.utoronto.ca$/.test(email)) {
+            if (typeof (email) !== "string" || !/^[^@]+@mail.utoronto.ca$/.test(email)) {
                 return res.status(400).json({ "Bad Request": "Invalid email" });
             }
             data.email = email;
         }
         if (birthday !== undefined && birthday !== null) {
-            if (typeof(birthday) !== "string" || !isValidBirthday(birthday)) {
+            if (typeof (birthday) !== "string" || !isValidBirthday(birthday)) {
                 return res.status(400).json({ "Bad Request": "Invalid birthday" });
             }
             data.birthday = birthday;
         }
         if (avatar !== undefined && avatar !== null) {
-            if (typeof(avatar) !== "string" || !/\/uploads\/avatars\/[a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg)$/i.test(avatar)) {
+            if (typeof (avatar) !== "string" || !/\/uploads\/avatars\/[a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg)$/i.test(avatar)) {
                 return res.status(400).json({ "Bad Request": "Invalid avatar" });
             }
             data.avatar = avatar;
@@ -373,7 +373,7 @@ app.route("/users/me")
         });
         res.status(200).json(result);
     })
-    .get(bearerToken, async(req,res) => {
+    .get(bearerToken, async (req, res) => {
         // error handle - 401 Unauthorized
         // no auth:
         if (!req.role) {
@@ -382,7 +382,7 @@ app.route("/users/me")
         // error handling - 403 Forbidden
         // if not "Regular or higher"
         if (req.role !== "regular" && req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
-            return res.status(403).json({ "Forbidden": "Regular or higher"});
+            return res.status(403).json({ "Forbidden": "Regular or higher" });
         }
         // find user by id
         let user = await prisma.user.findUnique({
@@ -410,12 +410,12 @@ app.route("/users/me")
         }
         res.status(200).json(user);
     })
-    .all((req,res) => {
-        res.status(405).json({"Method Not Allowed": "Try Get & Patch"});
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Get & Patch" });
     });
 
 app.route("/users/me/password")
-    .patch(bearerToken, async(req,res) => {
+    .patch(bearerToken, async (req, res) => {
         // error handle - 401 Unauthorized
         // no auth:
         if (!req.role) {
@@ -424,14 +424,14 @@ app.route("/users/me/password")
         // error handling - 403 Forbidden
         // if not "Regular or higher"
         if (req.role !== "regular" && req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
-            return res.status(403).json({ "Forbidden": "Regular or higher"});
+            return res.status(403).json({ "Forbidden": "Regular or higher" });
         }
         // error handling - 400 Bad Request.
-        const {old, new: newPassword} = req.body;
+        const { old, new: newPassword } = req.body;
         // invalid payload:
         // missing required field & not appropriate type
-        if(!old || !newPassword ||
-            typeof(old) !== "string" || typeof(newPassword) !== "string") {
+        if (!old || !newPassword ||
+            typeof (old) !== "string" || typeof (newPassword) !== "string") {
             return res.status(400).json({ "Bad Request": "Invalid payload" });
         }
         // extra field
@@ -473,12 +473,12 @@ app.route("/users/me/password")
         });
         res.status(200).json();
     })
-    .all((req,res) => {
-        res.status(405).json({"Method Not Allowed": "Try Get & Post"});
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Get & Post" });
     });
 
 app.route("/users/:userId")
-    .get(bearerToken, async(req,res) => {
+    .get(bearerToken, async (req, res) => {
         // error handle - 401 Unauthorized
         // no auth:
         if (!req.role) {
@@ -487,7 +487,7 @@ app.route("/users/:userId")
         // error handling - 403 Forbidden
         // if not "Cashier or higher"
         if (req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
-            return res.status(403).json({ "Forbidden": "Cashier or higher"});
+            return res.status(403).json({ "Forbidden": "Cashier or higher" });
         }
         // process userId
         const userId = parseInt(req.params.userId)
@@ -533,9 +533,9 @@ app.route("/users/:userId")
                     }
                 })
             }
-        } catch(error) {
+        } catch (error) {
             console.log(error);
-            return res.status(499).json({message: "Failed to find user"});
+            return res.status(499).json({ message: "Failed to find user" });
         }
         // error handling - 404 Not Found
         if (result === null) {
@@ -543,7 +543,7 @@ app.route("/users/:userId")
         }
         res.status(200).json(result);
     })
-    .patch(bearerToken, async(req,res) => {
+    .patch(bearerToken, async (req, res) => {
         // error handle - 401 Unauthorized
         // no auth:
         if (!req.role) {
@@ -552,10 +552,10 @@ app.route("/users/:userId")
         // error handling - 403 Forbidden
         // if not "Manager or higher"
         if (req.role !== "manager" && req.role !== "superuser") {
-            return res.status(403).json({ "Forbidden": "Manager or highe"});
+            return res.status(403).json({ "Forbidden": "Manager or highe" });
         }
         // error handling - 400 Bad Request.
-        let {email, verified, suspicious, role} = req.body;
+        let { email, verified, suspicious, role } = req.body;
         // no fields
         if (!email && (verified === undefined || verified === null) && (suspicious === undefined || suspicious === null) && !role) {
             return res.status(400).json({ "Bad Request": "No update fields provided" })
@@ -575,7 +575,7 @@ app.route("/users/:userId")
         const userId = parseInt(req.params.userId)
         // error handling - 400 Bad Request
         if (Number.isNaN(userId)) {
-                return res.status(400).json({ "Bad Request": "Invalid userId" });
+            return res.status(400).json({ "Bad Request": "Invalid userId" });
         }
         // error handling - 404 Not Found
         let user;
@@ -585,9 +585,9 @@ app.route("/users/:userId")
                     id: userId
                 }
             })
-        } catch(error) {
+        } catch (error) {
             console.log(error);
-            return res.status(499).json({message: "Failed to find user"});
+            return res.status(499).json({ message: "Failed to find user" });
         }
         if (user.length === 0) {
             return res.status(404).json({ "Not Found": "User not found" });
@@ -602,35 +602,35 @@ app.route("/users/:userId")
         };
         // not satisfy description
         if (email !== undefined && email !== null) {
-            if (typeof(email) !== "string" || !/^[^@]+@mail.utoronto.ca$/.test(email)) {
+            if (typeof (email) !== "string" || !/^[^@]+@mail.utoronto.ca$/.test(email)) {
                 return res.status(400).json({ "Bad Request": "Invalid email" });
             }
             data.email = email;
             select.email = true;
         }
         if (verified !== undefined && verified !== null) {
-            if (typeof(verified) !== "boolean" || verified !== true) {
-                return res.status(400).json({ "Bad Request":"Invalid verified" });
+            if (typeof (verified) !== "boolean" || verified !== true) {
+                return res.status(400).json({ "Bad Request": "Invalid verified" });
             }
             data.verified = verified;
             select.verified = true;
         }
         if (suspicious !== undefined && suspicious !== null) {
-            if (typeof(suspicious) !== "boolean") {
-                return res.status(400).json({ "Bad Request":"Invalid suspicious" });
+            if (typeof (suspicious) !== "boolean") {
+                return res.status(400).json({ "Bad Request": "Invalid suspicious" });
             }
             data.suspicious = suspicious;
             select.suspicious = true;
         }
         if (role !== undefined && role !== null) {
-            if (typeof(role) !== "string" || (role !== "cashier" && role !== "regular" && role !== "manager" && role !== "superuser")) {
-                return res.status(400).json({ "Bad Request":"Invalid role" });
+            if (typeof (role) !== "string" || (role !== "cashier" && role !== "regular" && role !== "manager" && role !== "superuser")) {
+                return res.status(400).json({ "Bad Request": "Invalid role" });
             }
             if (req.role === "manager" && (role === "manager" || role === "superuser")) {
-                return res.status(403).json({ "Bad Request":"Unauthorized role change" });
+                return res.status(403).json({ "Bad Request": "Unauthorized role change" });
             }
             if (user[0].role === "regular" && role === "cashier" && user[0].suspicious === true) {
-                return res.status(400).json({ "Bad Request":"Invalid role (suspicious)" })
+                return res.status(400).json({ "Bad Request": "Invalid role (suspicious)" })
             }
             data.role = role;
             select.role = true;
@@ -645,23 +645,23 @@ app.route("/users/:userId")
                 data: data,
                 select: select
             });
-        } catch(error) {
+        } catch (error) {
             console.log(error);
-            return res.status(499).json({message: "Failed to update user"});
+            return res.status(499).json({ message: "Failed to update user" });
         }
         res.status(200).json(result);
     })
-    .all((req,res) => {
-        res.status(405).json({"Method Not Allowed": "Try Get & Patch"});
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Get & Patch" });
     });
 
 app.route("/auth/tokens")
-    .post(async(req,res) => {
+    .post(async (req, res) => {
         // error handling - 400 Bad Request.
-        const {utorid, password} = req.body;
+        const { utorid, password } = req.body;
         // invalid payload:
         // missing required field & not appropriate type
-        if(!utorid || !password || typeof(utorid) !== "string" || typeof(password) !== "string") {
+        if (!utorid || !password || typeof (utorid) !== "string" || typeof (password) !== "string") {
             return res.status(400).json({ "Bad Request": "Invalid payload" });
         }
         // extra field
@@ -691,10 +691,10 @@ app.route("/auth/tokens")
         });
         // error handling - 404 Not Found
         if (user === null) {
-            return res.status(404).json({message: "No user with given utorid"});
+            return res.status(404).json({ message: "No user with given utorid" });
         }
         if (user.password === null || user.password !== password) {
-            return res.status(401).json({message: "Incorrect password"});
+            return res.status(401).json({ message: "Incorrect password" });
         }
         let tokenPayload = {
             id: user.id,
@@ -715,17 +715,17 @@ app.route("/auth/tokens")
             "expiresAt": expiresAt.toISOString()
         })
     })
-    .all((req,res) => {
-        res.status(405).json({"Method Not Allowed": "Try Post"});
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Post" });
     });
 
 app.route("/auth/resets")
-    .post(async(req,res) => {
+    .post(async (req, res) => {
         // error handling - 400 Bad Request.
-        const {utorid} = req.body;
+        const { utorid } = req.body;
         // invalid payload:
         // missing required field & not appropriate type
-        if(!utorid || typeof(utorid) !== "string") {
+        if (!utorid || typeof (utorid) !== "string") {
             return res.status(400).json({ "Bad Request": "Invalid payload" });
         }
         // extra field
@@ -746,7 +746,7 @@ app.route("/auth/resets")
         // error handle - 429 Too Many Requests
         let now = new Date();
         if (now - lastResetAt < 60000 && req.ip === lastResetIP) {
-            return res.status(429).json({message: "Too Many Requests"});
+            return res.status(429).json({ message: "Too Many Requests" });
         }
         // find user by utorid
         let user;
@@ -756,13 +756,13 @@ app.route("/auth/resets")
                     utorid: utorid
                 }
             })
-        } catch(error) {
+        } catch (error) {
             console.log(error);
-            return res.status(499).json({message: "Failed to find user"});
+            return res.status(499).json({ message: "Failed to find user" });
         }
         // erroe handle - 404 Not Found
         if (user === null) {
-            return res.status(404).json({message: "No user with given utorid"});
+            return res.status(404).json({ message: "No user with given utorid" });
         }
         // update
         const resetToken = uuidv4();
@@ -780,27 +780,27 @@ app.route("/auth/resets")
                     expiresAt,
                 }
             })
-        } catch(error) {
+        } catch (error) {
             console.log(error);
-            return res.status(499).json({message: "Failed to update user"});
+            return res.status(499).json({ message: "Failed to update user" });
         }
         return res.status(202).json({
             "resetToken": updateUser.resetToken,
             "expiresAt": updateUser.expiresAt
         });
     })
-    .all((req,res) => {
-        res.status(405).json({"Method Not Allowed": "Try Post"});
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Post" });
     });
 
 app.route("/auth/resets/:resetToken")
-    .post(async(req,res) => {
+    .post(async (req, res) => {
         const token = req.params.resetToken;
         // error handling - 400 Bad Request.
-        const { utorid, password} = req.body;
+        const { utorid, password } = req.body;
         // invalid payload:
         // missing required field & not appropriate type
-        if(!utorid || !password || typeof(utorid) !== "string" || typeof(password) !== "string") {
+        if (!utorid || !password || typeof (utorid) !== "string" || typeof (password) !== "string") {
             return res.status(400).json({ "Bad Request": "Invalid payload" });
         }
         // extra field
@@ -852,12 +852,12 @@ app.route("/auth/resets/:resetToken")
         });
         res.status(200).json();
     })
-    .all((req,res) => {
-        res.status(405).json({"Method Not Allowed": "Try Post"});
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Post" });
     });
 
 app.route("/events")
-    .post(bearerToken, async(req,res) => {
+    .post(bearerToken, async (req, res) => {
         // error handle - 401 Unauthorized
         // no auth:
         if (!req.role) {
@@ -866,16 +866,16 @@ app.route("/events")
         // error handling - 403 Forbidden
         // if not "Manager or higher"
         if (req.role !== "manager" && req.role !== "superuser") {
-            return res.status(403).json({ "Forbidden": "Manager or higher"});
+            return res.status(403).json({ "Forbidden": "Manager or higher" });
         }
         // error handling - 400 Bad Request.
-        const {name, description, location, startTime, endTime, capacity, points} = req.body;
+        const { name, description, location, startTime, endTime, capacity, points } = req.body;
         // invalid payload:
         // missing required field & not appropriate type
-        if(!name || !description || !location || !startTime || !endTime || points === undefined ||
-            typeof(name) !== "string" || typeof(description) !== "string" || 
-            typeof(location) !== "string" || typeof(startTime) !== "string" || 
-            typeof(endTime) !== "string" || typeof(points) !== "number") {
+        if (!name || !description || !location || !startTime || !endTime || points === undefined ||
+            typeof (name) !== "string" || typeof (description) !== "string" ||
+            typeof (location) !== "string" || typeof (startTime) !== "string" ||
+            typeof (endTime) !== "string" || typeof (points) !== "number") {
             return res.status(400).json({ "Bad Request": "Invalid payload" });
         }
         // extra field
@@ -900,7 +900,7 @@ app.route("/events")
         if (!Number.isInteger(points) || points <= 0) {
             return res.status(400).json({ "Bad Request": "Invalid points" });
         }
-        if (typeof(capacity) === "number") {
+        if (typeof (capacity) === "number") {
             if (capacity <= 0) {
                 return res.status(400).json({ "Bad Request": "Invalid capacity" });
             }
@@ -933,7 +933,7 @@ app.route("/events")
         });
         res.status(201).json(result);
     })
-    .get(bearerToken, async(req,res) => {
+    .get(bearerToken, async (req, res) => {
         // error handle - 401 Unauthorized
         // no auth:
         if (!req.role) {
@@ -942,10 +942,10 @@ app.route("/events")
         // error handling - 403 Forbidden
         // if not "Regular or higher"
         if (req.role !== "regular" && req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
-            return res.status(403).json({ "Forbidden": "Regular or higher"});
+            return res.status(403).json({ "Forbidden": "Regular or higher" });
         }
         // error handling - 400 Bad Request.
-        let {name, location, started, ended, showFull, page, limit, published} = req.query;
+        let { name, location, started, ended, showFull, page, limit, published } = req.query;
         // extra field
         const allowedFields = ["name", "location", "started", "ended", "showFull", "page", "limit", "published"];
         const extraFields = Object.keys(req.query).filter((field) => {
@@ -960,17 +960,17 @@ app.route("/events")
         // set filter(where) meanwhile
         console.log(req.role);
         console.log(req.query);
-        let where ={};
+        let where = {};
         // not satisfy description
         if (name !== undefined && name !== null) {
             where.name = name;
-        } 
+        }
         if (location !== undefined && location !== null) {
             where.location = location;
-        } 
+        }
         if (started !== undefined && started !== null) {
             if (!(started === "true" || started === "false")) {
-                return res.status(400).json({ "Bad Request":"Invalid started" });
+                return res.status(400).json({ "Bad Request": "Invalid started" });
             }
             if (started === "true") {
                 where.startTime = { lt: (new Date()).toISOString() };
@@ -980,10 +980,10 @@ app.route("/events")
         }
         if (ended !== undefined && ended !== null) {
             if (!(ended === "true" || ended === "false")) {
-                return res.status(400).json({ "Bad Request":"Invalid started" });
+                return res.status(400).json({ "Bad Request": "Invalid started" });
             }
             if (started !== undefined && started !== null) {
-                return res.status(400).json({ "Bad Request":"Not permitted to use both started and ended" });
+                return res.status(400).json({ "Bad Request": "Not permitted to use both started and ended" });
             }
             if (ended === "true") {
                 where.endTime = { lt: (new Date()).toISOString() };
@@ -993,7 +993,7 @@ app.route("/events")
         }
         if (showFull !== undefined && showFull !== null) {
             if (!(showFull === "true" || showFull === "false")) {
-                return res.status(400).json({ "Bad Request":"Invalid showFull" });
+                return res.status(400).json({ "Bad Request": "Invalid showFull" });
             }
             if (showFull === "true") {
                 // no filter
@@ -1024,10 +1024,10 @@ app.route("/events")
         //published filter
         if (published !== undefined && published !== null) {
             if (!(published === "true" || published === "false")) {
-                return res.status(400).json({ "Bad Request":"Invalid published" });
+                return res.status(400).json({ "Bad Request": "Invalid published" });
             }
             if (req.role === "regular" || req.role === "cashier") {
-                return res.status(403).json({ "Forbidden":"Not permit to use published filter" });
+                return res.status(403).json({ "Forbidden": "Not permit to use published filter" });
             }
             where.published = published === "true";
         } else {
@@ -1057,19 +1057,443 @@ app.route("/events")
                 where: where,
                 select: select
             });
-        } catch(error) {
+        } catch (error) {
             console.log(error);
-            return res.status(499).json({message: "Failed to find user"});
+            return res.status(499).json({ message: "Failed to find user" });
         }
         return res.status(200).json({
             count: results.length,
-            results: results.slice((page-1)*limit, ((page-1)*limit)+limit)
+            results: results.slice((page - 1) * limit, ((page - 1) * limit) + limit)
         });
     })
-    .all((req,res) => {
-        res.status(405).json({"Method Not Allowed": "Try Get & Post"});
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Get & Post" });
+        const { id, name, type, minSpending, rate, points, userId, user } = req.body;
     });
-    
+
+app.route("/promotions")
+    .post(bearerToken, async (req, res) => {
+        // check authorizaiton first
+        // error handle - 401 Unauthorized
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - 403 Forbidden
+        if (req.role != "manager" && req.role != "superuser") {
+            return res.status(403).json({ "Forbidden": "Not permited to post promotions" });
+        }
+        // get the data
+        const { name, description, type, startTime, endTime, minSpending, rate, points } = req.body;
+        // error handle - 400 Bad Request
+        // validate requeired fields
+        if (!name || !description || !type || !startTime || !endTime ||
+            typeof (name) !== "string" || typeof (description) !== "string" ||
+            typeof (type) !== "string" || typeof (startTime) !== "string" ||
+            typeof (endTime) !== "string") {
+            return res.status(400).json({ "Bad Request": "Invalid payload" });
+        }
+        // validate optional fields
+        var data = {};
+        if (minSpending) {
+            if (typeof (minSpending) !== "number" || isNaN(minSpending) || minSpending <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid minSpending" });
+            }
+            data.minSpending = minSpending;
+        }
+        if (rate) {
+            if (typeof (rate) !== "number" || isNaN(rate) || rate <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid rate" });
+            }
+            data.rate = rate;
+        }
+        if (points) {
+            if (typeof (points) !== "number" || !Number.isInteger(points) || points <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid points" });
+            }
+            data.points = points;
+        }
+        // extra field
+        const allowedFields = ["name", "description", "type", "startTime", "endTime", "minSpending", "rate", "points"];
+        const extraFields = Object.keys(req.body).filter((field) => {
+            return !allowedFields.includes(field);
+        });
+        if (extraFields.length > 0) {
+            return res.status(400).json({
+                "Bad Request": "Include extra fields",
+                extraFields,
+            });
+        }
+        // not satisfy description
+        if (type !== "automatic" && type !== "one-time") {
+            return res.status(400).json({ "Bad Request": "Invalid type" });
+        }
+        const startDate = new Date(startTime);
+        const now = new Date();
+        const endDate = new Date(endTime);
+        if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(startTime)) {
+            return res.status(400).json({ "Bad Request": "Invalid startTime" });
+        }
+        if (startDate < now) {
+            return res.status(400).json({ "Bad Request": "startTime must not be in the past" });
+        }
+        if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(endTime)) {
+            return res.status(400).json({ "Bad Request": "Invalid endTime" });
+        }
+        if (endDate <= startDate) {
+            return res.status(400).json({ "Bad Request": "endTime must be after startTime" });
+        }
+        // init data
+        data.name = name;
+        data.description = description;
+        data.type = type;
+        data.startTime = startTime.split('.')[0] + 'Z';
+        data.endTime = endTime.split('.')[0] + 'Z';
+        try {
+            var result = await prisma.promotion.create({
+                data: data,
+            });
+        } catch (error) {
+            console.log(error);
+            return res.status(499).json({ message: "Failed to post promotion" });
+        }
+        const users = await prisma.user.findMany();
+        for (const user of users) {
+            await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    promotions: {
+                        connect: { id: result.id }
+                    }
+                }
+            });
+        }
+        return res.status(201).json(result);
+    })
+    .get(bearerToken, async (req, res) => {
+        // check authorizaiton first
+        // error handle - 401 Unauthorized
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - possible fileds for regular or higher
+        var where = {};
+        var { name, type, page, limit } = req.query;
+        if (name) {
+            if (typeof (name) !== "string") {
+                return res.status(400).json({ "Bad Request": "Invalid name" });
+            }
+            where.name = name;
+        }
+        if (type) {
+            if (typeof (type) !== "string" || (type !== "automatic" && type !== "one-time")) {
+                return res.status(400).json({ "Bad Request": "Invalid type" });
+            }
+            where.type = type;
+        }
+        if (page) {
+            if (isNaN(parseFloat(page)) || parseFloat(page) <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid page" });
+            }
+        } else {
+            page = 1;
+        }
+        if (limit) {
+            if (isNaN(parseFloat(limit)) || parseFloat(limit) <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid limit" });
+            }
+        } else {
+            limit = 10;
+        }
+        // extra params
+        const allowedParams = ["name", "type", "page", "limit", "started", "ended"];
+        const extraParams = Object.keys(req.query).filter((paramas) => {
+            return !allowedParams.includes(paramas);
+        });
+        if (extraParams.length > 0) {
+            return res.status(400).json({
+                "Bad Request": "Include extra fields",
+                extraParams,
+            });
+        }
+        // check if user is manager or higher
+        if (req.role === "manager" || req.role === "superuser") {
+            var { started, ended } = req.query;
+            if (started && ended) {
+                return res.status(400).json({ "Bad Request": "Both started and ended exist" });
+            }
+            if (started) {
+                if (started === "true") {
+                    where.startTime = { lt: (new Date()).toISOString() };
+                }
+                else {
+                    where.startTime = { gte: (new Date()).toISOString() };
+                }
+            }
+            if (ended) {
+                if (ended === "true") {
+                    where.endTime = { lt: (new Date()).toISOString() };
+                }
+                else {
+                    where.endTime = { gte: (new Date()).toISOString() };
+                }
+            }
+        } else {
+            // Regular user only see the active promotions
+            const userData = await prisma.user.findUnique({
+                where: { id: req.user.id },
+                include: { promotions: true },
+            });
+
+            const now = new Date();
+
+            // Filter only active promotions (started and not ended)
+            const activePromotions = userData.promotions.filter(promo => {
+                const start = new Date(promo.startTime);
+                const end = new Date(promo.endTime);
+                return start < now && end > now;
+            });
+
+            return res.status(200).json({
+                count: activePromotions.length,
+                results: activePromotions,
+            });
+        }
+
+        var results = await prisma.promotion.findMany({
+            where: where,
+            skip: (page - 1) * limit,
+            take: limit,
+        });
+        return res.status(200).json({
+            count: results.length,
+            results: results
+        });
+    })
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Get & Post" });
+    });
+
+app.route("/promotions/:promotionId")
+    .get(bearerToken, async (req, res) => {
+        // check authorizaiton first
+        // error handle - 401 Unauthorized
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        const promotionId = parseInt(req.params.promotionId);
+        // error handling - 400 Bad Request
+        if (!promotionId || isNaN(promotionId)) {
+            return res.status(400).json({ "Bad Request": "Invalid promotionId" });
+        }
+        var result = await prisma.promotion.findUnique({
+            where: {
+                id: promotionId
+            }
+        });
+        // error handling - 404 Not Found
+        if (result === null) {
+            return res.status(404).json({ "Not Found": "Promotion not found" });
+        }
+        if (req.role === "regular" || req.role === "cashier") {
+            // 404 Not found if the promotion is not started yet or has ended
+            const now = new Date();
+            const startDate = new Date(result.startTime);
+            const endDate = new Date(result.endTime);
+            if (now < startDate || now > endDate) {
+                return res.status(404).json({ "Not Found": "Promotion not found" });
+            }
+        }
+        return res.status(200).json(result);
+    })
+    .patch(bearerToken, async (req, res) => {
+        // check authorizaiton first
+        // error handle - 401 Unauthorized
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - 403 Forbidden
+        if (req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Not permited to update promotions" });
+        }
+        // error handling - 400 Bad Request.
+        let data = {};
+        const promotionId = parseInt(req.params.promotionId);
+        if (isNaN(promotionId)) {
+            return res.status(400).json({ "Bad Request": "Invalid promotionId" });
+        }
+        const { name, description, type, startTime, endTime, minSpending, rate, points } = req.body;
+        if (name) {
+            if (typeof (name) !== "string") {
+                return res.status(400).json({ "Bad Request": "Invalid name" });
+            }
+            data.name = name;
+        }
+        if (description) {
+            if (typeof (description) !== "string") {
+                return res.status(400).json({ "Bad Request": "Invalid description" });
+            }
+            data.description = description;
+        }
+        if (type) {
+            if (typeof (type) !== "string" || (type !== "automatic" && type !== "one-time")) {
+                return res.status(400).json({ "Bad Request": "Invalid type" });
+            }
+            data.type = type;
+        }
+        if (startTime) {
+            if (typeof (startTime) !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(startTime)) {
+                return res.status(400).json({ "Bad Request": "Invalid startTime" });
+            }
+            data.startTime = startTime.split('.')[0] + 'Z';
+        }
+        if (endTime) {
+            if (typeof (endTime) !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(endTime)) {
+                return res.status(400).json({ "Bad Request": "Invalid endTime" });
+            }
+            const startData = new Date(startTime);
+            const endData = new Date(endTime);
+            if (startTime && endData <= startData) {
+                return res.status(400).json({ "Bad Request": "endTime must be after startTime" });
+            }
+            data.endTime = endTime.split('.')[0] + 'Z';
+        }
+        if (minSpending) {
+            if (typeof (minSpending) !== "number" || isNaN(minSpending) || minSpending <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid minSpending" });
+            }
+            data.minSpending = minSpending;
+        }
+        if (rate) {
+            if (typeof (rate) !== "number" || isNaN(rate) || rate <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid rate" });
+            }
+            data.rate = rate;
+        }
+        if (points) {
+            if (typeof (points) !== "number" || !Number.isInteger(points) || !isNaN(points) || points <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid points" });
+            }
+            data.points = points;
+        }
+        // extra field
+        let allowedFields = ["name", "description", "type", "startTime", "endTime", "minSpending", "rate", "points"];
+        const extraFields = Object.keys(req.body).filter((field) => {
+            return !allowedFields.includes(field);
+        });
+        if (extraFields.length > 0) {
+            return res.status(400).json({
+                "Bad Request": "Include extra fields",
+                extraFields,
+            });
+        }
+        // if update to name/description/type/startTime/minSpending/rate/points, recheck original startime
+        if (data.name || data.description || data.type || data.startTime || data.minSpending || data.rate || data.points) {
+            let originalPromotion;
+
+            try {
+                originalPromotion = await prisma.promotion.findUnique({
+                    where: {
+                        id: promotionId
+                    }
+                });
+                console.log(originalPromotion);
+            } catch (error) {
+                console.log(error);
+                return res.status(499).json({ message: "Failed to find promotion" });
+            }
+            console.log(originalPromotion);
+            const originalStartDate = new Date(originalPromotion.startTime);
+            const now = new Date();
+            if (now >= originalStartDate) {
+                return res.status(400).json({ "Bad Request": "Original start time has passed" });
+            }
+        }
+        // if update to endTime, recheck original endtime
+        if (data.endTime) {
+            try {
+                var originalPromotion = await prisma.promotion.findUnique({
+                    where: {
+                        id: promotionId
+                    }
+                });
+            } catch (error) {
+                console.log(error);
+                return res.status(499).json({ message: "Failed to find promotion" });
+            }
+            console.log(originalPromotion);
+            const originalEndDate = new Date(originalPromotion.endTime);
+            const now = new Date();
+            if (now >= originalEndDate) {
+                return res.status(400).json({ "Bad Request": "Original end time has passed" });
+            }
+        }
+        // check if the update time is not in the past
+        if (data.startTime) {
+            const startDate = new Date(data.startTime);
+            const now = new Date();
+            if (startDate < now) {
+                return res.status(400).json({ "Bad Request": "startTime must not be in the past" });
+            }
+        }
+        if (data.endTime) {
+            const endDate = new Date(data.endTime);
+            const now = new Date();
+            if (endDate < now) {
+                return res.status(400).json({ "Bad Request": "endTime must not be in the past" });
+            }
+        }
+        // update
+        try {
+            var result = await prisma.promotion.update({
+                where: {
+                    id: promotionId
+                },
+                data: data,
+            });
+        } catch (error) {
+            console.log(error);
+            return res.status(499).json({ message: "Failed to update promotion" });
+        }
+        var always = {};
+        always.id = result.id;
+        always.name = result.name;
+        always.type = result.type;
+        const merged = { ...always, ...data };
+        return res.status(200).json(merged);
+    })
+    .delete(bearerToken, async (req, res) => {
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        if (req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Not permited to delete promotions" });
+        }
+        const promotionId = parseInt(req.params.promotionId);
+        if (isNaN(promotionId)) {
+            return res.status(400).json({ "Bad Request": "Invalid promotionId" });
+        }
+        try {
+            let result = await prisma.promotion.delete({
+                where: {
+                    id: promotionId
+                }
+            });
+        } catch (error) {
+            console.log(error);
+            return res.status(499).json({ message: "Failed to delete promotion" });
+        }
+        const startDate = new Date(result.startTime);
+        const now = new Date();
+        if (now >= startDate) {
+            return res.status(400).json({ "Bad Request": "Cannot delete started promotion" });
+        }
+        return res.status(204).json({ "Success": "No Content" });
+    })
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Get & Patch & Delete" });
+    });
+
+
 const server = app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });

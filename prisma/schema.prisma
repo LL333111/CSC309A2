@@ -28,24 +28,24 @@ enum PromotionType {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  utorid      String   @unique
-  name        String
-  email       String   @unique
-  birthday    String?
-  role        RoleType @default(regular)
-  points      Int      @default(0)
-  createdAt   String
-  lastLogin   String?
-  verified    Boolean  @default(false)
-  avatarUrl   String?   // 头像
-  password    String?
-  promotions  Promotion[]     // 用户拥有的promotions
-  suspicious  Boolean  @default(false)  // 是否被标记为suspicious
-  resetToken  String?   // reset token
-  expiresAt   String?   // reset token expires At
+  id         Int         @id @default(autoincrement())
+  utorid     String      @unique
+  name       String
+  email      String      @unique
+  birthday   String?
+  role       RoleType    @default(regular)
+  points     Int         @default(0)
+  createdAt  String
+  lastLogin  String?
+  verified   Boolean     @default(false)
+  avatarUrl  String? // 头像
+  password   String?
+  promotions Promotion[]
+  suspicious Boolean     @default(false) // 是否被标记为suspicious
+  resetToken String? // reset token
+  expiresAt  String? // reset token expires At
 
-  guestsEvent Event[] @relation("EventOrganizers")
+  guestsEvent     Event[] @relation("EventOrganizers")
   organizersEvent Event[] @relation("EventGuests")
 }
 
@@ -57,21 +57,24 @@ model Event {
   startTime     String
   endTime       String
   pointsRemain  Int
-  pointsAwarded Int      @default(0) 
-  published     Boolean  @default(false)
+  pointsAwarded Int     @default(0)
+  published     Boolean @default(false)
 
-  capacity      Int?     // 限制参与人数 无限制为 null
-  organizers    User[]   @relation("EventOrganizers")
-  guests        User[]   @relation("EventGuests")
-  numGuests     Int      @default(0)  // 当前参与人数
+  capacity   Int? // 限制参与人数 无限制为 null
+  organizers User[] @relation("EventOrganizers")
+  guests     User[] @relation("EventGuests")
+  numGuests  Int    @default(0) // 当前参与人数
 }
 
 model Promotion {
-  id          Int     @id @default(autoincrement())
+  id          Int    @id @default(autoincrement())
   name        String
-  minSpending Int?
-  rate        Int?
-  points      Int     @default(0)
-  userId      Int
-  user        User    @relation(fields: [userId],references: [id])
+  description String
+  type        String
+  startTime   String
+  endTime     String
+  minSpending Float? @default(50)
+  rate        Float? @default(0.01)
+  points      Int?   @default(0)
+  users       User[]
 }
