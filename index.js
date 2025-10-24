@@ -1403,8 +1403,8 @@ app.route("/events/:eventId/organizers/:userId")
         if (Number.isNaN(userId)) {
             return res.status(400).json({ "Bad Request": "Invalid userId" });
         }
-        // find event by eventId
-        let user = await prisma.event.findUnique({
+        // find user by userId
+        let user = await prisma.user.findUnique({
             where: {
                 id: userId
             }
@@ -1443,7 +1443,7 @@ app.route("/events/:eventId/organizers/:userId")
     })
     .all((req,res) => {
         res.status(405).json({"Method Not Allowed": "Try Delete"});
-    });    
+    });
 
 app.route("/events/:eventId/guests")
     .post(bearerToken, async(req,res) => {
@@ -1571,6 +1571,83 @@ app.route("/events/:eventId/guests")
     })
     .all((req,res) => {
         res.status(405).json({"Method Not Allowed": "Try Post"});
+    });
+
+app.route("/events/:eventId/guests/:userId")
+    .delete(bearerToken, async(req,res) => {
+        // error handle - 401 Unauthorized
+        // no auth:
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - 403 Forbidden
+        // if not "Manager or higher"
+        if (req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Manager or higher"});
+        }
+        // process eventId
+        const eventId = parseInt(req.params.eventId)
+        // error handling - 400 Bad Request
+        if (Number.isNaN(eventId)) {
+            return res.status(400).json({ "Bad Request": "Invalid eventId" });
+        }
+        // find event by eventId
+        let event = await prisma.event.findUnique({
+            where: {
+                id: eventId
+            },
+            include: {
+                organizers: true,
+                guests: true
+            }
+        });
+        // error handling - 404 Not Found
+        if (event === null) {
+            return res.status(404).json({ "Not Found": "Event not found" });
+        }
+        const organizerIds = event.organizers.map((org) => org.id);
+        // not organizer self-remove
+        if (organizerIds.includes(req.user.id)) {
+            return res.status(403).json({ "Forbidden": "self-remove is not allowed"});
+        }
+        // process userId
+        const userId = parseInt(req.params.userId)
+        // error handling - 400 Bad Request
+        if (Number.isNaN(userId)) {
+            return res.status(400).json({ "Bad Request": "Invalid userId" });
+        }
+        // find user by userId
+        let user = await prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        });
+        // error handling - 404 Not Found
+        if (user === null) {
+            return res.status(404).json({ "Not Found": "User not found" });
+        }
+        // error handle - 400 Bad Request
+        // check if user is an guest
+        const guestsIds = event.guests.map((org) => org.id);
+        if (!guestsIds.includes(userId)) {
+            return res.status(400).json({ "Bad Request": "User is not an guest" });
+        }
+        // remove organizer
+        await prisma.event.update({
+            where: {
+                id: eventId
+            },
+            data:{
+                guests: {
+                    disconnect: { id: userId }
+                },
+                numGuests: { decrement: 1 }
+            }
+        });
+        res.status(204).json();
+    })
+    .all((req,res) => {
+        res.status(405).json({ "Method Not Found": "Try Delete" });
     });
 
 const server = app.listen(port, () => {
