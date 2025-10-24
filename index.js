@@ -958,8 +958,8 @@ app.route("/events")
             });
         }
         // set filter(where) meanwhile
-        // console.log(req.role);
-        // console.log(req.query);
+        console.log(req.user);
+        console.log(req.query);
         let where ={};
         // not satisfy description
         if (name !== undefined && name !== null) {
@@ -1000,9 +1000,15 @@ app.route("/events")
             } else {
                 where.OR = [
                     { capacity: null },
-                    { attendees: { lt: prisma.event.capacity } }
+                    { numGuests: { lt: prisma.event.fields.capacity } }
                 ];
             }
+        } else {
+            // default no show full events
+            where.OR = [
+                { capacity: null },
+                { numGuests: { lt: prisma.event.fields.capacity } }
+            ];
         }
         // if no input page or limit, set them to default value
         if (page !== undefined) {
@@ -1031,8 +1037,8 @@ app.route("/events")
             }
             where.published = published === "true";
         } else {
-            if (req.role === "regular") {
-                where.published = false;
+            if (req.role === "regular" || req.role === "cashier") {
+                where.published = true;
             }
         }
         // set select
@@ -1061,6 +1067,8 @@ app.route("/events")
             console.log(error);
             return res.status(499).json({message: "Failed to find user"});
         }
+        console.log(results);
+        console.log(results.slice((page-1)*limit, ((page-1)*limit)+limit));
         return res.status(200).json({
             count: results.length,
             results: results.slice((page-1)*limit, ((page-1)*limit)+limit)
