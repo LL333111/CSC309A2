@@ -1074,7 +1074,6 @@ app.route("/events")
         res.status(405).json({ "Method Not Allowed": "Try Get & Post" });
     });
 
-
 app.route("/events/:eventId")
     .get(bearerToken, async (req, res) => {
         res.status(405).json();
@@ -2130,25 +2129,39 @@ app.route("/promotions/:promotionId")
     });
 app.route("/transactions")
     .post(bearerToken, async (req, res) => {
-        // Check authentication first
+        //check authroizationf irst
         if (!req.role) {
-            return res.status(401).json({ "Unauthorized": "No authorization" });
+            return res.status(401).json({ "Bad Request": "No authorization" });
         }
-        // check role
-        if (req.role != "cashier" || req.role != "superuser" || req.role != "manager") {
-            return res.status(403).json({ "Forbidden": "Not permited to create a transactions" });
+        // check the role
+
+        // check the required data
+        let data = {};
+        const { utorid, type, spent, promotionIds, remark, amount, relatedId } = req.body;
+        if (!utorid || typeof (utorid) !== 'string') {
+            return res.status(400).json({ "Bad Request": "Invalid utorid" });
         }
-        const { utorid, type, spent, promotionIds, remark } = req.body;
-        // vaid required data
-        if (!utorid || typeof (utorid) !== "string" ||
-            !type || typeof (type) !== "string" ||)
+        data.utorid = utorid;
+        if (!type || typeof (type) !== 'string' || type !== 'adjustment') {
+            return res.status(400).json({ "Bad Request": "Invalid type" });
+        }
+        data.type = type;
+        // check the optional data
+        if (promotionIds) {
+            if (!Array.isArray(promotionIds) || !promotionIds.every(n => Number.isInteger(n) && n > 0)) {
+                return res.status(400).json({ "Bad Request": "Invalid PromotionIds" });
+            }
+            data.promotionalIds = promotionIds;
+        }
+        if (remark) {
+            if (typeof (remark) !== "string") {
+                return res.status(400).json({ "Bad Request": "Invalid remark" });
+            }
+            data.remark = remark;
+        }
 
+    });
 
-
-
-
-
-    })
 const server = app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
