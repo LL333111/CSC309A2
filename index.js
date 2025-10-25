@@ -958,6 +958,8 @@ app.route("/events")
             });
         }
         // set filter(where) meanwhile
+        console.log(req.role);
+        console.log(req.query);
         let where = {};
         // not satisfy description
         if (name !== undefined && name !== null) {
