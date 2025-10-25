@@ -1719,6 +1719,7 @@ app.route("/events/:eventId/guests/:userId")
     .all((req, res) => {
         res.status(405).json({ "Method Not Found": "Try Delete" });
     });
+
 app.route("/promotions")
     .post(bearerToken, async (req, res) => {
         // check authorizaiton first
@@ -2128,40 +2129,6 @@ app.route("/promotions/:promotionId")
     })
     .all((req, res) => {
         res.status(405).json({ "Method Not Allowed": "Try Get & Patch & Delete" });
-    });
-app.route("/transactions")
-    .post(bearerToken, async (req, res) => {
-        //check authroizationf irst
-        if (!req.role) {
-            return res.status(401).json({ "Bad Request": "No authorization" });
-        }
-        // check the role
-
-        // check the required data
-        let data = {};
-        const { utorid, type, spent, promotionIds, remark, amount, relatedId } = req.body;
-        if (!utorid || typeof (utorid) !== 'string') {
-            return res.status(400).json({ "Bad Request": "Invalid utorid" });
-        }
-        data.utorid = utorid;
-        if (!type || typeof (type) !== 'string' || type !== 'adjustment') {
-            return res.status(400).json({ "Bad Request": "Invalid type" });
-        }
-        data.type = type;
-        // check the optional data
-        if (promotionIds) {
-            if (!Array.isArray(promotionIds) || !promotionIds.every(n => Number.isInteger(n) && n > 0)) {
-                return res.status(400).json({ "Bad Request": "Invalid PromotionIds" });
-            }
-            data.promotionalIds = promotionIds;
-        }
-        if (remark) {
-            if (typeof (remark) !== "string") {
-                return res.status(400).json({ "Bad Request": "Invalid remark" });
-            }
-            data.remark = remark;
-        }
-
     });
 
 const server = app.listen(port, () => {
