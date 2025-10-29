@@ -67,14 +67,32 @@ model Event {
 }
 
 model Promotion {
-  id          Int    @id @default(autoincrement())
-  name        String
-  description String
-  type        String
-  startTime   String
-  endTime     String
-  minSpending Float? @default(50)
-  rate        Float? @default(0.01)
-  points      Int?   @default(0)
-  users       User[]
+  id           Int           @id @default(autoincrement())
+  name         String
+  description  String
+  type         String
+  startTime    String
+  endTime      String
+  minSpending  Float?        @default(50)
+  rate         Float?        @default(0.01)
+  points       Int?          @default(0)
+  users        User[]
+  transactions Transaction[] @relation("PromotionTransaction")
+}
+
+model Transaction {
+  id           Int         @id @default(autoincrement())
+  utorid       String
+  type         String
+  spent        Float?
+  earned       Int?
+  remark       String?     @default("")
+  createdby    String?
+  amount       Int?
+  relateId     Int?
+  processed    Boolean     @default(false)
+  processedBy  String?
+  sender       String?
+  receiver     String?
+  promotionIds Promotion[] @relation("PromotionTransaction")
 }
