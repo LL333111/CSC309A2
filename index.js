@@ -2143,34 +2143,6 @@ app.route("/promotions")
             results: results
         });
     })
-    .delete(bearerToken, async (req, res) => {
-        if (!req.role) {
-            return res.status(401).json({ "Unauthorized": "No authorization" });
-        }
-        if (req.role !== "manager" && req.role !== "superuser") {
-            return res.status(403).json({ "Forbidden": "Not permited to delete promotions" });
-        }
-        const promotionId = parseInt(req.params.promotionId);
-        if (isNaN(promotionId)) {
-            return res.status(400).json({ "Bad Request": "Invalid promotionId" });
-        }
-        try {
-            var result = await prisma.promotion.delete({
-                where: {
-                    id: promotionId
-                }
-            });
-        } catch (error) {
-            console.log(error);
-            return res.status(404).json({ message: "Failed to delete promotion becuae not Found the promotion" });
-        }
-        const startDate = new Date(result.startTime);
-        const now = new Date();
-        if (now >= startDate) {
-            return res.status(403).json({ "Bad Request": "Cannot delete started promotion" });
-        }
-        return res.status(204).json({ "Success": "No Content" });
-    })
     .all((req, res) => {
         res.status(405).json({ "Method Not Allowed": "Try Get & Post" });
     });
@@ -2351,6 +2323,34 @@ app.route("/promotions/:promotionId")
         always.type = result.type;
         const merged = { ...always, ...data };
         return res.status(200).json(merged);
+    })
+    .delete(bearerToken, async (req, res) => {
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        if (req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Not permited to delete promotions" });
+        }
+        const promotionId = parseInt(req.params.promotionId);
+        if (isNaN(promotionId)) {
+            return res.status(400).json({ "Bad Request": "Invalid promotionId" });
+        }
+        try {
+            var result = await prisma.promotion.delete({
+                where: {
+                    id: promotionId
+                }
+            });
+        } catch (error) {
+            console.log(error);
+            return res.status(404).json({ message: "Failed to delete promotion becuae not Found the promotion" });
+        }
+        const startDate = new Date(result.startTime);
+        const now = new Date();
+        if (now >= startDate) {
+            return res.status(403).json({ "Bad Request": "Cannot delete started promotion" });
+        }
+        return res.status(204).json({ "Success": "No Content" });
     })
     .all((req, res) => {
         res.status(405).json({ "Method Not Allowed": "Try Get & Patch & Delete" });
