@@ -1643,8 +1643,6 @@ app.route("/events/:eventId/guests")
         if ((new Date(event.endTime)).toISOString() <= (new Date()).toISOString()) {
             return res.status(410).json({ "Gone": "Event has ended" });
         }
-        console.log(event.numGuests === event.guests.length);
-
         if (event.capacity !== null) {
             if (event.numGuests === event.capacity) {
                 return res.status(410).json({ "Gone": "Event is full" });
@@ -2411,8 +2409,13 @@ app.route("/transactions")
                 if (now < startDate) {
                     return res.status(400).json({ "Bad Request": `Promotion with id ${promo.id} is not started yet` });
                 }
-                if (promo.minSpending && spent < promo.minSpending) {
-                    return res.status(400).json({ "Bad Request": `Promotion with id ${promo.id} requires minimum spending of ${promo.minSpending}` });
+                if (type === "purchase") {
+                    if (!spent || typeof(spent) !== "number" || Number.isNaN(spent) || spent <= 0) {
+                        return res.status(400).json({ "Bad Request": "Invalid spent" });
+                    }
+                    if (promo.minSpending && spent < promo.minSpending) {
+                        return res.status(400).json({ "Bad Request": `Promotion with id ${promo.id} requires minimum spending of ${promo.minSpending}` });
+                    }
                 }
             }
             // check if the promotion has been used alredy
@@ -2425,6 +2428,9 @@ app.route("/transactions")
             } catch (error) {
                 console.log(error);
                 return res.status(499).json({ message: "Failed to find user promotions" });
+            }
+            if (userData === null) {
+                return res.status(404).json({ "Not Found":"User not found" });
             }
             for (const promotionid of promotionIds) {
                 if (!userData.promotions.some(promo => promo.id === promotionid)) {
@@ -2447,8 +2453,7 @@ app.route("/transactions")
             return !allowedFields.includes(field);
         });
         // check who created this transaction
-        const createdBy = req.user.id;
-        data.createdBy = String(createdBy);
+        data.createdBy = req.user.utorid;
         data.utorid = utorid;
         data.type = type;
         if (extraFields.length > 0) {
@@ -2459,7 +2464,7 @@ app.route("/transactions")
         }
         if (type === "purchase") {
             // spent required for purchase
-            if (!spent || typeof spent !== "number" || isNaN(spent) || spent <= 0) {
+            if (!spent || typeof spent !== "number" || Number.isNaN(spent) || spent <= 0) {
                 return res.status(400).json({ "Bad Request": "Invalid spent" });
             }
             // check for redempt transaction
@@ -2470,37 +2475,18 @@ app.route("/transactions")
                 }
             });
             if (redemptTransaction) {
-                data.spent += redemptTransaction.amount / 100;
+                data.spent = redemptTransaction.amount / 100;
+            } else {
+                data.spent = 0;
             }
-            // compute earned: 1 point per $0.25 
-            const earned = Math.round(data.spent * 4);
-            data.spent = spent;
-            data.earned = earned;
+            data.spent += spent;
+            data.earned = 0;
             data.suspicious = false;
             data.amount = 0;
-            // check if the cashier is suspicious or not
-            if (req.role === "cashier") {
-                let cashierData;
-                try {
-                    cashierData = await prisma.user.findUnique({
-                        where: { id: req.user.id }
-                    });
-                } catch (error) {
-                    console.log(error);
-                    return res.status(499).json({ message: "Failed to find cashier data" });
-                }
-
-                // if suspicious create suspicious purchase transaction 
-                // late unset it by endpoint /transactions/:transactionId/suspicious
-                if (cashierData.suspicious === true) {
-                    data.suspicious = true;
-                    data.amount = earned;
-                    data.earned = 0;
-                }
-            }
+            let percentageEarned = 4; // 1 points per 0.25
             // go through the promotions to see if any can be applied
             if (promotionIds && promotionIds.length > 0) {
-                let promotions
+                let promotions;
                 try {
                     promotions = await prisma.promotion.findMany({
                         where: {
@@ -2513,7 +2499,7 @@ app.route("/transactions")
                 }
 
                 for (const promo of promotions) {
-                    data.earned += promo.rate;
+                    percentageEarned += promo.rate;
                     // if one-time promotion, remove it from user's available promotions
                     if (promo.type === "onetime") {
                         try {
@@ -2531,6 +2517,32 @@ app.route("/transactions")
                         }
                     }
                     data.earned += promo.points;
+                }
+            }
+            // + earned points
+            data.earned += Math.round(data.spent * percentageEarned);
+            // check if the cashier is suspicious or not
+            if (req.role === "cashier") {
+                let cashierData;
+                try {
+                    cashierData = await prisma.user.findUnique({
+                        where: { id: req.user.id }
+                    });
+                } catch (error) {
+                    console.log(error);
+                    return res.status(499).json({ message: "Failed to find cashier data" });
+                }
+                // error handle
+                if (cashierData === null) {
+                    return res.status(404).json({ "Not Found":"User not found" });
+                }
+
+                // if suspicious create suspicious purchase transaction 
+                // late unset it by endpoint /transactions/:transactionId/suspicious
+                if (cashierData.suspicious === true) {
+                    data.suspicious = true;
+                    data.amount = data.earned;
+                    data.earned = 0;
                 }
             }
             // create purchase transaction
@@ -2556,7 +2568,7 @@ app.route("/transactions")
                 try {
                     await prisma.user.update({
                         where: { utorid: utorid },
-                        data: { points: { increment: earned } }
+                        data: { points: { increment: data.earned } }
                     });
                 } catch (error) {
                     console.log(error);
@@ -2570,12 +2582,25 @@ app.route("/transactions")
             console.log(data);
             return res.status(201).json("purchase_transaction_created");
         } else if (type === "adjustment") {
-
-            if (!amount || typeof amount !== "number" || !Number.isInteger(amount) || amount === 0) {
+            if (!amount || typeof amount !== "number" || !Number.isInteger(amount) || Number.isNaN(amount) || amount === 0) {
                 return res.status(400).json({ "Bad Request": "Invalid amount" });
             }
-            if (!relatedId || typeof relatedId !== "string") {
+            if (!relatedId || typeof relatedId !== "number" || !Number.isInteger(relatedId) || Number.isNaN(relatedId)) {
                 return res.status(400).json({ "Bad Request": "Invalid relatedId" });
+            }
+            let relatedTransaction;
+            try {
+                relatedTransaction = await prisma.transaction.findUnique({
+                    where: {
+                        id: relatedId
+                    }
+                });
+            } catch(error) {
+                console.log(error);
+                return res.status(499).json({ message: "Failed to update user points" });
+            }
+            if (relatedTransaction === null) {
+                return res.status(404).json({ "Not Found" : "Transaction not found" });
             }
             data.amount = amount;
             data.relatedId = relatedId;
