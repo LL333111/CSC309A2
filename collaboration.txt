@@ -1,0 +1,14 @@
+Jiakun Chen: /users
+             /users/:userId
+             /users/me
+             /users/me/password
+             /auth/tokens
+             /auth/resets
+             /auth/resets/:resetToken
+             /events
+             /events/:eventId
+             /events/:eventId/organizers
+             /events/:eventId/organizers/:userId
+             /events/:eventId/guests
+             /events/:eventId/guests/:userId
+             /events/:eventId/guests/me
