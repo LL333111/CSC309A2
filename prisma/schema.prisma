@@ -73,8 +73,8 @@ model Promotion {
   type         String
   startTime    String
   endTime      String
-  minSpending  Float?        @default(50)
-  rate         Float?        @default(0.01)
+  minSpending  Float?        @default(0)
+  rate         Float?        @default(0)
   points       Int?          @default(0)
   users        User[]
   transactions Transaction[] @relation("PromotionTransaction")
@@ -85,14 +85,16 @@ model Transaction {
   utorid       String
   type         String
   spent        Float?
-  earned       Int?
   remark       String?     @default("")
-  createdby    String?
+  createdBy    String?
   amount       Int?
-  relateId     Int?
-  processed    Boolean     @default(false)
-  processedBy  String?
+  relatedId    Int?
+  processed    Boolean?
+  earned       Int?        @default(0)
   sender       String?
-  receiver     String?
+  sent         Int?        @default(0)
+  redeemed     Int?        @default(0)
+  recipient    String?
+  suspicious   Boolean     @default(false)
   promotionIds Promotion[] @relation("PromotionTransaction")
 }

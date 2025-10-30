@@ -2143,6 +2143,34 @@ app.route("/promotions")
             results: results
         });
     })
+    .delete(bearerToken, async (req, res) => {
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        if (req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Not permited to delete promotions" });
+        }
+        const promotionId = parseInt(req.params.promotionId);
+        if (isNaN(promotionId)) {
+            return res.status(400).json({ "Bad Request": "Invalid promotionId" });
+        }
+        try {
+            var result = await prisma.promotion.delete({
+                where: {
+                    id: promotionId
+                }
+            });
+        } catch (error) {
+            console.log(error);
+            return res.status(404).json({ message: "Failed to delete promotion becuae not Found the promotion" });
+        }
+        const startDate = new Date(result.startTime);
+        const now = new Date();
+        if (now >= startDate) {
+            return res.status(403).json({ "Bad Request": "Cannot delete started promotion" });
+        }
+        return res.status(204).json({ "Success": "No Content" });
+    })
     .all((req, res) => {
         res.status(405).json({ "Method Not Allowed": "Try Get & Post" });
     });
@@ -2324,37 +2352,10 @@ app.route("/promotions/:promotionId")
         const merged = { ...always, ...data };
         return res.status(200).json(merged);
     })
-    .delete(bearerToken, async (req, res) => {
-        if (!req.role) {
-            return res.status(401).json({ "Unauthorized": "No authorization" });
-        }
-        if (req.role !== "manager" && req.role !== "superuser") {
-            return res.status(403).json({ "Forbidden": "Not permited to delete promotions" });
-        }
-        const promotionId = parseInt(req.params.promotionId);
-        if (isNaN(promotionId)) {
-            return res.status(400).json({ "Bad Request": "Invalid promotionId" });
-        }
-        try {
-            var result = await prisma.promotion.delete({
-                where: {
-                    id: promotionId
-                }
-            });
-        } catch (error) {
-            console.log(error);
-            return res.status(404).json({ message: "Failed to delete promotion becuae not Found the promotion" });
-        }
-        const startDate = new Date(result.startTime);
-        const now = new Date();
-        if (now >= startDate) {
-            return res.status(403).json({ "Bad Request": "Cannot delete started promotion" });
-        }
-        return res.status(204).json({ "Success": "No Content" });
-    })
     .all((req, res) => {
         res.status(405).json({ "Method Not Allowed": "Try Get & Patch & Delete" });
     });
+
 app.route("/transactions")
     .post(bearerToken, async (req, res) => {
         //check authroizationf first
@@ -2378,23 +2379,28 @@ app.route("/transactions")
         if (type !== "purchase" && type !== "adjustment") {
             return res.status(400).json({ "Bad Request": "type must be 'purchase' or 'adjustment'" });
         }
-        data.utorid = utorid;
-        data.type = type;
         // promotionIds and remark are optional for both purchase transcation and adjustment transaction
         if (promotionIds) {
             if (!Array.isArray(promotionIds)) {
                 return res.status(400).json({ "Bad Request": "Invalid PromotionIds" });
             }
             // check if the promotion IDs does not exist
-            const existingPromotions = await prisma.promotion.findMany({
-                where: {
-                    id: { in: promotionIds }
-                }
-            });
+            let existingPromotions;
+            try {
+                existingPromotions = await prisma.promotion.findMany({
+                    where: {
+                        id: { in: promotionIds }
+                    }
+                });
+            } catch (error) {
+                console.log(error);
+                return res.status(499).json({ message: "Failed to find promotions" });
+            }
             if (existingPromotions.length !== promotionIds.length) {
                 return res.status(400).json({ "Bad Request": "One or more promotionIds are invalid" });
             }
             // check if the promotion is expired
+            // check if min spending is satisfied
             const now = new Date();
             for (const promo of existingPromotions) {
                 const endDate = new Date(promo.endTime);
@@ -2405,12 +2411,21 @@ app.route("/transactions")
                 if (now < startDate) {
                     return res.status(400).json({ "Bad Request": `Promotion with id ${promo.id} is not started yet` });
                 }
+                if (promo.minSpending && spent < promo.minSpending) {
+                    return res.status(400).json({ "Bad Request": `Promotion with id ${promo.id} requires minimum spending of ${promo.minSpending}` });
+                }
             }
             // check if the promotion has been used alredy
-            const userData = await prisma.user.findUnique({
-                where: { utorid: utorid },
-                include: { promotions: { select: { id: true } } },
-            });
+            let userData;
+            try {
+                userData = await prisma.user.findUnique({
+                    where: { utorid: utorid },
+                    include: { promotions: { select: { id: true } } },
+                });
+            } catch (error) {
+                console.log(error);
+                return res.status(499).json({ message: "Failed to find user promotions" });
+            }
             for (const promotionid of promotionIds) {
                 if (!userData.promotions.some(promo => promo.id === promotionid)) {
                     return res.status(400).json({ "Bad Request": `Promotion with id ${promotionid} has been used` });
@@ -2419,20 +2434,23 @@ app.route("/transactions")
             // promotionIds are valid
             data.promotionIds = { connect: promotionIds.map(id => ({ id })) };
         }
+        data.remark = "";
         if (remark) {
             if (typeof (remark) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid remark" });
             }
             data.remark = remark;
         }
-        // check who created this transaction
-        const createdBy = req.user.id;
-        data.createdby = String(createdBy);
         // extra field
         const allowedFields = ["utorid", "type", "spent", "promotionIds", "remark", "amount", "relatedId"];
         const extraFields = Object.keys(req.body).filter((field) => {
             return !allowedFields.includes(field);
         });
+        // check who created this transaction
+        const createdBy = req.user.id;
+        data.createdBy = String(createdBy);
+        data.utorid = utorid;
+        data.type = type;
         if (extraFields.length > 0) {
             return res.status(400).json({
                 "Bad Request": "Include extra fields",
@@ -2440,32 +2458,119 @@ app.route("/transactions")
             });
         }
         if (type === "purchase") {
-            // role gate for purchase: cashier OR manager OR superuser
-            if (!(req.role === "cashier" || req.role === "manager" || req.role === "superuser")) {
-                return res.status(403).json({ "Forbidden": "Not permitted to create purchase transaction" });
-            }
             // spent required for purchase
             if (!spent || typeof spent !== "number" || isNaN(spent) || spent <= 0) {
                 return res.status(400).json({ "Bad Request": "Invalid spent" });
             }
-            data.spent = spent;
-            // compute earned: 1 point per $0.25 
-            const earned = Math.round(spent * 4);
-            data.earned = earned;
-            // create purchase transaction
-            const created = await prisma.transaction.create({
-                data: data,
-                include: { promotionIds: { select: { id: true } } }
+            // check for redempt transaction
+            const redemptTransaction = await prisma.transaction.findFirst({
+                where: {
+                    utorid: utorid,
+                    type: "redemption",
+                }
             });
+            if (redemptTransaction) {
+                data.spent += redemptTransaction.amount / 100;
+            }
+            // compute earned: 1 point per $0.25 
+            const earned = Math.round(data.spent * 4);
+            data.spent = spent;
+            data.earned = earned;
+            data.suspicious = false;
+            data.amount = 0;
+            // check if the cashier is suspicious or not
+            if (req.role === "cashier") {
+                let cashierData;
+                try {
+                    cashierData = await prisma.user.findUnique({
+                        where: { id: req.user.id }
+                    });
+                } catch (error) {
+                    console.log(error);
+                    return res.status(499).json({ message: "Failed to find cashier data" });
+                }
+
+                // if suspicious create suspicious purchase transaction 
+                // late unset it by endpoint /transactions/:transactionId/suspicious
+                if (cashierData.suspicious === true) {
+                    data.suspicious = true;
+                    data.amount = earned;
+                    data.earned = 0;
+                }
+            }
+            // go through the promotions to see if any can be applied
+            if (promotionIds && promotionIds.length > 0) {
+                let promotions
+                try {
+                    promotions = await prisma.promotion.findMany({
+                        where: {
+                            id: { in: promotionIds }
+                        }
+                    });
+                } catch (error) {
+                    console.log(error);
+                    return res.status(499).json({ message: "Failed to find promotions" });
+                }
+
+                for (const promo of promotions) {
+                    data.earned += promo.rate;
+                    // if one-time promotion, remove it from user's available promotions
+                    if (promo.type === "onetime") {
+                        try {
+                            await prisma.user.update({
+                                where: { utorid: utorid },
+                                data: {
+                                    promotions: {
+                                        disconnect: { id: promo.id }
+                                    }
+                                }
+                            });
+                        } catch (error) {
+                            console.log(error);
+                            return res.status(499).json({ message: "Failed to update user promotions" });
+                        }
+                    }
+                    data.earned += promo.points;
+                }
+            }
+            // create purchase transaction
+            let created;
+            try {
+                created = await prisma.transaction.create({
+                    data: data,
+                    select: {
+                        id: true,
+                        utorid: true,
+                        type: true,
+                        spent: true,
+                        remark: true,
+                        promotionIds: { select: { id: true } },
+                    }
+                });
+            } catch (error) {
+                console.log(error);
+                return res.status(499).json({ message: "Failed to create purchase transaction" });
+            }
+            // add points to user only if not suspicious
+            if (!data.suspicious) {
+                try {
+                    await prisma.user.update({
+                        where: { utorid: utorid },
+                        data: { points: { increment: earned } }
+                    });
+                } catch (error) {
+                    console.log(error);
+                    return res.status(499).json({ message: "Failed to update user points" });
+                }
+            }
+            // shape response
             data.promotionIds = created.promotionIds;
             data.id = created.id;
-            // add points to user
-            await prisma.user.update({
-                where: { utorid: utorid },
-                data: { points: { increment: earned } }
-            });
-            return res.status(201).json(data);
+            delete data.suspicious;
+            console.log(data);
+            return res.status(201).json("purchase_transaction_created");
         } else if (type === "adjustment") {
+
             if (!amount || typeof amount !== "number" || !Number.isInteger(amount) || amount === 0) {
                 return res.status(400).json({ "Bad Request": "Invalid amount" });
             }
@@ -2475,18 +2580,32 @@ app.route("/transactions")
             data.amount = amount;
             data.relatedId = relatedId;
             // create adjustment transaction
-            const created = await prisma.transaction.create({
-                data: data,
-                include: { promotionIds: { select: { id: true } } }
-            });
+            let created;
+            try {
+                created = await prisma.transaction.create({
+                    data: data,
+                    include: { promotionIds: { select: { id: true } } }
+                });
+            } catch (error) {
+                console.log(error);
+                return res.status(499).json({ message: "Failed to create adjustment transaction" });
+            }
+
+            // for adjustment we do not apply promotions becuase it is for adjustment 
             data.promotionIds = created.promotionIds;
             data.id = created.id;
             // adjust points to user
-            await prisma.user.update({
-                where: { utorid: utorid },
-                data: { points: { increment: amount } }
-            });
-            return res.status(201).json(data);
+            try {
+                await prisma.user.update({
+                    where: { utorid: utorid },
+                    data: { points: { increment: amount } }
+                });
+            } catch (error) {
+                console.log(error);
+                return res.status(499).json({ message: "Failed to update user points" });
+            }
+            console.log(data);
+            return res.status(201).json("adjustment_transaction_created");
         }
     })
     .get(bearerToken, async (req, res) => {
@@ -2499,7 +2618,7 @@ app.route("/transactions")
             return res.status(403).json({ "Forbidden": "Not permitted to view transactions" });
         }
         // process query parameters
-        const { name, createdBy, suspicious, promotionId, type, relatedId, amount, operator, page, limit } = req.query;
+        let { name, createdBy, suspicious, promotionId, type, relatedId, amount, operator, page, limit } = req.query;
         const filters = {};
         if (name) {
             if (typeof (name) !== "string") {
@@ -2511,7 +2630,7 @@ app.route("/transactions")
             if (typeof (createdBy) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid createdBy" });
             }
-            filters.createdby = createdBy;
+            filters.createdBy = createdBy;
         }
         if (suspicious !== undefined && suspicious !== null) {
             if (suspicious !== "true" && suspicious !== "false") {
@@ -2543,15 +2662,14 @@ app.route("/transactions")
             if (typeof (operator) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid operator" });
             }
-            if (operator !== "gt" && operator !== "lt") {
+            if (operator !== "gte" && operator !== "lte") {
                 return res.status(400).json({ "Bad Request": "Invalid operator" });
             }
-            filters.operator = operator;
             if (isNaN(parseInt(amount))) {
                 return res.status(400).json({ "Bad Request": "Invalid amount" });
             }
             const amt = parseInt(amount);
-            filters.amount = amt;
+            filters.amount = { [operator]: amt };
         }
         if (operator && !amount) {
             return res.status(400).json({ "Bad Request": "Missing amount" });
@@ -2586,8 +2704,53 @@ app.route("/transactions")
             where: filters,
             skip: (page - 1) * limit,
             take: parseInt(limit),
-            include: { promotionIds: { select: { id: true } } }
+            select: {
+                id: true,
+                utorid: true,
+                amount: true,
+                type: true,
+                spent: true,
+                promotionIds: { select: { id: true } },
+                suspicious: true,
+                remark: true,
+                createdBy: true,
+                relatedId: true,
+                redeemed: true,
+                sender: true,
+                recipient: true,
+                sent: true
+            }
         });
+        // keep only relevant fields
+        for (const tx of result) {
+            if (tx.type === "purchase") {
+                delete tx.redeemed;
+                delete tx.relatedId;
+                delete tx.sender;
+                delete tx.recipient;
+                delete tx.sent;
+            } else if (tx.type === "adjustment") {
+                delete tx.redeemed;
+                delete tx.spent;
+                delete tx.sender;
+                delete tx.recipient;
+                delete tx.sent;
+            } else if (tx.type === "redemption") {
+                delete tx.spent;
+                delete tx.suspicious;
+                delete tx.sender;
+                delete tx.recipient;
+                delete tx.sent;
+            } else {
+                delete tx.relatedId;
+                delete tx.redeemed;
+                delete tx.amount;
+                delete tx.utorid;
+                delete tx.promotionIds;
+                delete tx.suspicious;
+                delete tx.spent;
+            }
+        }
         return res.status(200).json({
             count: result.length,
             results: result
@@ -2620,7 +2783,7 @@ app.route("/transactions/:transactionId")
                 promotionIds: { select: { id: true } },
                 suspicious: true,
                 remark: true,
-                createdby: true
+                createdBy: true
             }
         });
         if (!result) {
@@ -2666,10 +2829,13 @@ app.route("/transactions/:transactionId/suspicious")
                     promotionIds: { select: { id: true } },
                     suspicious: true,
                     remark: true,
-                    createdby: true
+                    createdBy: true
                 }
             });
-            const deduction = updateTransaction.amount;
+            let deduction = updateTransaction.amount;
+            if (!deduction || deduction <= 0) {
+                return res.status(400).json({ "Bad Request": "Transaction amount is zero, cannot set to suspicious" });
+            }
             // set user to suspicious
             await prisma.user.update({
                 where: { id: req.user.id },
@@ -2693,15 +2859,16 @@ app.route("/transactions/:transactionId/suspicious")
                     promotionIds: { select: { id: true } },
                     suspicious: true,
                     remark: true,
-                    createdby: true
+                    createdBy: true
                 }
             });
             // set user to not suspicious
+            let increment = updateTransaction.amount;
             await prisma.user.update({
                 where: { id: req.user.id },
                 data: {
                     suspicious: false,
-                    points: { increment: updateTransaction.amount }
+                    points: { increment: increment }
                 }
             });
             return res.status(200).json(updateTransaction);
@@ -2709,228 +2876,6 @@ app.route("/transactions/:transactionId/suspicious")
     })
     .all((req, res) => {
         res.status(405).json({ "Method Not Allowed": "Try Patch" });
-    });
-app.route("/users/me/transactions")
-    .post(bearerToken, async (req, res) => {
-        // check authorization first
-        if (!req.role) {
-            return res.status(401).json({ "Unauthorized": "No authorization" });
-        }
-        // check role
-        if (req.role != "manager" && req.role !== "superuser" && req.role !== "cashier" && req.role !== "regular") {
-            return res.status(403).json({ "Forbidden": "Not permitted to create transactions" });
-        }
-        // find the user 
-        const userData = await prisma.user.findUnique({
-            where: { id: req.user.id },
-        });
-        // check if user is verified or not
-        if (userData.verified === false) {
-            return res.status(403).json({ "Forbidden": "User not verified" });
-        }
-        // validate data
-        const { type, amount, remark } = req.body;
-        let data = {};
-        if (!type || typeof (type) !== "string" || type !== "redemption") {
-            return res.status(400).json({ "Bad Request": "Invalid type" });
-        }
-        data.type = type;
-        if (!amount || typeof (amount) !== "number" || isNaN(amount) || !Number.isInteger(amount) || amount <= 0) {
-            return res.status(400).json({ "Bad Request": "Invalid amount" });
-        }
-        data.amount = amount;
-        if (remark) {
-            if (typeof (remark) !== "string") {
-                return res.status(400).json({ "Bad Request": "Invalid remark" });
-            }
-            data.remark = remark;
-        }
-        data.createdby = String(req.user.id);
-        // check if the user has enough points
-        if (userData.points < amount) {
-            return res.status(400).json({ "Bad Request": "Insufficient points" });
-        }
-        // create transaction
-        const transaction = await prisma.transaction.create({
-            data: data,
-            select: {
-                id: true,
-                utorid: true,
-                type: true,
-                processedBy: true,
-                amount: true,
-                remark: true,
-                createdby: true
-            }
-        });
-        // redemption transaction must be processed by cashier later though path
-    })
-    .get(bearerToken, async (req, res) => {
-        // check authorization first
-        if (!req.role) {
-            return res.status(401).json({ "Unauthorized": "No authorization" });
-        }
-        if (req.role != "manager" && req.role !== "superuser" && req.role !== "cashier" && req.role !== "regular") {
-            return res.status(403).json({ "Forbidden": "Not permitted to view transactions" });
-        }
-        // validat data
-        let data = {};
-        const { type, relatedId, promotionId, amount, operator, page, limit } = req.query;
-        if (type) {
-            if (typeof (type) !== "string") {
-                return res.status(400).json({ "Bad Request": "Invalid type" });
-            }
-            data.type = type;
-        }
-        // relatedId must be used with type
-        if (relatedId) {
-            if (!type) {
-                return res.status(400).json({ "Bad Request": "relatedId must be used with type adjustment" });
-            }
-            if (isNaN(parseInt(relatedId))) {
-                return res.status(400).json({ "Bad Request": "Invalid relatedId" });
-            }
-            data.relatedId = parseInt(relatedId);
-        }
-        if (promotionId) {
-            if (isNaN(parseInt(promotionId))) {
-                return res.status(400).json({ "Bad Request": "Invalid promotionId" });
-            }
-            data.promotionId = parseInt(promotionId);
-        }
-        // amount must be used with operator
-        if (amount) {
-            if (!operator) {
-                return res.status(400).json({ "Bad Request": "Missing operator" });
-            }
-            if (isNaN(parseInt(amount))) {
-                return res.status(400).json({ "Bad Request": "Invalid amount" });
-            }
-            data.amount = parseInt(amount);
-        }
-        if (operator && !amount) {
-            return res.status(400).json({ "Bad Request": "Missing amount" });
-        }
-        if (operator) {
-            if (typeof (operator) !== "string") {
-                return res.status(400).json({ "Bad Request": "Invalid operator" });
-            }
-            if (operator !== "gt" && operator !== "lt") {
-                return res.status(400).json({ "Bad Request": "Invalid operator" });
-            }
-            data.operator = operator;
-        }
-        if (page) {
-            if (isNaN(parseInt(page)) || parseInt(page) <= 0) {
-                return res.status(400).json({ "Bad Request": "Invalid page" });
-            }
-            data.page = parseInt(page);
-        } else {
-            data.page = 1;
-        }
-        if (limit) {
-            if (isNaN(parseInt(limit)) || parseInt(limit) <= 0) {
-                return res.status(400).json({ "Bad Request": "Invalid limit" });
-            }
-            data.limit = parseInt(limit);
-        } else {
-            data.limit = 10;
-        }
-        data.createdby = String(req.user.id);
-        // get the current author
-        const transactions = await prisma.transaction.findMany({
-            where: { data },
-            skip: (data.page - 1) * data.limit,
-            take: data.limit,
-        });
-        return res.status(200).json({
-            count: transactions.length,
-            results: transactions
-        });
-    })
-    .all((req, res) => {
-        res.status(405).json({ "Method Not Allowed": "Try Post & Get" });
-    });
-
-app.route("/users/:userId/transactions")
-    .post(bearerToken, async (req, res) => {
-        // check authorization first
-        if (!req.role) {
-            return res.status(401).json({ "Unauthorized": "No authorization" });
-        }
-        // check role
-        if (req.role != "manager" && req.role !== "superuser" && req.role !== "cashier" && req.role !== "regular") {
-            return res.status(403).json({ "Forbidden": "Not permitted to create transactions" });
-        }
-        const userId = parseInt(req.params.userId);
-        if (!userId || isNaN(userId)) {
-            return res.status(400).json({ "Bad Request": "Invalid userId" });
-        }
-        // check if user is verified or not
-        if (req.user.verified === false) {
-            return res.status(403).json({ "Forbidden": "User not verified" });
-        }
-        // validate data
-        const { type, amount, remark } = req.body;
-        let data = {};
-        if (!type || typeof (type) !== "string" || type !== "transfer") {
-            return res.status(400).json({ "Bad Request": "Invalid type" });
-        }
-        data.type = type;
-        if (!amount || typeof (amount) !== "number" || isNaN(amount) || !Number.isInteger(amount) || amount <= 0) {
-            return res.status(400).json({ "Bad Request": "Invalid amount" });
-        }
-        data.amount = amount;
-        if (remark) {
-            if (typeof (remark) !== "string") {
-                return res.status(400).json({ "Bad Request": "Invalid remark" });
-            }
-            data.remark = remark;
-        }
-        data.createdby = String(req.user.id);
-        // check if th sender has enough points
-        const senderData = await prisma.user.findUnique({
-            where: { id: req.user.id },
-        });
-        if (senderData.points < amount) {
-            return res.status(400).json({ "Bad Request": "Insufficient points" });
-        }
-        // create transaction
-        // one for sending the amount and set relatedId to receiver's userId
-        data.relatedId = userId;
-        const senderTransaction = await prisma.transaction.create({
-            data: data,
-            select: {
-                id: true,
-                type: true,
-                remark: true,
-                createdby: true,
-            }
-        });
-        // deduct points from sender
-        await prisma.user.update({
-            where: { id: req.user.id },
-            data: { points: { decrement: amount } }
-        });
-        // one for receiving the amount and set relatedId to sender's userId
-        data.relatedId = req.user.id;
-        const receiverTransaction = await prisma.transaction.create({
-            data: data
-
-        });
-        // add points to receiver
-        await prisma.user.update({
-            where: { id: userId },
-            data: { points: { increment: amount } }
-        });
-
-        return res.status(201).json({
-            senderTransaction,
-            receiverTransaction
-        });
-    })
-    .all((req, res) => {
-        res.status(405).json({ "Method Not Allowed": "Try Post" });
     });
 
 app.route("/transactions/:transactionId/processed")
@@ -2971,7 +2916,7 @@ app.route("/transactions/:transactionId/processed")
                 processedBy: true,
                 redeemed: true,
                 remark: true,
-                createdby: true
+                createdBy: true
             }
         });
         // update user's points
@@ -2985,94 +2930,245 @@ app.route("/transactions/:transactionId/processed")
         res.status(405).json({ "Method Not Allowed": "Try Patch" });
     });
 
-app.route("/events/:eventId/transactions")
+app.route("/users/:userId/transactions")
     .post(bearerToken, async (req, res) => {
         // check authorization first
         if (!req.role) {
             return res.status(401).json({ "Unauthorized": "No authorization" });
         }
-        if (req.role != "manager" && req.role !== "superuser") {
-            return res.status(403).json({ "Forbidden": "Not permitted to create transactions for events" });
+        // check role
+        if (req.role != "manager" && req.role !== "superuser" && req.role !== "cashier" && req.role !== "regular") {
+            return res.status(403).json({ "Forbidden": "Not permitted to create transactions" });
         }
-        const eventId = parseInt(req.params.eventId);
-        const { type, utorid, amount } = req.body;
-        if (!eventId || isNaN(eventId)) {
-            return res.status(400).json({ "Bad Request": "Invalid eventId" });
+        const userId = parseInt(req.params.userId);
+        if (!userId || isNaN(userId)) {
+            return res.status(400).json({ "Bad Request": "Invalid userId" });
         }
-        if (!type || typeof type !== "string" || type !== "event") {
+        // check if user is verified or not
+        if (req.user.verified === false) {
+            return res.status(403).json({ "Forbidden": "User not verified" });
+        }
+        // validate data
+        const { type, amount, remark } = req.body;
+        let data = {};
+        if (!type || typeof (type) !== "string" || type !== "transfer") {
             return res.status(400).json({ "Bad Request": "Invalid type" });
         }
-        if (!amount || typeof amount !== "number" || isNaN(amount) || !Number.isInteger(amount) || amount <= 0) {
+        data.type = type;
+        if (!amount || typeof (amount) !== "number" || isNaN(amount) || !Number.isInteger(amount) || amount <= 0) {
             return res.status(400).json({ "Bad Request": "Invalid amount" });
         }
-        // if the guest is not on the guest lsit, return error
-        if (utorid && !event.guests.some(guest => guest.utorid === utorid)) {
-            return res.status(400).json({ "Bad Request": "Guest not found for event" });
+        data.amount = amount;
+        if (remark) {
+            if (typeof (remark) !== "string") {
+                return res.status(400).json({ "Bad Request": "Invalid remark" });
+            }
+            data.remark = remark;
         }
-        // if the remainpoint is less than the request amount
-        const organizerData = await prisma.user.findUnique({
+        data.createdBy = String(req.user.id);
+        data.sent = amount;
+        data.sender = req.user.userId;
+        data.recipient = userId;
+        // check if th sender has enough points
+        const senderData = await prisma.user.findUnique({
             where: { id: req.user.id },
         });
-        if (organizerData.points < amount) {
+        if (senderData.points < amount) {
             return res.status(400).json({ "Bad Request": "Insufficient points" });
         }
-        // if utorid is provided amount is rewarded to the guest
-        if (utorid) {
-            if (typeof utorid !== "string") {
-                return res.status(400).json({ "Bad Request": "Invalid utorid" });
+        // create transaction
+        // one for sending the amount and set relatedId to receiver's userId
+        data.relatedId = userId;
+        const senderTransaction = await prisma.transaction.create({
+            data: data,
+            select: {
+                id: true,
+                sender: true,
+                recipient: true,
+                type: true,
+                sent: true,
+                remark: true,
+                createdBy: true,
             }
-            // create the transaction
-            const transaction = await prisma.transaction.create({
-                data: {
-                    utorid: utorid,
-                    type: type,
-                    amount: amount,
-                    createdby: String(req.user.id),
-                },
-            });
-            // add points to the user
-            await prisma.user.update({
-                where: { utorid: utorid },
-                data: { points: { increment: amount } }
-            });
-            return res.status(201).json(transaction);
-        }
-        // if utorid is not provided, amount is awarded to all guests
-        const event = await prisma.event.findUnique({
-            where: { id: eventId },
-            include: { guests: true }
         });
-        if (!event) {
-            return res.status(404).json({ "Not Found": "Event not found" });
-        }
-        const guests = event.guests;
-        const guestCount = guests.length;
-        if (guestCount === 0) {
-            return res.status(400).json({ "Bad Request": "No guests found for event" });
-        }
-        // create the transaction for each guest
-        const transactions = await Promise.all(guests.map(async (guest) => {
-            return await prisma.transaction.create({
-                data: {
-                    utorid: guest.utorid,
-                    type: type,
-                    amount: amount,
-                    createdby: String(req.user.id),
-                }
-            });
-        }));
-        // add points to each guest
-        await Promise.all(guests.map(async (guest) => {
-            return await prisma.user.update({
-                where: { utorid: guest.utorid },
-                data: { points: { increment: amount } }
-            });
-        }));
-        return res.status(201).json(transactions);
+        // deduct points from sender
+        await prisma.user.update({
+            where: { id: req.user.id },
+            data: { points: { decrement: amount } }
+        });
+        // one for receiving the amount and set relatedId to sender's userId
+        data.relatedId = req.user.id;
+        const receiverTransaction = await prisma.transaction.create({
+            data: data,
+            select: {
+                id: true,
+                sender: true,
+                recipient: true,
+                type: true,
+                sent: true,
+                remark: true,
+                createdBy: true,
+
+            }
+        });
+        // add points to receiver
+        await prisma.user.update({
+            where: { id: userId },
+            data: { points: { increment: amount } }
+        });
+
+        return res.status(201).json({
+            senderTransaction
+        });
     })
     .all((req, res) => {
-        res.status(405).json({ "Method Not Allowed": "Try Get" });
+        res.status(405).json({ "Method Not Allowed": "Try Post" });
     });
+
+app.route("/users/me/transactions")
+    .post(bearerToken, async (req, res) => {
+        // check authorization first
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // check role
+        if (req.role != "manager" && req.role !== "superuser" && req.role !== "cashier" && req.role !== "regular") {
+            return res.status(403).json({ "Forbidden": "Not permitted to create transactions" });
+        }
+        // find the user 
+        const userData = await prisma.user.findUnique({
+            where: { id: req.user.id },
+        });
+        // check if user is verified or not
+        if (userData.verified === false) {
+            return res.status(403).json({ "Forbidden": "User not verified" });
+        }
+        // validate data
+        const { type, amount, remark } = req.body;
+        let data = {};
+        if (!type || typeof (type) !== "string" || type !== "redemption") {
+            return res.status(400).json({ "Bad Request": "Invalid type" });
+        }
+        data.type = type;
+        if (!amount || typeof (amount) !== "number" || isNaN(amount) || !Number.isInteger(amount) || amount <= 0) {
+            return res.status(400).json({ "Bad Request": "Invalid amount" });
+        }
+        data.amount = amount;
+        if (remark) {
+            if (typeof (remark) !== "string") {
+                return res.status(400).json({ "Bad Request": "Invalid remark" });
+            }
+            data.remark = remark;
+        }
+        data.createdBy = String(req.user.id);
+        // check if the user has enough points
+        if (userData.points < amount) {
+            return res.status(400).json({ "Bad Request": "Insufficient points" });
+        }
+        // create transaction
+        const transaction = await prisma.transaction.create({
+            data: data,
+            select: {
+                id: true,
+                utorid: true,
+                type: true,
+                processedBy: true,
+                amount: true,
+                remark: true,
+                createdBy: true
+            }
+        });
+        // redemption transaction must be processed by cashier later though path
+        return res.status(201).json(transaction);
+    })
+    .get(bearerToken, async (req, res) => {
+        // check authorization first
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        if (req.role != "manager" && req.role !== "superuser" && req.role !== "cashier" && req.role !== "regular") {
+            return res.status(403).json({ "Forbidden": "Not permitted to view transactions" });
+        }
+        // validat data
+        let data = {};
+        let { type, relatedId, promotionId, amount, operator, page, limit } = req.query;
+        if (type) {
+            if (typeof (type) !== "string") {
+                return res.status(400).json({ "Bad Request": "Invalid type" });
+            }
+            data.type = type;
+        }
+        // relatedId must be used with type
+        if (relatedId) {
+            if (!type) {
+                return res.status(400).json({ "Bad Request": "relatedId must be used with type adjustment" });
+            }
+            if (isNaN(parseInt(relatedId))) {
+                return res.status(400).json({ "Bad Request": "Invalid relatedId" });
+            }
+            data.relatedId = parseInt(relatedId);
+        }
+        if (operator && !amount) {
+            return res.status(400).json({ "Bad Request": "Missing amount" });
+        }
+        if (operator) {
+            if (typeof (operator) !== "string") {
+                return res.status(400).json({ "Bad Request": "Invalid operator" });
+            }
+            if (operator !== "gt" && operator !== "lt") {
+                return res.status(400).json({ "Bad Request": "Invalid operator" });
+            }
+        }
+        if (promotionId) {
+            if (isNaN(parseInt(promotionId))) {
+                return res.status(400).json({ "Bad Request": "Invalid promotionId" });
+            }
+            data.promotionId = parseInt(promotionId);
+        }
+        // amount must be used with operator
+        if (amount) {
+            if (!operator) {
+                return res.status(400).json({ "Bad Request": "Missing operator" });
+            }
+            if (isNaN(parseInt(amount))) {
+                return res.status(400).json({ "Bad Request": "Invalid amount" });
+            }
+            data.amount = { [operator]: parseInt(amount) };
+        }
+        if (page) {
+            if (isNaN(parseInt(page)) || parseInt(page) <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid page" });
+            }
+            page = parseInt(page);
+        } else {
+            page = 1;
+        }
+        if (limit) {
+            if (isNaN(parseInt(limit)) || parseInt(limit) <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid limit" });
+            }
+            limit = parseInt(limit);
+        } else {
+            limit = 10;
+        }
+        data.createdBy = String(req.user.id);
+
+        /// incorrect fix later with the get method from /transactions route
+        // get the current author
+        const transactions = await prisma.transaction.findMany({
+            where: { data },
+            skip: (page - 1) * limit,
+            take: limit,
+        });
+        return res.status(200).json({
+            count: transactions.length,
+            results: transactions
+        });
+    })
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Post & Get" });
+    });
+
 const server = app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
