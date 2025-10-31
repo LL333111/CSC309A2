@@ -34,7 +34,7 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const { v1: uuidv4 } = require('uuid');
 const { tr, no, ca, id } = require("zod/v4/locales");
-const { promise } = require("zod/v4");
+const { promise, number } = require("zod/v4");
 
 // recording (like constant)
 let lastResetAt = "0000-00-00T00:00:00.000Z";
@@ -1935,6 +1935,218 @@ app.route("/events/:eventId/guests/:userId")
     })
     .all((req, res) => {
         res.status(405).json({ "Method Not Found": "Try Delete" });
+    });
+
+app.route("/events/:eventId/transactions")
+    .post(bearerToken, async (req, res) => {
+        // error handle - 401 Unauthorized
+        // no auth:
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // error handling - 403 Forbidden
+        // get organizers of the event
+        console.log(req.body);
+        const eventId = parseInt(req.params.eventId)
+        if (Number.isNaN(eventId)) {
+            console.log("400 1");
+            return res.status(400).json({ "Bad Request": "Invalid eventId" });
+        }
+        let event = await prisma.event.findUnique({
+            where: {
+                id: eventId
+            },
+            include: {
+                organizers: true,
+                guests: true
+            }
+        });
+        if (event === null) {
+            return res.status(404).json({ "Not Found": "Event not found" });
+        }
+        // get organizer ids
+        const organizerIds = event.organizers.map((org) => org.id);
+        // get guest ids
+        const guestsIds = event.guests.map((org) => org.id);
+        // if not organizer && not "Manager or higher"
+        if (!organizerIds.includes(req.user.id) && req.role !== "manager" && req.role !== "superuser") {
+            return res.status(403).json({ "Forbidden": "Manager or higher or organizer" });
+        }
+        // error handling - 400 Bad Request.
+        const { type, amount, utorid } = req.body;
+        if (!type || !amount || typeof(type) !== "string" || typeof(amount) !== "number") {
+            console.log("400 2");
+            return res.status(400).json({ "Bad Request": "Invalid payload" });
+        }
+        // extra field
+        const allowedFields = ["type", "amount", "utorid"];
+        const extraFields = Object.keys(req.body).filter((field) => {
+            return !allowedFields.includes(field);
+        });
+        if (extraFields.length > 0) {
+            console.log("400 3");
+            return res.status(400).json({
+                "Bad Request": "Include extra fields",
+                extraFields,
+            });
+        }
+        // not satisfy description
+        if (type !== "event") {
+            console.log("400 4");
+            return res.status(400).json({ "Bad Request": "Invalid type" });
+        }
+        if (Number.isNaN(amount) || !Number.isInteger(amount) || amount <= 0) {
+            console.log("400 5");
+            return res.status(400).json({ "Bad Request": "Invalid amount" });
+        }
+        if (utorid !== undefined && utorid !== null) {
+            if (!/^[a-zA-Z0-9]{7,8}$/.test(utorid)) {
+                console.log("400 6");
+                return res.status(400).json({ "Bad Request": "Invalid utorid" });
+            }
+            let user;
+            try {
+                user = await prisma.user.findUnique({
+                    where: {
+                        utorid: utorid
+                    }
+                });
+            } catch(error) {
+                console.log(error);
+                return res.status(499).json({ message: "Failed to get user" });
+            }
+            if (user === null) {
+                return res.status(404).json({ "Not Found":"User not found" });
+            }
+            if (!guestsIds.includes(user.id)) {
+                console.log("400 7");
+                return res.status(400).json({ "Bad Request":"User not a guest" });
+            }
+            if (event.pointsRemain < amount) {
+                console.log("400 8");
+                return res.status(400).json({ "Bad Request":"No enough points" });
+            }
+            let transaction;
+            transaction = await prisma.transaction.create({
+                data: {
+                    utorid: utorid,
+                    recipient: utorid,
+                    amount: amount,
+                    type: type,
+                    relatedId: eventId,
+                    remark: "Trivia winner",
+                    createdBy: req.user.utorid
+                },
+                select: {
+                    id: true,
+                    recipient: true,
+                    amount: true,
+                    type: true,
+                    relatedId: true,
+                    remark: true,
+                    createdBy: true
+                }
+            });
+            await prisma.user.update({
+                where: {
+                    utorid: utorid
+                },
+                data: {
+                    points: {increment: amount}
+                }
+            });
+            await prisma.event.update({
+                where: {
+                    id: eventId
+                },
+                data: {
+                    pointsRemain: {decrement: amount},
+                    pointsAwarded: {increment: amount}
+                }
+            });
+            return res.status(201).json({
+                id: transaction.id,
+                recipient: transaction.recipient,
+                awarded: transaction.amount,
+                type: transaction.type,
+                relatedId: transaction.relatedId,
+                remark: transaction.remark,
+                createdBy: transaction.createdBy
+            });
+        } else {
+            if (event.pointsRemain < amount * guestsIds.length) {
+                console.log("400 9");
+                return res.status(400).json({ "Bad Request":"No enough points" });
+            }
+            let result = [];
+            for (let guestId of guestsIds) {
+                let user;
+                try {
+                    user = await prisma.user.findUnique({
+                        where: {
+                            id: guestId
+                        }
+                    });
+                } catch(error) {
+                    console.log(error);
+                    return res.status(499).json({ message: "Failed to get user" });
+                }
+                if (user === null) {
+                    return res.status(404).json({ "Not Found":"User not found" });
+                }
+                let transaction;
+                transaction = await prisma.transaction.create({
+                    data: {
+                        utorid: user.utorid,
+                        recipient: user.utorid,
+                        amount: amount,
+                        type: type,
+                        relatedId: eventId,
+                        remark: "meditation session",
+                        createdBy: req.user.utorid
+                    },
+                    select: {
+                        id: true,
+                        recipient: true,
+                        amount: true,
+                        type: true,
+                        relatedId: true,
+                        remark: true,
+                        createdBy: true
+                    }
+                });
+                await prisma.user.update({
+                    where: {
+                        id: guestId
+                    },
+                    data: {
+                        points: {increment: amount}
+                    }
+                });
+                await prisma.event.update({
+                    where: {
+                        id: eventId
+                    },
+                    data: {
+                        pointsRemain: {decrement: amount},
+                        pointsAwarded: {increment: amount}
+                    }
+                });
+                result.push({
+                    id: transaction.id,
+                    recipient: transaction.recipient,
+                    awarded: transaction.amount,
+                    type: transaction.type,
+                    relatedId: transaction.relatedId,
+                    remark: transaction.remark,
+                    createdBy: transaction.createdBy
+                });
+            }
+            return res.status(201).json(result);
+        }
+    })
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Found": "Try Post" });
     });
 
 app.route("/promotions")
