@@ -1972,7 +1972,7 @@ app.route("/events/:eventId/transactions")
         }
         // error handling - 400 Bad Request.
         const { type, amount, utorid } = req.body;
-        if (!type || !amount || typeof(type) !== "string" || typeof(amount) !== "number") {
+        if (!type || !amount || typeof (type) !== "string" || typeof (amount) !== "number") {
             return res.status(400).json({ "Bad Request": "Invalid payload" });
         }
         // extra field
@@ -2004,18 +2004,18 @@ app.route("/events/:eventId/transactions")
                         utorid: utorid
                     }
                 });
-            } catch(error) {
+            } catch (error) {
                 console.log(error);
                 return res.status(499).json({ message: "Failed to get user" });
             }
             if (user === null) {
-                return res.status(404).json({ "Not Found":"User not found" });
+                return res.status(404).json({ "Not Found": "User not found" });
             }
             if (!guestsIds.includes(user.id)) {
-                return res.status(400).json({ "Bad Request":"User not a guest" });
+                return res.status(400).json({ "Bad Request": "User not a guest" });
             }
             if (event.pointsRemain < amount) {
-                return res.status(400).json({ "Bad Request":"No enough points" });
+                return res.status(400).json({ "Bad Request": "No enough points" });
             }
             let transaction;
             transaction = await prisma.transaction.create({
@@ -2042,7 +2042,7 @@ app.route("/events/:eventId/transactions")
                     utorid: utorid
                 },
                 data: {
-                    points: {increment: amount}
+                    points: { increment: amount }
                 }
             });
             await prisma.event.update({
@@ -2050,8 +2050,8 @@ app.route("/events/:eventId/transactions")
                     id: eventId
                 },
                 data: {
-                    pointsRemain: {decrement: amount},
-                    pointsAwarded: {increment: amount}
+                    pointsRemain: { decrement: amount },
+                    pointsAwarded: { increment: amount }
                 }
             });
             return res.status(201).json({
@@ -2065,7 +2065,7 @@ app.route("/events/:eventId/transactions")
             });
         } else {
             if (event.pointsRemain < amount * guestsIds.length) {
-                return res.status(400).json({ "Bad Request":"No enough points" });
+                return res.status(400).json({ "Bad Request": "No enough points" });
             }
             let result = [];
             for (let guestId of guestsIds) {
@@ -2076,12 +2076,12 @@ app.route("/events/:eventId/transactions")
                             id: guestId
                         }
                     });
-                } catch(error) {
+                } catch (error) {
                     console.log(error);
                     return res.status(499).json({ message: "Failed to get user" });
                 }
                 if (user === null) {
-                    return res.status(404).json({ "Not Found":"User not found" });
+                    return res.status(404).json({ "Not Found": "User not found" });
                 }
                 let transaction;
                 transaction = await prisma.transaction.create({
@@ -2108,7 +2108,7 @@ app.route("/events/:eventId/transactions")
                         id: guestId
                     },
                     data: {
-                        points: {increment: amount}
+                        points: { increment: amount }
                     }
                 });
                 await prisma.event.update({
@@ -2116,8 +2116,8 @@ app.route("/events/:eventId/transactions")
                         id: eventId
                     },
                     data: {
-                        pointsRemain: {decrement: amount},
-                        pointsAwarded: {increment: amount}
+                        pointsRemain: { decrement: amount },
+                        pointsAwarded: { increment: amount }
                     }
                 });
                 result.push({
@@ -2624,7 +2624,7 @@ app.route("/transactions")
                     return res.status(400).json({ "Bad Request": `Promotion with id ${promo.id} is not started yet` });
                 }
                 if (type === "purchase") {
-                    if (!spent || typeof(spent) !== "number" || Number.isNaN(spent) || spent <= 0) {
+                    if (!spent || typeof (spent) !== "number" || Number.isNaN(spent) || spent <= 0) {
                         return res.status(400).json({ "Bad Request": "Invalid spent" });
                     }
                     if (promo.minSpending && spent < promo.minSpending) {
@@ -2644,7 +2644,7 @@ app.route("/transactions")
                 return res.status(499).json({ message: "Failed to find user promotions" });
             }
             if (userData === null) {
-                return res.status(404).json({ "Not Found":"User not found" });
+                return res.status(404).json({ "Not Found": "User not found" });
             }
             for (const promotionid of promotionIds) {
                 if (!userData.promotions.some(promo => promo.id === promotionid)) {
@@ -2748,7 +2748,7 @@ app.route("/transactions")
                 }
                 // error handle
                 if (cashierData === null) {
-                    return res.status(404).json({ "Not Found":"User not found" });
+                    return res.status(404).json({ "Not Found": "User not found" });
                 }
 
                 // if suspicious create suspicious purchase transaction 
@@ -2793,7 +2793,7 @@ app.route("/transactions")
             }
             return res.status(201).json(created);
         } else if (type === "adjustment") {
-            if (!amount || typeof amount !== "number" || !Number.isInteger(amount) || Number.isNaN(amount) || amount === 0) {
+            if (!amount || typeof amount !== "number" || !Number.isInteger(amount) || Number.isNaN(amount)) {
                 return res.status(400).json({ "Bad Request": "Invalid amount" });
             }
             if (!relatedId || typeof relatedId !== "number" || !Number.isInteger(relatedId) || Number.isNaN(relatedId)) {
@@ -2806,12 +2806,12 @@ app.route("/transactions")
                         id: relatedId
                     }
                 });
-            } catch(error) {
+            } catch (error) {
                 console.log(error);
                 return res.status(499).json({ message: "Failed to find related Transaction" });
             }
             if (relatedTransaction === null) {
-                return res.status(404).json({ "Not Found" : "Transaction not found" });
+                return res.status(404).json({ "Not Found": "Transaction not found" });
             }
             data.amount = amount;
             data.relatedId = relatedId;
@@ -3049,7 +3049,7 @@ app.route("/transactions/:transactionId/suspicious")
             return res.status(400).json({ "Bad Request": "Invalid transactionId" });
         }
         const { suspicious } = req.body;
-        if (!suspicious) {
+        if (suspicious === undefined || suspicious === null) {
             return res.status(400).json({ "Bad Request": "Missing suspicious value" });
         }
         if (typeof suspicious !== "boolean") {
@@ -3073,7 +3073,7 @@ app.route("/transactions/:transactionId/suspicious")
                 }
             });
             let deduction = updateTransaction.amount;
-            if (!deduction || deduction <= 0) {
+            if (deduction === null || deduction === undefined) {
                 return res.status(400).json({ "Bad Request": "Transaction amount is zero, cannot set to suspicious" });
             }
             // set user to suspicious
