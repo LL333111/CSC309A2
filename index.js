@@ -1946,10 +1946,8 @@ app.route("/events/:eventId/transactions")
         }
         // error handling - 403 Forbidden
         // get organizers of the event
-        console.log(req.body);
         const eventId = parseInt(req.params.eventId)
         if (Number.isNaN(eventId)) {
-            console.log("400 1");
             return res.status(400).json({ "Bad Request": "Invalid eventId" });
         }
         let event = await prisma.event.findUnique({
@@ -1975,7 +1973,6 @@ app.route("/events/:eventId/transactions")
         // error handling - 400 Bad Request.
         const { type, amount, utorid } = req.body;
         if (!type || !amount || typeof(type) !== "string" || typeof(amount) !== "number") {
-            console.log("400 2");
             return res.status(400).json({ "Bad Request": "Invalid payload" });
         }
         // extra field
@@ -1984,7 +1981,6 @@ app.route("/events/:eventId/transactions")
             return !allowedFields.includes(field);
         });
         if (extraFields.length > 0) {
-            console.log("400 3");
             return res.status(400).json({
                 "Bad Request": "Include extra fields",
                 extraFields,
@@ -1992,16 +1988,13 @@ app.route("/events/:eventId/transactions")
         }
         // not satisfy description
         if (type !== "event") {
-            console.log("400 4");
             return res.status(400).json({ "Bad Request": "Invalid type" });
         }
         if (Number.isNaN(amount) || !Number.isInteger(amount) || amount <= 0) {
-            console.log("400 5");
             return res.status(400).json({ "Bad Request": "Invalid amount" });
         }
         if (utorid !== undefined && utorid !== null) {
             if (!/^[a-zA-Z0-9]{7,8}$/.test(utorid)) {
-                console.log("400 6");
                 return res.status(400).json({ "Bad Request": "Invalid utorid" });
             }
             let user;
@@ -2019,17 +2012,14 @@ app.route("/events/:eventId/transactions")
                 return res.status(404).json({ "Not Found":"User not found" });
             }
             if (!guestsIds.includes(user.id)) {
-                console.log("400 7");
                 return res.status(400).json({ "Bad Request":"User not a guest" });
             }
             if (event.pointsRemain < amount) {
-                console.log("400 8");
                 return res.status(400).json({ "Bad Request":"No enough points" });
             }
             let transaction;
             transaction = await prisma.transaction.create({
                 data: {
-                    utorid: utorid,
                     recipient: utorid,
                     amount: amount,
                     type: type,
@@ -2075,7 +2065,6 @@ app.route("/events/:eventId/transactions")
             });
         } else {
             if (event.pointsRemain < amount * guestsIds.length) {
-                console.log("400 9");
                 return res.status(400).json({ "Bad Request":"No enough points" });
             }
             let result = [];
@@ -2097,7 +2086,6 @@ app.route("/events/:eventId/transactions")
                 let transaction;
                 transaction = await prisma.transaction.create({
                     data: {
-                        utorid: user.utorid,
                         recipient: user.utorid,
                         amount: amount,
                         type: type,
@@ -3193,8 +3181,16 @@ app.route("/users/:userId/transactions")
             return res.status(403).json({ "Forbidden": "Not permitted to create transactions" });
         }
         const userId = parseInt(req.params.userId);
-        if (!userId || isNaN(userId)) {
+        if (Number.isNaN(userId)) {
             return res.status(400).json({ "Bad Request": "Invalid userId" });
+        }
+        let recipientUser = await prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        });
+        if (recipientUser === null) {
+            return res.status(404).json({ "Not Found": "User not found" });
         }
         // check if user is verified or not
         if (req.user.verified === false) {
@@ -3207,24 +3203,29 @@ app.route("/users/:userId/transactions")
             return res.status(400).json({ "Bad Request": "Invalid type" });
         }
         data.type = type;
-        if (!amount || typeof (amount) !== "number" || isNaN(amount) || !Number.isInteger(amount) || amount <= 0) {
+        if (!amount || typeof (amount) !== "number" || Number.isNaN(amount) || !Number.isInteger(amount) || amount <= 0) {
             return res.status(400).json({ "Bad Request": "Invalid amount" });
         }
         data.amount = amount;
-        if (remark) {
+        if (remark !== undefined || remark !== null) {
             if (typeof (remark) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid remark" });
             }
             data.remark = remark;
         }
-        data.createdBy = String(req.user.id);
+        data.createdBy = req.user.utorid;
         data.sent = amount;
-        data.sender = req.user.userId;
-        data.recipient = userId;
-        // check if th sender has enough points
-        const senderData = await prisma.user.findUnique({
-            where: { id: req.user.id },
+        data.sender = req.user.utorid;
+        data.recipient = recipientUser.utorid;
+        let senderData = await prisma.user.findUnique({
+            where: {
+                id: req.user.id
+            }
         });
+        if (senderData === null) {
+            return res.status(404).json({ "Not Found": "User not found" });
+        }
+        // check if the sender has enough points
         if (senderData.points < amount) {
             return res.status(400).json({ "Bad Request": "Insufficient points" });
         }
@@ -3260,7 +3261,6 @@ app.route("/users/:userId/transactions")
                 sent: true,
                 remark: true,
                 createdBy: true,
-
             }
         });
         // add points to receiver
@@ -3268,10 +3268,7 @@ app.route("/users/:userId/transactions")
             where: { id: userId },
             data: { points: { increment: amount } }
         });
-
-        return res.status(201).json({
-            senderTransaction
-        });
+        return res.status(201).json(senderTransaction);
     })
     .all((req, res) => {
         res.status(405).json({ "Method Not Allowed": "Try Post" });

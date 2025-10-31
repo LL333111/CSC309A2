@@ -82,7 +82,7 @@ model Promotion {
 
 model Transaction {
   id           Int         @id @default(autoincrement())
-  utorid       String
+  utorid       String?
   type         String
   spent        Float?
   remark       String?     @default("")
