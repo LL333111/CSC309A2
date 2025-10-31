@@ -2333,6 +2333,20 @@ app.route("/promotions/:promotionId")
         if (isNaN(promotionId)) {
             return res.status(400).json({ "Bad Request": "Invalid promotionId" });
         }
+        let promotion;
+        try {
+            promotion = await prisma.promotion.findUnique({
+                where: {
+                    id: promotionId
+                }
+            });
+        } catch (error) {
+            console.log(error);
+            return res.status(499).json({ message: "Failed to find promotion" });
+        }
+        if (promotion === null) {
+            return res.status(404).json({ "Not Found": "Promotion not found" });
+        }
         try {
             var result = await prisma.promotion.delete({
                 where: {
@@ -2539,7 +2553,7 @@ app.route("/transactions")
 
                 // if suspicious create suspicious purchase transaction 
                 // late unset it by endpoint /transactions/:transactionId/suspicious
-                if (cashierData.suspicious === true) {
+                if (cashierData.suspicious) {
                     data.suspicious = true;
                     data.amount = data.earned;
                     data.earned = 0;
@@ -2555,8 +2569,10 @@ app.route("/transactions")
                         utorid: true,
                         type: true,
                         spent: true,
+                        earned: true,
                         remark: true,
                         promotionIds: { select: { id: true } },
+                        createdBy: true
                     }
                 });
             } catch (error) {
@@ -2575,12 +2591,7 @@ app.route("/transactions")
                     return res.status(499).json({ message: "Failed to update user points" });
                 }
             }
-            // shape response
-            data.promotionIds = created.promotionIds;
-            data.id = created.id;
-            delete data.suspicious;
-            console.log(data);
-            return res.status(201).json("purchase_transaction_created");
+            return res.status(201).json(created);
         } else if (type === "adjustment") {
             if (!amount || typeof amount !== "number" || !Number.isInteger(amount) || Number.isNaN(amount) || amount === 0) {
                 return res.status(400).json({ "Bad Request": "Invalid amount" });
@@ -2597,7 +2608,7 @@ app.route("/transactions")
                 });
             } catch(error) {
                 console.log(error);
-                return res.status(499).json({ message: "Failed to update user points" });
+                return res.status(499).json({ message: "Failed to find related Transaction" });
             }
             if (relatedTransaction === null) {
                 return res.status(404).json({ "Not Found" : "Transaction not found" });
@@ -2609,16 +2620,21 @@ app.route("/transactions")
             try {
                 created = await prisma.transaction.create({
                     data: data,
-                    include: { promotionIds: { select: { id: true } } }
+                    select: {
+                        id: true,
+                        utorid: true,
+                        amount: true,
+                        type: true,
+                        relatedId: true,
+                        remark: true,
+                        promotionIds: { select: { id: true } },
+                        createdBy: true
+                    }
                 });
             } catch (error) {
                 console.log(error);
                 return res.status(499).json({ message: "Failed to create adjustment transaction" });
             }
-
-            // for adjustment we do not apply promotions becuase it is for adjustment 
-            data.promotionIds = created.promotionIds;
-            data.id = created.id;
             // adjust points to user
             try {
                 await prisma.user.update({
@@ -2629,8 +2645,7 @@ app.route("/transactions")
                 console.log(error);
                 return res.status(499).json({ message: "Failed to update user points" });
             }
-            console.log(data);
-            return res.status(201).json("adjustment_transaction_created");
+            return res.status(201).json(created);
         }
     })
     .get(bearerToken, async (req, res) => {
