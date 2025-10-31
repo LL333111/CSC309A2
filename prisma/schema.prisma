@@ -90,6 +90,7 @@ model Transaction {
   amount       Int?
   relatedId    Int?
   processed    Boolean?
+  processedBy  String?
   earned       Int?        @default(0)
   sender       String?
   sent         Int?        @default(0)
