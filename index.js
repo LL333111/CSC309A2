@@ -83,7 +83,15 @@ const bearerToken = (req, res, next) => {
         req.role = null;
         return next();
     }
-    let encoding = jwtHeader.split(" ")[1];
+    const bearerRoken = jwtHeader.split(' ');
+    if (bearerRoken.length !== 2 || bearerRoken[0] !== 'Bearer') {
+        return res.status(401).json({ error: 'Invalid authorization format' });
+    }
+    const encoding = bearerRoken[1];
+    const tokenParts = encoding.split('.');
+    if (tokenParts.length !== 3) {
+        return res.status(401).json({ error: 'Invalid token structure' });
+    }
     let user;
     try {
         user = jwt.verify(encoding, process.env.JWT_SECRET);
@@ -91,7 +99,7 @@ const bearerToken = (req, res, next) => {
         console.log(error);
         return res.status(401).json({ "Unauthorized": "Invalid token" });
     }
-    if (!user.role) {
+    if (user.role === undefined || user.role === null) {
         req.role = null;
         return next();
     }
@@ -2792,6 +2800,7 @@ app.route("/transactions")
                     return res.status(499).json({ message: "Failed to update user points" });
                 }
             }
+            console.log(created);
             return res.status(201).json(created);
         } else if (type === "adjustment") {
             if (!amount || typeof amount !== "number" || !Number.isInteger(amount) || Number.isNaN(amount)) {
@@ -2846,6 +2855,7 @@ app.route("/transactions")
                 console.log(error);
                 return res.status(499).json({ message: "Failed to update user points" });
             }
+            console.log(created);
             return res.status(201).json(created);
         }
     })
