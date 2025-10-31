@@ -12,3 +12,12 @@ Jiakun Chen: /users
              /events/:eventId/guests
              /events/:eventId/guests/:userId
              /events/:eventId/guests/me
+             /events/:eventId/transactions
+Yuxuan Liu:  /transactions
+             /transactions/:transactionId
+             /transactions/:transactionId/suspicious
+             /users/:userId/transactions
+             /users/me/transactions
+             /transactions/:transactionId/processed
+             /promotions
+             /promotions/:promotionId
