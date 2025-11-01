@@ -2744,6 +2744,7 @@ app.route("/transactions")
             }
             // + earned points
             data.earned += Math.round(data.spent * percentageEarned);
+            data.amount = data.earned;
             // check if the cashier is suspicious or not
             if (req.role === "cashier") {
                 let cashierData;
@@ -2764,7 +2765,6 @@ app.route("/transactions")
                 // late unset it by endpoint /transactions/:transactionId/suspicious
                 if (cashierData.suspicious) {
                     data.suspicious = true;
-                    data.amount = data.earned;
                     data.earned = 0;
                 }
             }
@@ -2872,7 +2872,7 @@ app.route("/transactions")
         let { name, createdBy, suspicious, promotionId, type, relatedId, amount, operator, page, limit } = req.query;
         const filters = {};
         if (promotionId !== undefined && promotionId !== null) {
-            if (isNaN(parseInt(promotionId))) {
+            if (Number.isNaN(parseInt(promotionId))) {
                 return res.status(400).json({ "Bad Request": "Invalid promotionId" });
             }
             const promoId = parseInt(promotionId);
@@ -2881,7 +2881,6 @@ app.route("/transactions")
                 promo = await prisma.promotion.findUnique({
                     where: { id: promoId },
                 });
-
             } catch (error) {
                 console.log(error);
                 return res.status(499).json({ message: "Failed to find promotion" });
@@ -2891,13 +2890,13 @@ app.route("/transactions")
             }
             filters.promotionIds = { some: { id: promoId } };
         }
-        if (name) {
+        if (name !== undefined && name !== null) {
             if (typeof (name) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid name" });
             }
             filters.name = name;
         }
-        if (createdBy) {
+        if (createdBy !== undefined && createdBy !== null) {
             if (typeof (createdBy) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid createdBy" });
             }
@@ -2909,7 +2908,7 @@ app.route("/transactions")
             }
             filters.suspicious = (suspicious === "true");
         }
-        if (type) {
+        if (type !== undefined && type !== null) {
             if (typeof (type) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid type" });
             }
@@ -3053,7 +3052,8 @@ app.route("/transactions/:transactionId")
                 promotionIds: { select: { id: true } },
                 suspicious: true,
                 remark: true,
-                createdBy: true
+                createdBy: true,
+                relatedId: true,
             }
         });
         if (!result) {
