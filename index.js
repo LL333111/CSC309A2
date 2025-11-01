@@ -2800,7 +2800,6 @@ app.route("/transactions")
                     return res.status(499).json({ message: "Failed to update user points" });
                 }
             }
-            console.log(created);
             return res.status(201).json(created);
         } else if (type === "adjustment") {
             if (!amount || typeof amount !== "number" || !Number.isInteger(amount) || Number.isNaN(amount)) {
@@ -2855,7 +2854,6 @@ app.route("/transactions")
                 console.log(error);
                 return res.status(499).json({ message: "Failed to update user points" });
             }
-            console.log(created);
             return res.status(201).json(created);
         }
     })
@@ -3296,7 +3294,20 @@ app.route("/users/me/transactions")
             if (Number.isNaN(parseInt(promotionId))) {
                 return res.status(400).json({ "Bad Request": "Invalid promotionId" });
             }
-            data.promotionId = parseInt(promotionId);
+            const promoId = parseInt(promotionId);
+            let promo;
+            try {
+                promo = await prisma.promotion.findUnique({
+                    where: { id: promoId },
+                });
+            } catch (error) {
+                console.log(error);
+                return res.status(499).json({ message: "Failed to find promotion" });
+            }
+            if (promo === null) {
+                return res.status(404).json({ "Not Found": "Promotion not found" });
+            }
+            data.promotionIds = { some: { id: promoId } };
         }
         // amount must be used with operator
         if (amount !== undefined && amount !== null) {
@@ -3324,12 +3335,10 @@ app.route("/users/me/transactions")
         } else {
             limit = 10;
         }
-        data.createdBy = req.user.utorid;
+        data.utorid = req.user.utorid;
         // get the current author
         const transactions = await prisma.transaction.findMany({
             where: data,
-            skip: (page - 1) * limit,
-            take: limit,
             select: {
                 id: true,
                 type: true,
@@ -3342,7 +3351,7 @@ app.route("/users/me/transactions")
         });
         return res.status(200).json({
             count: transactions.length,
-            results: transactions
+            results: transactions.slice((page - 1) * limit, ((page - 1) * limit) + limit)
         });
     })
     .all((req, res) => {
