@@ -2168,7 +2168,7 @@ app.route("/promotions")
             return res.status(400).json({ "Bad Request": "Invalid payload" });
         }
         // validate optional fields
-        var data = {};
+        let data = {};
         if (minSpending) {
             if (typeof (minSpending) !== "number" || isNaN(minSpending) || minSpending <= 0) {
                 return res.status(400).json({ "Bad Request": "Invalid minSpending" });
@@ -2223,8 +2223,9 @@ app.route("/promotions")
         data.type = type;
         data.startTime = startTime.split('.')[0] + 'Z';
         data.endTime = endTime.split('.')[0] + 'Z';
+        let result;
         try {
-            var result = await prisma.promotion.create({
+            result = await prisma.promotion.create({
                 data: data,
             });
         } catch (error) {
@@ -2556,6 +2557,11 @@ app.route("/promotions/:promotionId")
         if (promotion === null) {
             return res.status(404).json({ "Not Found": "Promotion not found" });
         }
+        const startDate = new Date(promotion.startTime);
+        const now = new Date();
+        if (now >= startDate) {
+            return res.status(403).json({ "Bad Request": "Cannot delete started promotion" });
+        }
         try {
             var result = await prisma.promotion.delete({
                 where: {
@@ -2565,11 +2571,6 @@ app.route("/promotions/:promotionId")
         } catch (error) {
             console.log(error);
             return res.status(404).json({ message: "Failed to delete promotion becuae not Found the promotion" });
-        }
-        const startDate = new Date(result.startTime);
-        const now = new Date();
-        if (now >= startDate) {
-            return res.status(403).json({ "Bad Request": "Cannot delete started promotion" });
         }
         return res.status(204).json({ "Success": "No Content" });
     })
@@ -2655,8 +2656,9 @@ app.route("/transactions")
             if (userData === null) {
                 return res.status(404).json({ "Not Found": "User not found" });
             }
+            let userPromotionIds = userData.promotions.map((prom) => prom.id);
             for (const promotionid of promotionIds) {
-                if (!userData.promotions.some(promo => promo.id === promotionid)) {
+                if (!userPromotionIds.includes(promotionid)) {
                     return res.status(400).json({ "Bad Request": `Promotion with id ${promotionid} has been used` });
                 }
             }
@@ -2722,9 +2724,9 @@ app.route("/transactions")
                 }
 
                 for (const promo of promotions) {
-                    percentageEarned += promo.rate;
+                    percentageEarned += promo.rate * 100;
                     // if one-time promotion, remove it from user's available promotions
-                    if (promo.type === "onetime") {
+                    if (promo.type === "one-time") {
                         try {
                             await prisma.user.update({
                                 where: { utorid: utorid },
@@ -2800,6 +2802,7 @@ app.route("/transactions")
                     return res.status(499).json({ message: "Failed to update user points" });
                 }
             }
+            created.promotionIds = created.promotionIds.map((promotion) => promotion.id);
             return res.status(201).json(created);
         } else if (type === "adjustment") {
             if (!amount || typeof amount !== "number" || !Number.isInteger(amount) || Number.isNaN(amount)) {
@@ -2854,6 +2857,7 @@ app.route("/transactions")
                 console.log(error);
                 return res.status(499).json({ message: "Failed to update user points" });
             }
+            created.promotionIds = created.promotionIds.map((promotion) => promotion.id);
             return res.status(201).json(created);
         }
     })
