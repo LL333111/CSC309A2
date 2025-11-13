@@ -36,6 +36,17 @@ const { v1: uuidv4 } = require('uuid');
 const { tr, no, ca, id } = require("zod/v4/locales");
 const { promise, number } = require("zod/v4");
 
+// add cors package
+const cors = require('cors');
+
+// Set up cors to allow requests from React frontend
+app.use(cors({ 
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', "PATCH"],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
+
 // recording (like constant)
 let lastResetAt = "0000-00-00T00:00:00.000Z";
 let lastResetIP = "";
