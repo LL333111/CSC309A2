@@ -1,8 +1,8 @@
-import React, { useState, createContext, useEffect } from "react"
+import React, { useState, createContext, useEffect, useContext } from "react"
 
-export const LoggedInUserContext = createContext(null);
+const LoggedInUserContext = createContext(null);
 
-export function useLoggedInUserContext() {
+export const LoggedInUserContextProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [expiresAt, setExpiresAt] = useState(null);
   const [user, setUser] = useState(null);
@@ -30,21 +30,20 @@ export function useLoggedInUserContext() {
     // because token was changed
   }
 
-  return {
-    token,
-    expiresAt,
-    user,
-    loading,
-    login,
-    logout,
-  }
-}
-
-export function LoggedInUserProvider({ children }) {
-  const value = useLoggedInUserContext();
   return (
-    <LoggedInUserContext.Provider value={value}>
+    <LoggedInUserContext.Provider value={{
+      token,
+      expiresAt,
+      user,
+      loading,
+      login,
+      logout,
+    }}>
       {children}
     </LoggedInUserContext.Provider>
   )
+}
+
+export const useLoggedInUser = () => {
+  return useContext(LoggedInUserContext);
 }
