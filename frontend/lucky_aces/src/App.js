@@ -16,6 +16,7 @@ function App() {
             <Route index element={<Home />} />
             <Route path="login" element={<Login />} />
             {/* need log in routes */}
+            <Route path="profile" element={<Home />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
