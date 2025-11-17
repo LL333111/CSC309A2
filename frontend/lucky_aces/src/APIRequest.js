@@ -48,3 +48,25 @@ export async function getLoggedInUser(token) {
     alert("get LoggedIn User API request error");
   }
 }
+
+export async function registerUser(utorid, name, email, token) {
+  try {
+    const response = await fetch(`${API}/users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        utorid,
+        name,
+        email,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("Register User API request error: ", error);
+    alert("Register User API request error");
+  }
+}

@@ -46,7 +46,7 @@ function Login() {
     <div>
       <form onSubmit={(e) => handleSubmit(e)}>
         <div>
-          <label htmlFor="utoridInput">UTORID</label>
+          <label htmlFor="utoridInput">UTORID: </label>
           <input
             id="utoridInput"
             type="text"
@@ -58,7 +58,7 @@ function Login() {
           {noUser && <p>No user with given utorid</p>}
         </div>
         <div>
-          <label htmlFor="passwordInput">Password</label>
+          <label htmlFor="passwordInput">Password: </label>
           <input
             id="passwordInput"
             type="text"

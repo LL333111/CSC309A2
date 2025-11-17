@@ -45,6 +45,7 @@ function Profile() {
             <p><strong>Name: </strong>{user.name}</p>
             <p><strong>Email: </strong>{user.email}</p>
             <p><strong>Points: </strong>{user.points}</p>
+            <p><strong>Role: </strong>{user.role}</p>
             <p><strong>Verified:</strong> {user.verified ? 'Yes' : 'No'}</p>
             {user.birthday === null && <p><strong>Birthday:</strong> {new Date(user.birthday).toLocaleDateString()}</p>}
             {/* you can add more profiles */}

@@ -8,6 +8,7 @@ export const LoggedInUserContextProvider = ({ children }) => {
   const [expiresAt, setExpiresAt] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState(0);
 
   // Whenever the token changes
   // get current logged-in user by api request
@@ -16,11 +17,23 @@ export const LoggedInUserContextProvider = ({ children }) => {
     if (token === null) {
       // no loggedIn user
       setUser(null);
+      setRole(0);
     } else {
       setLoading(true);
       async function getUser() {
         const response = await getLoggedInUser(token);
         setUser(response);
+        if (response.role === "regular") {
+          setRole(1);
+        } else if (response.role === "cashier") {
+          setRole(2);
+        } else if (response.role === "manager") {
+          setRole(3);
+        } else if (response.role === "superuser") {
+          setRole(4);
+        } else {
+          throw new Error("invalid user role");
+        }
         setLoading(false);
       }
       getUser();
@@ -49,6 +62,7 @@ export const LoggedInUserContextProvider = ({ children }) => {
       expiresAt,
       user,
       loading,
+      role,
       login,
       logout,
     }}>
