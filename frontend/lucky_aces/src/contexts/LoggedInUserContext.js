@@ -1,4 +1,5 @@
-import React, { useState, createContext, useEffect, useContext } from "react"
+import { useState, createContext, useEffect, useContext } from "react"
+import { getLoggedInUser } from "../APIRequest"
 
 const LoggedInUserContext = createContext(null);
 
@@ -11,9 +12,19 @@ export const LoggedInUserContextProvider = ({ children }) => {
   // Whenever the token changes
   // get current logged-in user by api request
   useEffect(() => {
-    // 待完成
-    // 我的想法是做一个专门请求后端的js文件(里面专门请求)
-    // 这里import->使用->handle data
+    // get current use profile
+    if (token === null) {
+      // no loggedIn user
+      setUser(null);
+    } else {
+      setLoading(true);
+      async function getUser() {
+        const response = await getLoggedInUser(token);
+        setUser(response);
+        setLoading(false);
+      }
+      getUser();
+    }
   }, [token]);
 
   const login = (newToken, newExpiresAt) => {

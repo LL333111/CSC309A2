@@ -13,7 +13,7 @@ export async function login(utorid, password) {
         utorid,
         password,
       })
-    })
+    });
 
     if (!response.ok) {
       return response.status;
@@ -24,5 +24,27 @@ export async function login(utorid, password) {
   } catch (error) {
     console.error("Log in API request error: ", error);
     alert("Log in API request error");
+  }
+}
+
+// /users/me
+export async function getLoggedInUser(token) {
+  try {
+    const response = await fetch(`${API}/users/me`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get LoggedIn User ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get LoggedIn User API request error: ", error);
+    alert("get LoggedIn User API request error");
   }
 }

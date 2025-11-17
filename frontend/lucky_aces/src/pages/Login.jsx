@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login as APIlogin } from "../APIRequest";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext"
@@ -72,6 +72,7 @@ function Login() {
         <button type="submit">Login</button>
       </form>
       <Link to="/">Reset Password</Link>
+      {/* reset not finish*/}
     </div>
   )
 
