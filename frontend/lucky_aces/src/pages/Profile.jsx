@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
-import { getLoggedInUser } from "../APIRequest"
+import { useNavigate } from "react-router-dom";
 
 function Profile() {
   const [_loading, _setLoading] = useState(true);
-  const { loading, user } = useLoggedInUser();
+  const { loading, user, logout } = useLoggedInUser();
+
+  const navigate = useNavigate();
 
   // page protection
   useEffect(() => {
@@ -13,6 +15,20 @@ function Profile() {
     }, 100);
     return () => clearTimeout(timer);
   }, [loading]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  }
+
+  if (!user) {
+    // special case for logout
+    return (
+      <div>
+        <h2>Loading...</h2>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -31,7 +47,9 @@ function Profile() {
             <p><strong>Points: </strong>{user.points}</p>
             <p><strong>Verified:</strong> {user.verified ? 'Yes' : 'No'}</p>
             {user.birthday === null && <p><strong>Birthday:</strong> {new Date(user.birthday).toLocaleDateString()}</p>}
+            {/* you can add more profiles */}
           </div>
+          <button onClick={() => handleLogout()}>Log out</button>
         </div>
       )}
     </div>

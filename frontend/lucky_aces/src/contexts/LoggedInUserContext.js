@@ -35,8 +35,10 @@ export const LoggedInUserContextProvider = ({ children }) => {
   }
 
   const logout = () => {
+    setLoading(true);
     setToken(null);
     setExpiresAt(null);
+    setLoading(false);
     // user will be setted by useEffect
     // because token was changed
   }

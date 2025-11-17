@@ -48,7 +48,7 @@ const Navbar = () => {
                 onClick={(e) => { handleNavClick("bad", "*", e); }}>bad</p>
             </li>
           </ul>
-          <button class="hamburger" onClick={toggleMenu}>
+          <button className="hamburger" onClick={toggleMenu}>
             {isMenuOpen ? '✕' : '☰'}
           </button>
         </div>
