@@ -9,6 +9,7 @@ export const LoggedInUserContextProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState(0);
+  const [update, setUpdate] = useState(true);
 
   // Whenever the token changes
   // get current logged-in user by api request
@@ -38,7 +39,7 @@ export const LoggedInUserContextProvider = ({ children }) => {
       }
       getUser();
     }
-  }, [token]);
+  }, [token, update]);
 
   const login = (newToken, newExpiresAt) => {
     setToken(newToken);
@@ -65,6 +66,8 @@ export const LoggedInUserContextProvider = ({ children }) => {
       role,
       login,
       logout,
+      update,
+      setUpdate,
     }}>
       {children}
     </LoggedInUserContext.Provider>

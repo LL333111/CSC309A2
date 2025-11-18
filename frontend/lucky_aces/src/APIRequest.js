@@ -49,6 +49,29 @@ export async function getLoggedInUser(token) {
   }
 }
 
+export async function updateLoggedInUser(name, email, birthday, avatar, token) {
+  try {
+    const response = await fetch(`${API}/users/me`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        birthday,
+        avatar,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("update LoggedIn User API request error: ", error);
+    alert("update LoggedIn User API request error");
+  }
+}
+
 export async function registerUser(utorid, name, email, token) {
   try {
     const response = await fetch(`${API}/users`, {

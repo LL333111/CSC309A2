@@ -13,7 +13,7 @@ function Register() {
   const [conflict, _setConflict] = useState(false);
   const [success, _setSuccess] = useState(false);
 
-  const { token, user, loading } = useLoggedInUser();
+  const { token, loading } = useLoggedInUser();
 
   useEffect(() => {
     const timer = setTimeout(() => {

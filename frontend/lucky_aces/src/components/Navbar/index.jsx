@@ -43,6 +43,10 @@ const Navbar = () => {
                 <p className={`nav-link ${activeSection === "Profile" ? 'active' : ''}`}
                   onClick={(e) => { handleNavClick("Profile", "/profile", e); }}>Profile</p>
               </li>
+              <li className="nav-item">
+                <p className={`nav-link ${activeSection === "EditProfile" ? 'active' : ''}`}
+                  onClick={(e) => { handleNavClick("EditProfile", "/edit_profile", e); }}>EditProfile</p>
+              </li>
             </>}
             {/* Menu when cashier or higher */}
             {role >= 2 && <>

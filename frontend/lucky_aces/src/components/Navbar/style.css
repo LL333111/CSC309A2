@@ -44,11 +44,11 @@
 }
 
 .nav-link:hover {
-  color: var(--primary-color);
+  color: blue;
 }
 
 .nav-link.active {
-  color: var(--primary-color);
+  color: red;
 }
 
 .nav-link.active::after {
