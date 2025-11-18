@@ -8,6 +8,7 @@ import Profile from './pages/Profile'
 import Register from './pages/Register';
 import EditProfile from './pages/EditProfile';
 import ChangePassword from './pages/ChangePassword'
+import QRInitTransaction from './pages/QRInitTransaction'
 import Auth from './components/auth';
 import NotFound from './pages/NotFound';
 
@@ -27,6 +28,7 @@ function App() {
             <Route path="register" element={<NeedLogin min_role={2}><Register /></NeedLogin>} />
             <Route path="edit_profile" element={<NeedLogin min_role={1}><EditProfile /></NeedLogin>} />
             <Route path="change_password" element={<NeedLogin min_role={1}><ChangePassword /></NeedLogin>} />
+            <Route path="qr_init_transaction" element={<NeedLogin min_role={1}><QRInitTransaction /></NeedLogin>} />
 
             <Route path="*" element={<NotFound />} />
           </Route>
