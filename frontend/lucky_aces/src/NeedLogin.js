@@ -1,15 +1,24 @@
 import { useLoggedInUser } from "./contexts/LoggedInUserContext"
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 function NeedLogin({ children, min_role }) {
-  const { token, role, expiresAt, logout } = useLoggedInUser();
+  const { token, role, expiresAt, logout, loading } = useLoggedInUser();
   const hasChecked = useRef(false);
+  const [_loading, _setLoading] = useState(true);
 
   const navigate = useNavigate();
 
+  // loading
   useEffect(() => {
-    if (hasChecked.current) return;
+    const timer = setTimeout(() => {
+      _setLoading(loading);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [loading]);
+
+  useEffect(() => {
+    if (hasChecked.current || _loading) return;
 
     const checkAuth = () => {
       // check login
@@ -31,7 +40,7 @@ function NeedLogin({ children, min_role }) {
       }
     };
     checkAuth();
-  }, [navigate]);
+  }, [navigate, _loading]);
 
   return (children);
 }
