@@ -3281,9 +3281,6 @@ app.route("/users/me/transactions")
         // validat data
         let data = {};
         let { type, relatedId, promotionId, amount, operator, page, limit, processedBy } = req.query;
-        console.log(type);
-        console.log(page);
-        console.log(processedBy);
         if (type !== undefined && type !== null) {
             if (typeof (type) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid type" });

@@ -166,7 +166,7 @@ export async function redemptionTransaction(amount, remark, token) {
 // function for all unprocessed redemption
 export async function getAllUnprocessedRedemption(page, token) {
   try {
-    const response = await fetch(`${API}/users/me/transactions?type=redemption&processedBy=true&page=${page}`, {
+    const response = await fetch(`${API}/users/me/transactions?type=redemption&processedBy=true&page=${page}&limit=5`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
