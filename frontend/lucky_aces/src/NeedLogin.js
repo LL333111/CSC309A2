@@ -33,7 +33,7 @@ function NeedLogin({ children, min_role }) {
     checkAuth();
   }, [navigate]);
 
-  return children;
+  return (children);
 }
 
 export default NeedLogin;
