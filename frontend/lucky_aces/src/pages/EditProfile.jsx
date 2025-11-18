@@ -21,7 +21,7 @@ function EditProfile() {
   useEffect(() => {
     const timer = setTimeout(() => {
       _setLoading(loading);
-    }, 100);
+    }, 500);
     return () => clearTimeout(timer);
   }, [loading]);
 
@@ -55,6 +55,7 @@ function EditProfile() {
         </div>
       ) : (
         <form onSubmit={(e) => handleSubmit(e)}>
+          <h1>Edit Your Profile</h1>
           {success && <h3>{`Successfully update your profile!`}</h3>}
           <div>
             <label htmlFor="nameInput">Name: </label>
@@ -63,7 +64,6 @@ function EditProfile() {
               type="text"
               value={nameInput}
               onChange={(e) => setNameInput(e.target.value)}
-              required
             />
             {badRequest && <p>8-20 characters, at least one uppercase, one lowercase, one number, one special character</p>}
           </div>
@@ -74,7 +74,6 @@ function EditProfile() {
               type="text"
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
-              required
             />
             {badRequest && <p>Unique, Valid University of Toronto email</p>}
           </div>
@@ -85,7 +84,6 @@ function EditProfile() {
               type="text"
               value={birthdayInput}
               onChange={(e) => setBirthdayInput(e.target.value)}
-              required
             />
             {badRequest && <p>A date in the format of YYYY-MM-DD</p>}
           </div>
@@ -96,7 +94,6 @@ function EditProfile() {
               type="text"
               value={avatarInput}
               onChange={(e) => setAvatarInput(e.target.value)}
-              required
             />
             {badRequest && <p>Image file for the user's avatar under "/uploads/avatars" path</p>}
           </div>

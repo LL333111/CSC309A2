@@ -12,7 +12,7 @@ function Profile() {
   useEffect(() => {
     const timer = setTimeout(() => {
       _setLoading(loading);
-    }, 100);
+    }, 500);
     return () => clearTimeout(timer);
   }, [loading]);
 
@@ -39,7 +39,7 @@ function Profile() {
         </div>
       ) : (
         <div>
-          <h1>User Profile</h1>
+          <h1>Your Profile</h1>
           <div>
             <p><strong>UTORID: </strong>{user.utorid}</p>
             <p><strong>Name: </strong>{user.name}</p>

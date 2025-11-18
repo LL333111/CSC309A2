@@ -18,7 +18,7 @@ function Register() {
   useEffect(() => {
     const timer = setTimeout(() => {
       _setLoading(loading);
-    }, 100);
+    }, 500);
     return () => clearTimeout(timer);
   }, [loading]);
 
@@ -58,6 +58,7 @@ function Register() {
         </div>
       ) : (
         <form onSubmit={(e) => handleSubmit(e)}>
+          <h1>Register A New Account</h1>
           {success && <h3>{`Successfully registered an account for ${utoridShow}!`}</h3>}
           <div>
             <label htmlFor="utoridInput">UTORID: </label>

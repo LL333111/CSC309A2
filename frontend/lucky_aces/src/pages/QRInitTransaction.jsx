@@ -11,7 +11,7 @@ function QRInitTransaction() {
   useEffect(() => {
     const timer = setTimeout(() => {
       _setLoading(loading);
-    }, 100);
+    }, 500);
     return () => clearTimeout(timer);
   }, [loading]);
 

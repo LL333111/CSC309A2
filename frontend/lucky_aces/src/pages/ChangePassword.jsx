@@ -16,7 +16,7 @@ function Register() {
   useEffect(() => {
     const timer = setTimeout(() => {
       _setLoading(loading);
-    }, 100);
+    }, 500);
     return () => clearTimeout(timer);
   }, [loading]);
 
@@ -54,6 +54,7 @@ function Register() {
         </div>
       ) : (
         <form onSubmit={(e) => handleSubmit(e)}>
+          <h1>Change Your Password</h1>
           {success && <h3>{`Successfully changed your password!`}</h3>}
           <div>
             <label htmlFor="oldPasswordInput">Old Password: </label>

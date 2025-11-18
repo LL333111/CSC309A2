@@ -3395,10 +3395,6 @@ app.route("/users/:userId/transactions")
         if (recipientUser === null) {
             return res.status(404).json({ "Not Found": "User not found" });
         }
-        // check if user is verified or not
-        if (req.user.verified === false) {
-            return res.status(403).json({ "Forbidden": "User not verified" });
-        }
         // validate data
         const { type, amount, remark } = req.body;
         let data = {};
@@ -3410,7 +3406,7 @@ app.route("/users/:userId/transactions")
             return res.status(400).json({ "Bad Request": "Invalid amount" });
         }
         data.amount = amount;
-        if (remark !== undefined || remark !== null) {
+        if (remark !== undefined && remark !== null) {
             if (typeof (remark) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid remark" });
             }
@@ -3427,6 +3423,10 @@ app.route("/users/:userId/transactions")
         });
         if (senderData === null) {
             return res.status(404).json({ "Not Found": "User not found" });
+        }
+        // check if user is verified or not
+        if (senderData.verified === false) {
+            return res.status(403).json({ "Forbidden": "User not verified" });
         }
         // check if the sender has enough points
         if (senderData.points < amount) {
@@ -3454,18 +3454,24 @@ app.route("/users/:userId/transactions")
         });
         // one for receiving the amount and set relatedId to sender's userId
         data.relatedId = req.user.id;
-        const receiverTransaction = await prisma.transaction.create({
-            data: data,
-            select: {
-                id: true,
-                sender: true,
-                recipient: true,
-                type: true,
-                sent: true,
-                remark: true,
-                createdBy: true,
-            }
-        });
+        let receiverTransaction;
+        try {
+            receiverTransaction = await prisma.transaction.create({
+                data: data,
+                select: {
+                    id: true,
+                    sender: true,
+                    recipient: true,
+                    type: true,
+                    sent: true,
+                    remark: true,
+                    createdBy: true,
+                }
+            });
+        } catch (error) {
+            console.log(error);
+            return res.status(499).json({ message: "Failed to create new user" });
+        }
         // add points to receiver
         await prisma.user.update({
             where: { id: userId },

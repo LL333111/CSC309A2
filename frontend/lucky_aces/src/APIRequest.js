@@ -116,3 +116,26 @@ export async function changePassword(oldPassword, newPassword, token) {
     alert("update LoggedIn User API request error");
   }
 }
+
+// /users/:userId/transactions
+export async function transferTransaction(recipientId, amount, remark, token) {
+  try {
+    const response = await fetch(`${API}/users/${recipientId}/transactions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        type: "transfer",
+        amount: Number(amount),
+        remark: remark === "" ? null : remark,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("update LoggedIn User API request error: ", error);
+    alert("update LoggedIn User API request error");
+  }
+}
