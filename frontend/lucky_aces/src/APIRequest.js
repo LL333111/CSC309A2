@@ -27,6 +27,29 @@ export async function login(utorid, password) {
   }
 }
 
+// /users
+export async function registerUser(utorid, name, email, token) {
+  try {
+    const response = await fetch(`${API}/users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        utorid,
+        name,
+        email,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("Register User API request error: ", error);
+    alert("Register User API request error");
+  }
+}
+
 // /users/me
 export async function getLoggedInUser(token) {
   try {
@@ -72,24 +95,24 @@ export async function updateLoggedInUser(name, email, birthday, avatar, token) {
   }
 }
 
-export async function registerUser(utorid, name, email, token) {
+// /users/me/password
+export async function changePassword(oldPassword, newPassword, token) {
   try {
-    const response = await fetch(`${API}/users`, {
-      method: "POST",
+    const response = await fetch(`${API}/users/me/password`, {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify({
-        utorid,
-        name,
-        email,
+        old: oldPassword,
+        new: newPassword,
       }),
     });
 
     return response.status;
   } catch (error) {
-    console.error("Register User API request error: ", error);
-    alert("Register User API request error");
+    console.error("update LoggedIn User API request error: ", error);
+    alert("update LoggedIn User API request error");
   }
 }

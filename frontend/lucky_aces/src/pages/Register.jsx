@@ -80,7 +80,7 @@ function Register() {
               onChange={(e) => setNameInput(e.target.value)}
               required
             />
-            {badRequest && <p>8-20 characters, at least one uppercase, one lowercase, one number, one special character</p>}
+            {badRequest && <p>1-50 characters</p>}
           </div>
           <div>
             <label htmlFor="emailInput">Email: </label>

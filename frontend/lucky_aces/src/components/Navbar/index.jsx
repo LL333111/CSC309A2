@@ -45,7 +45,11 @@ const Navbar = () => {
               </li>
               <li className="nav-item">
                 <p className={`nav-link ${activeSection === "EditProfile" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("EditProfile", "/edit_profile", e); }}>EditProfile</p>
+                  onClick={(e) => { handleNavClick("EditProfile", "/edit_profile", e); }}>Edit Profile</p>
+              </li>
+              <li className="nav-item">
+                <p className={`nav-link ${activeSection === "ChangePassword" ? 'active' : ''}`}
+                  onClick={(e) => { handleNavClick("ChangePassword", "/change_password", e); }}>Chang Password</p>
               </li>
             </>}
             {/* Menu when cashier or higher */}
