@@ -40,7 +40,7 @@ const { promise, number } = require("zod/v4");
 const cors = require('cors');
 
 // Set up cors to allow requests from React frontend
-app.use(cors({ 
+app.use(cors({
     origin: 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE', "PATCH"],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -369,7 +369,7 @@ app.route("/users/me")
             if (typeof (avatar) !== "string" || !/\/uploads\/avatars\/[a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg)$/i.test(avatar)) {
                 return res.status(400).json({ "Bad Request": "Invalid avatar" });
             }
-            data.avatar = avatar;
+            data.avatarUrl = avatar;
         }
         // update
         let result = await prisma.user.update({
