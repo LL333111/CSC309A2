@@ -162,3 +162,25 @@ export async function redemptionTransaction(amount, remark, token) {
     alert("create redemption transaction API request error");
   }
 }
+
+// function for all unprocessed redemption
+export async function getAllUnprocessedRedemption(page, token) {
+  try {
+    const response = await fetch(`${API}/users/me/transactions?type=redemption&processedBy=true&page=${page}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get all unprocessed RedemptionTransaction ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get all redemption transaction API request error: ", error);
+    alert("get all redemption transaction API request error");
+  }
+}

@@ -41,6 +41,7 @@ function Profile() {
         <div>
           <h1>Your Profile</h1>
           <div>
+            <p><strong>User ID: </strong>{user.id}</p>
             <p><strong>UTORID: </strong>{user.utorid}</p>
             <p><strong>Name: </strong>{user.name}</p>
             <p><strong>Email: </strong>{user.email}</p>
