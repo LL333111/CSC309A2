@@ -11,10 +11,10 @@ function EditProfile() {
   const { token, user, loading, update, setUpdate } = useLoggedInUser();
   const navigate = useNavigate();
 
-  const [nameInput, setNameInput] = useState(user.name);
-  const [emailInput, setEmailInput] = useState(user.email);
-  const [birthdayInput, setBirthdayInput] = useState(user.birthday);
-  const [avatarInput, setAvatarInput] = useState(user.avatarUrl);
+  const [nameInput, setNameInput] = useState(user !== null ? user.name : "");
+  const [emailInput, setEmailInput] = useState(user !== null ? user.email : "");
+  const [birthdayInput, setBirthdayInput] = useState(user !== null ? user.birthday : "");
+  const [avatarInput, setAvatarInput] = useState(user !== null ? user.avatarUrl : "");
 
 
   // loading

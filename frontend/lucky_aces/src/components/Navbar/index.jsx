@@ -1,11 +1,11 @@
 import "./style.css"
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLoggedInUser } from "../../contexts/LoggedInUserContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
+  const [activeSection, setActiveSection] = useState('Home');
   const navigate = useNavigate();
 
   const { user, role } = useLoggedInUser();
