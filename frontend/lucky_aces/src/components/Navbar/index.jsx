@@ -59,6 +59,10 @@ const Navbar = () => {
                 <p className={`nav-link ${activeSection === "TransferTransaction" ? 'active' : ''}`}
                   onClick={(e) => { handleNavClick("TransferTransaction", "/transfertransaction", e); }}>Transfer Transaction</p>
               </li>
+              <li className="nav-item">
+                <p className={`nav-link ${activeSection === "RedemptionTransaction" ? 'active' : ''}`}
+                  onClick={(e) => { handleNavClick("RedemptionTransaction", "/redemptiontransaction", e); }}>Redemption Transaction</p>
+              </li>
             </>}
             {/* Menu when cashier or higher */}
             {role >= 2 && <>

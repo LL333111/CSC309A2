@@ -3243,7 +3243,7 @@ app.route("/users/me/transactions")
         }
         data.amount = amount;
         data.utorid = req.user.utorid;
-        if (remark !== undefined || remark !== null) {
+        if (remark !== undefined && remark !== null) {
             if (typeof (remark) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid remark" });
             }

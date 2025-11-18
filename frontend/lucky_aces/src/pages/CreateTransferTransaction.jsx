@@ -2,7 +2,7 @@ import { useLoggedInUser } from '../contexts/LoggedInUserContext'
 import { useState, useEffect } from 'react';
 import { transferTransaction } from '../APIRequest';
 
-function QRInitTransaction() {
+function CreateTransferTransaction() {
   const [_loading, _setLoading] = useState(true);
   const [recipientIDInput, setRecipientIDInput] = useState("");
   const [amountInput, setAmountInput] = useState(0);
@@ -70,9 +70,9 @@ function QRInitTransaction() {
       ) : (
         <form onSubmit={(e) => handleSubmit(e)}>
           <h1>Create Transfer Transaction</h1>
+          {success && <h3>{`Successfully made a transfer transaction to ${utoridShow}!`}</h3>}
+          {forbidden && <p>Sorry, You need to be verified before using this function.</p>}
           <div>
-            {success && <h3>{`Successfully made a transfer transaction to ${utoridShow}!`}</h3>}
-            {forbidden && <p>Sorry, You need to be verified before using this function.</p>}
             <label htmlFor="recipientIDInput">Recipient ID: </label>
             <input
               id="recipientIDInput"
@@ -112,4 +112,4 @@ function QRInitTransaction() {
   )
 }
 
-export default QRInitTransaction;
+export default CreateTransferTransaction;

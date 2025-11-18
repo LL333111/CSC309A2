@@ -112,8 +112,8 @@ export async function changePassword(oldPassword, newPassword, token) {
 
     return response.status;
   } catch (error) {
-    console.error("update LoggedIn User API request error: ", error);
-    alert("update LoggedIn User API request error");
+    console.error("change password API request error: ", error);
+    alert("change password API request error");
   }
 }
 
@@ -135,7 +135,30 @@ export async function transferTransaction(recipientId, amount, remark, token) {
 
     return response.status;
   } catch (error) {
-    console.error("update LoggedIn User API request error: ", error);
-    alert("update LoggedIn User API request error");
+    console.error("create transfer transaction API request error: ", error);
+    alert("create transfer transaction API request error");
+  }
+}
+
+// /users/me/transactions
+export async function redemptionTransaction(amount, remark, token) {
+  try {
+    const response = await fetch(`${API}/users/me/transactions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        type: "redemption",
+        amount: Number(amount),
+        remark: remark === "" ? null : remark,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("create redemption transaction API request error: ", error);
+    alert("create redemption transaction API request error");
   }
 }
