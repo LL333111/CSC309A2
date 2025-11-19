@@ -12,6 +12,7 @@ import QRInitTransaction from './pages/QRInitTransaction'
 import CreateTransferTransaction from './pages/CreateTransferTransaction'
 import CreateRedemptionTransaction from './pages/CreateRedemptionTransaction';
 import AllUnprocessedRedemption from './pages/AllUnprocessedRedemption';
+import AllPromotions from './pages/AllPromotions';
 import Auth from './components/auth';
 import NotFound from './pages/NotFound';
 
@@ -35,6 +36,7 @@ function App() {
             <Route path="transfer_transaction" element={<NeedLogin min_role={1}><CreateTransferTransaction /></NeedLogin>} />
             <Route path="redemption_transaction" element={<NeedLogin min_role={1}><CreateRedemptionTransaction /></NeedLogin>} />
             <Route path="all_unprocessed_redemption_transaction" element={<NeedLogin min_role={1}><AllUnprocessedRedemption /></NeedLogin>} />
+            <Route path="all_promotions" element={<NeedLogin min_role={1}><AllPromotions /></NeedLogin>} />
 
             <Route path="*" element={<NotFound />} />
           </Route>

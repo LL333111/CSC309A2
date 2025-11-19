@@ -2263,15 +2263,16 @@ app.route("/promotions")
             return res.status(401).json({ "Unauthorized": "No authorization" });
         }
         // error handling - possible fileds for regular or higher
-        var where = {};
-        var { name, type, page, limit } = req.query;
+        let where = {};
+        const { name, type, page, limit } = req.query;
         if (name) {
             if (typeof (name) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid name" });
             }
             where.name = name;
         }
-        if (type) {
+        if (type !== undefined && type !== null) {
+            console.log(type);
             if (typeof (type) !== "string" || (type !== "automatic" && type !== "one-time")) {
                 return res.status(400).json({ "Bad Request": "Invalid type" });
             }
@@ -2304,9 +2305,9 @@ app.route("/promotions")
         }
         // check if user is manager or higher
         if (req.role === "manager" || req.role === "superuser") {
-            var { started, ended } = req.query;
+            const { started, ended } = req.query;
             // Should not specify both started and ended
-            if (started && ended) {
+            if (started === "true" && ended === "false") {
                 return res.status(400).json({ "Bad Request": "Both started and ended exist" });
             }
             // Filter promotions that have started already or not started
@@ -2351,8 +2352,7 @@ app.route("/promotions")
                 results: paged,
             });
         }
-
-        var results = await prisma.promotion.findMany({
+        let results = await prisma.promotion.findMany({
             where: where,
             skip: (page - 1) * limit,
             take: limit,

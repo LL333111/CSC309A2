@@ -184,3 +184,25 @@ export async function getAllUnprocessedRedemption(page, token) {
     alert("get all redemption transaction API request error");
   }
 }
+
+// /promotions
+export async function getAllPromotions(name, type, page, started, ended, token) {
+  try {
+    const response = await fetch(`${API}/promotions?page=${page}&limit=10${name === null ? "" : `&name=${name}`}${type === null ? "" : `&type=${type}`}${started === null ? "" : `&started=${started}`}${ended === null ? "" : `&ended=${ended}`}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get all promotions ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get all promotions API request error: ", error);
+    alert("get all promotions API request error");
+  }
+}

@@ -60,27 +60,35 @@ function AllUnprocessedRedemption() {
       ) : (
         <div>
           <div>
-            {redemptionList.map((redemption) => (
-              <div key={redemption.id}>
-                <p><strong>Transaction ID: </strong>{redemption.id}</p>
-                <p><strong>Amount: </strong>{redemption.amount}</p>
-                <p><strong>Remark: </strong>{redemption.remark}</p>
-                <p><strong>Created By: </strong>{redemption.createdBy}</p>
-                <button onClick={(e) => toggleQRCode(redemption.id, e)}>
-                  {showQRCode === redemption.id ? "Hide QR Code" : "View QR Code"}
-                </button>
-                {showQRCode === redemption.id && (
-                  <div style={{ border: '1px solid #ccc' }}>
-                    <QRCodeSVG value={redemption} size={128} level="M" />
-                    <p>Transaction ID: {redemption.id}</p>
-                  </div>
-                )}
+            {redemptionList.length === 0 ? (
+              <div>
+                <p>You do not have unprocessed redemption transaction.</p>
               </div>
-            ))}
+            ) : (
+              redemptionList.map((redemption) => (
+                <div key={redemption.id}>
+                  <p><strong>Transaction ID: </strong>{redemption.id}</p>
+                  <p><strong>Amount: </strong>{redemption.amount}</p>
+                  <p><strong>Remark: </strong>{redemption.remark}</p>
+                  <p><strong>Created By: </strong>{redemption.createdBy}</p>
+                  <button onClick={(e) => toggleQRCode(redemption.id, e)}>
+                    {showQRCode === redemption.id ? "Hide QR Code" : "View QR Code"}
+                  </button>
+                  {showQRCode === redemption.id && (
+                    <div style={{ border: '1px solid #ccc' }}>
+                      <QRCodeSVG value={redemption} size={128} level="M" />
+                      <p>Transaction ID: {redemption.id}</p>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
-          <button onClick={(e) => handlePrevious(e)}>Previous Page</button>
-          <p>{page}</p>
-          <button onClick={(e) => handleNext(e)}>Next Page</button>
+          {redemptionList.length > 0 && <div>
+            <button onClick={(e) => handlePrevious(e)}>Previous Page</button>
+            <p>{page}</p>
+            <button onClick={(e) => handleNext(e)}>Next Page</button>
+          </div>}
         </div >
       )
       }
