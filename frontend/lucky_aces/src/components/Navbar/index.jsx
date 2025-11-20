@@ -83,6 +83,13 @@ const Navbar = () => {
                   onClick={(e) => { handleNavClick("Register", "/register", e); }}>Register</p>
               </li>
             </>}
+            {/* Menu when Manager or higher */}
+            {role >= 3 && <>
+              <li className="nav-item">
+                <p className={`nav-link ${activeSection === "AllUsers" ? 'active' : ''}`}
+                  onClick={(e) => { handleNavClick("AllUsers", "/all_users", e); }}>All Users</p>
+              </li>
+            </>}
             <li className="nav-item">
               <p className={`nav-link ${activeSection === "bad" ? 'active' : ''}`}
                 onClick={(e) => { handleNavClick("bad", "*", e); }}>bad</p>

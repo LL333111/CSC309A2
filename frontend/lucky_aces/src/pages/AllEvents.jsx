@@ -221,7 +221,6 @@ function AllEvents() {
                   </div>
 
                   <div>
-                    {/* 根据实际的事件数据结构调整显示字段 */}
                     <p><strong>Location: </strong>{event.location}</p>
                     <p><strong>Start Date: </strong>{formatDate(event.startTime)}</p>
                     <p><strong>End Date: </strong>{formatDate(event.endTime)}</p>
@@ -231,7 +230,6 @@ function AllEvents() {
                     {role >= 3 && <p><strong>Points Remain: </strong>{event.pointsRemain}</p>}
                     {role >= 3 && <p><strong>Points Awarded: </strong>{event.pointsAwarded}</p>}
                     <p><strong>Description: </strong>{event.description || 'N/A'}</p>
-                    {/* 添加其他需要显示的事件字段 */}
                   </div>
                 </div>
               ))
