@@ -2271,24 +2271,27 @@ app.route("/promotions")
             if (typeof (name) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid name" });
             }
-            where.name = name;
+            where.name = {
+                contains: name,
+            };
         }
         if (type !== undefined && type !== null) {
-            console.log(type);
             if (typeof (type) !== "string" || (type !== "automatic" && type !== "one-time")) {
                 return res.status(400).json({ "Bad Request": "Invalid type" });
             }
             where.type = type;
         }
-        if (page) {
-            if (isNaN(parseFloat(page)) || parseFloat(page) <= 0) {
+        if (page !== undefined) {
+            page = parseInt(page);
+            if (Number.isNaN(page) || page <= 0) {
                 return res.status(400).json({ "Bad Request": "Invalid page" });
             }
         } else {
             page = 1;
         }
-        if (limit) {
-            if (isNaN(parseFloat(limit)) || parseFloat(limit) <= 0) {
+        if (limit !== undefined) {
+            limit = parseInt(limit);
+            if (Number.isNaN(limit) || limit <= 0) {
                 return res.status(400).json({ "Bad Request": "Invalid limit" });
             }
         } else {
@@ -2345,9 +2348,7 @@ app.route("/promotions")
                 const end = new Date(promo.endTime);
                 return start < now && end > now;
             });
-            const startIndex = (page - 1) * limit;
-            const endIndex = startIndex + limit;
-            const paged = activePromotions.slice(startIndex, endIndex);
+            const paged = activePromotions.slice((page - 1) * limit, ((page - 1) * limit) + limit);
 
             return res.status(200).json({
                 count: activePromotions.length,
@@ -2356,12 +2357,10 @@ app.route("/promotions")
         }
         let results = await prisma.promotion.findMany({
             where: where,
-            skip: (page - 1) * limit,
-            take: limit,
         });
         return res.status(200).json({
             count: results.length,
-            results: results
+            results: results.slice((page - 1) * limit, ((page - 1) * limit) + limit)
         });
     })
     .all((req, res) => {

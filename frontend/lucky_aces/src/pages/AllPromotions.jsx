@@ -62,7 +62,7 @@ function AllPromotions() {
     if (!_loading) {
       fetchPromotions();
     }
-  }, [page, _loading]);
+  }, [page, _loading, totalPage]);
 
   const handlePrevious = (e) => {
     e.preventDefault();
@@ -100,8 +100,8 @@ function AllPromotions() {
 
   const getPromotionStatus = (promotion) => {
     const now = new Date();
-    const startDate = new Date(promotion.startDate);
-    const endDate = new Date(promotion.endDate);
+    const startDate = new Date(promotion.startTime);
+    const endDate = new Date(promotion.endTime);
 
     if (now < startDate) return 'Upcoming';
     if (now > endDate) return 'Ended';
@@ -184,6 +184,7 @@ function AllPromotions() {
                   <div >
                     <p><strong>Type: </strong>{promotion.type}</p>
                     <p><strong>Min Spemdomh: </strong>{promotion.minSpending}</p>
+                    <p><strong>Start Date: </strong>{formatDate(promotion.startTime)}</p>
                     <p><strong>End Date: </strong>{formatDate(promotion.endTime)}</p>
                     <p><strong>Rate: </strong>{promotion.rate}</p>
                     <p><strong>Points: </strong>{promotion.points}</p>

@@ -188,7 +188,7 @@ export async function getAllUnprocessedRedemption(page, token) {
 // /promotions
 export async function getAllPromotions(name, type, page, started, ended, token) {
   try {
-    const response = await fetch(`${API}/promotions?page=${page}&limit=10${name === null ? "" : `&name=${name}`}${type === null ? "" : `&type=${type}`}${started === null ? "" : `&started=${started}`}${ended === null ? "" : `&ended=${ended}`}`, {
+    const response = await fetch(`${API}/promotions?page=${page}&limit=5${name === null ? "" : `&name=${name}`}${type === null ? "" : `&type=${type}`}${started === null ? "" : `&started=${started}`}${ended === null ? "" : `&ended=${ended}`}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
