@@ -3163,7 +3163,6 @@ app.route("/transactions/:transactionId/suspicious")
             await prisma.user.update({
                 where: { id: req.user.id },
                 data: {
-                    suspicious: true,
                     points: { decrement: deduction }
                 }
             });
@@ -3190,7 +3189,6 @@ app.route("/transactions/:transactionId/suspicious")
             await prisma.user.update({
                 where: { id: req.user.id },
                 data: {
-                    suspicious: false,
                     points: { increment: increment }
                 }
             });
@@ -3231,7 +3229,12 @@ app.route("/transactions/:transactionId/processed")
         // update processed to true
         const updatedTransaction = await prisma.transaction.update({
             where: { id: transactionId },
-            data: { processed: true, processedBy: req.user.utorid },
+            data: {
+                processed: true,
+                processedBy: req.user.utorid,
+                relatedId: req.user.id,
+                redeemed: transaction.amount,
+            },
             select: {
                 id: true,
                 utorid: true,
