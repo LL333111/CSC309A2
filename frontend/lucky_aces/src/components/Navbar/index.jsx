@@ -68,8 +68,8 @@ const Navbar = () => {
                   onClick={(e) => { handleNavClick("AllUnprocessedRedemption", "/all_unprocessed_redemption_transaction", e); }}>All Unprocessed Redemption</p>
               </li>
               <li className="nav-item">
-                <p className={`nav-link ${activeSection === "AllPromotions" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("AllPromotions", "/all_promotions", e); }}>All Promotions</p>
+                <p className={`nav-link ${activeSection === "YourPromotions" ? 'active' : ''}`}
+                  onClick={(e) => { handleNavClick("YourPromotions", "/your_promotions", e); }}>Your Promotions</p>
               </li>
               <li className="nav-item">
                 <p className={`nav-link ${activeSection === "AllEvents" ? 'active' : ''}`}
@@ -88,6 +88,10 @@ const Navbar = () => {
               <li className="nav-item">
                 <p className={`nav-link ${activeSection === "AllUsers" ? 'active' : ''}`}
                   onClick={(e) => { handleNavClick("AllUsers", "/all_users", e); }}>All Users</p>
+              </li>
+              <li className="nav-item">
+                <p className={`nav-link ${activeSection === "AllPromotions" ? 'active' : ''}`}
+                  onClick={(e) => { handleNavClick("AllPromotions", "/all_promotions", e); }}>All Promotions</p>
               </li>
             </>}
             <li className="nav-item">

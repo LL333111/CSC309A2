@@ -2274,7 +2274,7 @@ app.route("/promotions")
         }
         // error handling - possible fileds for regular or higher
         let where = {};
-        let { name, type, page, limit } = req.query;
+        let { name, type, page, limit, regular } = req.query;
         if (name) {
             if (typeof (name) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid name" });
@@ -2306,7 +2306,7 @@ app.route("/promotions")
             limit = 10;
         }
         // extra params
-        const allowedParams = ["name", "type", "page", "limit", "started", "ended"];
+        const allowedParams = ["name", "type", "page", "limit", "started", "ended", "regular"];
         const extraParams = Object.keys(req.query).filter((paramas) => {
             return !allowedParams.includes(paramas);
         });
@@ -2314,6 +2314,29 @@ app.route("/promotions")
             return res.status(400).json({
                 "Bad Request": "Include extra fields",
                 extraParams,
+            });
+        }
+        // only your avaliable promotion
+        if (regular !== undefined && regular !== null && regular === "true") {
+            // Regular user only see the active promotions
+            const userData = await prisma.user.findUnique({
+                where: { id: req.user.id },
+                include: { promotions: true },
+            });
+
+            const now = new Date();
+
+            // Filter only active promotions (started and not ended)
+            const activePromotions = userData.promotions.filter(promo => {
+                const start = new Date(promo.startTime);
+                const end = new Date(promo.endTime);
+                return start < now && end > now;
+            });
+            const paged = activePromotions.slice((page - 1) * limit, ((page - 1) * limit) + limit);
+
+            return res.status(200).json({
+                count: activePromotions.length,
+                results: paged,
             });
         }
         // check if user is manager or higher
@@ -2341,27 +2364,6 @@ app.route("/promotions")
                     where.endTime = { gte: (new Date()).toISOString() };
                 }
             }
-        } else {
-            // Regular user only see the active promotions
-            const userData = await prisma.user.findUnique({
-                where: { id: req.user.id },
-                include: { promotions: true },
-            });
-
-            const now = new Date();
-
-            // Filter only active promotions (started and not ended)
-            const activePromotions = userData.promotions.filter(promo => {
-                const start = new Date(promo.startTime);
-                const end = new Date(promo.endTime);
-                return start < now && end > now;
-            });
-            const paged = activePromotions.slice((page - 1) * limit, ((page - 1) * limit) + limit);
-
-            return res.status(200).json({
-                count: activePromotions.length,
-                results: paged,
-            });
         }
         let results = await prisma.promotion.findMany({
             where: where,

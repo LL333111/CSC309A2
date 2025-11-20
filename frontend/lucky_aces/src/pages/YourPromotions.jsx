@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { getAllPromotions } from "../APIRequest"
 
-function AllPromotions() {
+function YourPromotions() {
   const [_loading, _setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(null);
@@ -47,7 +47,7 @@ function AllPromotions() {
       let name = nameFilter || null;
       let type = typeFilter !== "any" ? typeFilter : null;
 
-      const data = await getAllPromotions(name, type, page, startedParam, endedParam, token, "false");
+      const data = await getAllPromotions(name, type, page, startedParam, endedParam, token, "true");
       if (totalPage === null) {
         setTotalPage(data.count % 5 === 0 ? Math.floor(data.count / 5) : Math.floor(data.count / 5) + 1);
       }
@@ -145,19 +145,6 @@ function AllPromotions() {
                     <option value="one-time">One-time</option>
                   </select>
                 </div>
-                <div>
-                  <label htmlFor="status-filter">Status: </label>
-                  <select
-                    id="status-filter"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                  >
-                    <option value="any">Any</option>
-                    <option value="active">Active</option>
-                    <option value="upcoming">Upcoming</option>
-                    <option value="ended">Ended</option>
-                  </select>
-                </div>
               </div>
               <div>
                 <button onClick={handleApply}>Apply</button>
@@ -183,7 +170,7 @@ function AllPromotions() {
 
                   <div >
                     <p><strong>Type: </strong>{promotion.type}</p>
-                    <p><strong>Min Spending: </strong>{promotion.minSpending}</p>
+                    <p><strong>Min Spemdomh: </strong>{promotion.minSpending}</p>
                     <p><strong>Start Date: </strong>{formatDate(promotion.startTime)}</p>
                     <p><strong>End Date: </strong>{formatDate(promotion.endTime)}</p>
                     <p><strong>Rate: </strong>{promotion.rate}</p>
@@ -220,4 +207,4 @@ function AllPromotions() {
   )
 }
 
-export default AllPromotions;
+export default YourPromotions;
