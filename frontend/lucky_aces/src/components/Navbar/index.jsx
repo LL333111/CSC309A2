@@ -71,6 +71,10 @@ const Navbar = () => {
                 <p className={`nav-link ${activeSection === "AllPromotions" ? 'active' : ''}`}
                   onClick={(e) => { handleNavClick("AllPromotions", "/all_promotions", e); }}>All Promotions</p>
               </li>
+              <li className="nav-item">
+                <p className={`nav-link ${activeSection === "AllEvents" ? 'active' : ''}`}
+                  onClick={(e) => { handleNavClick("AllEvents", "/all_events", e); }}>All Events</p>
+              </li>
             </>}
             {/* Menu when cashier or higher */}
             {role >= 2 && <>

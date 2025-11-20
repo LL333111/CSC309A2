@@ -235,7 +235,9 @@ app.route("/users")
         let where = {};
         // not satisfy description
         if (name !== undefined) {
-            where.name = name;
+            where.name = {
+                contains: name,
+            };
         }
         if (role !== undefined) {
             if (role !== "regular" && role !== "cashier" && role !== "manager" && role !== "superuser") {
@@ -981,10 +983,14 @@ app.route("/events")
         let where = {};
         // not satisfy description
         if (name !== undefined && name !== null) {
-            where.name = name;
+            where.name = {
+                contains: name,
+            };
         }
         if (location !== undefined && location !== null) {
-            where.location = location;
+            where.location = {
+                contains: location,
+            };;
         }
         if (started !== undefined && started !== null) {
             if (!(started === "true" || started === "false")) {
@@ -1001,7 +1007,8 @@ app.route("/events")
                 return res.status(400).json({ "Bad Request": "Invalid started" });
             }
             if (started !== undefined && started !== null) {
-                return res.status(400).json({ "Bad Request": "Not permitted to use both started and ended" });
+                if (ended === "true")
+                    return res.status(400).json({ "Bad Request": "Not permitted to use both started and ended" });
             }
             if (ended === "true") {
                 where.endTime = { lt: (new Date()).toISOString() };
@@ -1068,6 +1075,7 @@ app.route("/events")
             endTime: true,
             capacity: true,
             numGuests: true,
+            description: true,
         }
         if (req.role !== "regular" && req.role !== "cashier") {
             select.pointsRemain = true;

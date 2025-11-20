@@ -424,7 +424,7 @@ async function seedData() {
       }
     });
   }
-  const mockEvents = [
+  const mockEvents1 = [
     {
       name: "Mock Event 1",
       description: "published ended event",
@@ -492,13 +492,81 @@ async function seedData() {
       capacity: 150,
     },
   ];
+  const mockEvents2 = [
+    {
+      name: "Mock Event 7",
+      description: "published ended event",
+      location: "BA1060",
+      startTime: "2025-09-01T00:00:00Z",
+      endTime: "2025-10-01T00:00:00Z",
+      pointsRemain: 0,
+      pointsAwarded: 0,
+      published: true,
+      capacity: null,
+    },
+    {
+      name: "Mock Event 8",
+      description: "unpublished ended event",
+      location: "BA1060",
+      startTime: "2025-09-01T00:00:00Z",
+      endTime: "2025-10-01T00:00:00Z",
+      pointsRemain: 0,
+      pointsAwarded: 0,
+      published: false,
+      capacity: 150,
+    },
+    {
+      name: "Mock Event 9",
+      description: "published active event",
+      location: "BA1060",
+      startTime: "2025-09-01T00:00:00Z",
+      endTime: "2026-10-01T00:00:00Z",
+      pointsRemain: 1000,
+      pointsAwarded: 0,
+      published: true,
+      capacity: null,
+    },
+    {
+      name: "Mock Event 10",
+      description: "unpublished active event",
+      location: "BA1060",
+      startTime: "2025-09-01T00:00:00Z",
+      endTime: "2026-10-01T00:00:00Z",
+      pointsRemain: 1500,
+      pointsAwarded: 0,
+      published: false,
+      capacity: 150,
+    },
+    {
+      name: "Mock Event 11",
+      description: "published upcoming event",
+      location: "BA1060",
+      startTime: "2026-11-21T00:00:00Z",
+      endTime: "2026-12-30T00:00:00Z",
+      pointsRemain: 1000,
+      pointsAwarded: 0,
+      published: true,
+      capacity: null,
+    },
+    {
+      name: "Mock Event 12",
+      description: "unpublished upcoming event",
+      location: "BA1060",
+      startTime: "2026-11-21T00:00:00Z",
+      endTime: "2026-12-30T00:00:00Z",
+      pointsRemain: 1500,
+      pointsAwarded: 0,
+      published: false,
+      capacity: 150,
+    },
+  ];
   // events
   // no guest no organizer
-  for (const event of mockEvents) {
+  for (const event of mockEvents1) {
     await prisma.event.create({ data: event });
   }
   // with guest with organizer
-  for (const event of mockEvents) {
+  for (const event of mockEvents2) {
     let created = await prisma.event.create({ data: event });
     await prisma.event.update({
       where: { id: created.id },

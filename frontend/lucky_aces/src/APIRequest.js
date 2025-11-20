@@ -206,3 +206,47 @@ export async function getAllPromotions(name, type, page, started, ended, token) 
     alert("get all promotions API request error");
   }
 }
+
+// /events
+export async function getAllEvents(name, page, started, ended, location, showFull, published, token) {
+  try {
+    const response = await fetch(`${API}/events?page=${page}&limit=5${name === null ? "" : `&name=${name}`}${location === null ? "" : `&location=${location}`}${showFull === null ? "" : `&showFull=${showFull}`}${published === null ? "" : `&published=${published}`}${started === null ? "" : `&started=${started}`}${ended === null ? "" : `&ended=${ended}`}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get all promotions ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get all promotions API request error: ", error);
+    alert("get all promotions API request error");
+  }
+}
+
+// /users
+export async function getAllUsers(name, page, role, verified, activated, token) {
+  try {
+    const response = await fetch(`${API}/users?page=${page}&limit=5${name === null ? "" : `&name=${name}`}${role === null ? "" : `&role=${role}`}${verified === null ? "" : `&verified=${verified}`}${activated === null ? "" : `&activated=${activated}`}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token} `,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get all promotions ${response.statusText} `);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get all promotions API request error: ", error);
+    alert("get all promotions API request error");
+  }
+}

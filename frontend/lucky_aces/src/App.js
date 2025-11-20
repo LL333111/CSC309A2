@@ -13,6 +13,7 @@ import CreateTransferTransaction from './pages/CreateTransferTransaction'
 import CreateRedemptionTransaction from './pages/CreateRedemptionTransaction';
 import AllUnprocessedRedemption from './pages/AllUnprocessedRedemption';
 import AllPromotions from './pages/AllPromotions';
+import AllEvents from './pages/AllEvents';
 import Auth from './components/auth';
 import NotFound from './pages/NotFound';
 
@@ -37,6 +38,7 @@ function App() {
             <Route path="redemption_transaction" element={<NeedLogin min_role={1}><CreateRedemptionTransaction /></NeedLogin>} />
             <Route path="all_unprocessed_redemption_transaction" element={<NeedLogin min_role={1}><AllUnprocessedRedemption /></NeedLogin>} />
             <Route path="all_promotions" element={<NeedLogin min_role={1}><AllPromotions /></NeedLogin>} />
+            <Route path="all_events" element={<NeedLogin min_role={1}><AllEvents /></NeedLogin>} />
 
             <Route path="*" element={<NotFound />} />
           </Route>
