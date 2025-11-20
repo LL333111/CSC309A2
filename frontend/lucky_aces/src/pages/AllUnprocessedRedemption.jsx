@@ -85,9 +85,9 @@ function AllUnprocessedRedemption() {
             )}
           </div>
           {redemptionList.length > 0 && <div>
-            <button onClick={(e) => handlePrevious(e)}>Previous Page</button>
-            <p>{page}</p>
-            <button onClick={(e) => handleNext(e)}>Next Page</button>
+            <button onClick={(e) => handlePrevious(e)} disabled={page === 1}>Previous Page</button>
+            <span >Page {page} of {totalPage || 1}</span>
+            <button onClick={(e) => handleNext(e)} disabled={page === totalPage}>Next Page</button>
           </div>}
         </div >
       )
