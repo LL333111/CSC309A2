@@ -1062,9 +1062,7 @@ app.route("/events")
             }
             where.published = published === "true";
         } else {
-            if (req.role === "regular" || req.role === "cashier") {
-                where.published = true;
-            }
+            where.published = true;
         }
         // set select
         let select = {

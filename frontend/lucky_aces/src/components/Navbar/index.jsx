@@ -72,8 +72,8 @@ const Navbar = () => {
                   onClick={(e) => { handleNavClick("YourPromotions", "/your_promotions", e); }}>Your Promotions</p>
               </li>
               <li className="nav-item">
-                <p className={`nav-link ${activeSection === "AllEvents" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("AllEvents", "/all_events", e); }}>All Events</p>
+                <p className={`nav-link ${activeSection === "PublishedEvents" ? 'active' : ''}`}
+                  onClick={(e) => { handleNavClick("PublishedEvents", "/published_events", e); }}>Published Events</p>
               </li>
             </>}
             {/* Menu when cashier or higher */}
@@ -93,7 +93,12 @@ const Navbar = () => {
                 <p className={`nav-link ${activeSection === "AllPromotions" ? 'active' : ''}`}
                   onClick={(e) => { handleNavClick("AllPromotions", "/all_promotions", e); }}>All Promotions</p>
               </li>
+              <li className="nav-item">
+                <p className={`nav-link ${activeSection === "AllEvents" ? 'active' : ''}`}
+                  onClick={(e) => { handleNavClick("AllEvents", "/all_events", e); }}>All Events</p>
+              </li>
             </>}
+            {/* 404 page*/}
             <li className="nav-item">
               <p className={`nav-link ${activeSection === "bad" ? 'active' : ''}`}
                 onClick={(e) => { handleNavClick("bad", "*", e); }}>bad</p>

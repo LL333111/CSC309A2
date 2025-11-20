@@ -15,6 +15,7 @@ import AllUnprocessedRedemption from './pages/AllUnprocessedRedemption';
 import AllPromotions from './pages/AllPromotions';
 import YourPromotions from './pages/YourPromotions';
 import AllEvents from './pages/AllEvents';
+import PublishedEvents from './pages/PublishedEvents';
 import AllUsers from './pages/AllUsers';
 import Auth from './components/auth';
 import NotFound from './pages/NotFound';
@@ -41,7 +42,8 @@ function App() {
             <Route path="all_unprocessed_redemption_transaction" element={<NeedLogin min_role={1}><AllUnprocessedRedemption /></NeedLogin>} />
             <Route path="all_promotions" element={<NeedLogin min_role={3}><AllPromotions /></NeedLogin>} />
             <Route path="your_promotions" element={<NeedLogin min_role={1}><YourPromotions /></NeedLogin>} />
-            <Route path="all_events" element={<NeedLogin min_role={1}><AllEvents /></NeedLogin>} />
+            <Route path="all_events" element={<NeedLogin min_role={3}><AllEvents /></NeedLogin>} />
+            <Route path="published_events" element={<NeedLogin min_role={1}><PublishedEvents /></NeedLogin>} />
             <Route path="all_users" element={<NeedLogin min_role={3}><AllUsers /></NeedLogin>} />
 
             <Route path="*" element={<NotFound />} />

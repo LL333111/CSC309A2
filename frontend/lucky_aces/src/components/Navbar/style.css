@@ -26,6 +26,7 @@
 .nav-menu {
   display: flex;
   list-style: none;
+  flex-wrap: wrap;
 }
 
 .nav-item {
