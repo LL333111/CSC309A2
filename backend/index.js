@@ -2062,7 +2062,8 @@ app.route("/events/:eventId/transactions")
                     utorid: utorid
                 },
                 data: {
-                    points: { increment: amount }
+                    points: { increment: amount },
+                    pastTransactions: { connect: { id: transaction.id } }
                 }
             });
             await prisma.event.update({
@@ -2128,7 +2129,8 @@ app.route("/events/:eventId/transactions")
                         id: guestId
                     },
                     data: {
-                        points: { increment: amount }
+                        points: { increment: amount },
+                        pastTransactions: { connect: { id: transaction.id } }
                     }
                 });
                 await prisma.event.update({
@@ -2264,7 +2266,7 @@ app.route("/promotions")
         }
         // error handling - possible fileds for regular or higher
         let where = {};
-        const { name, type, page, limit } = req.query;
+        let { name, type, page, limit } = req.query;
         if (name) {
             if (typeof (name) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid name" });
@@ -2307,11 +2309,11 @@ app.route("/promotions")
         if (req.role === "manager" || req.role === "superuser") {
             const { started, ended } = req.query;
             // Should not specify both started and ended
-            if (started === "true" && ended === "false") {
+            if (started === "true" && ended === "true") {
                 return res.status(400).json({ "Bad Request": "Both started and ended exist" });
             }
             // Filter promotions that have started already or not started
-            if (started) {
+            if (started !== undefined && started !== null) {
                 if (started === "true") {
                     where.startTime = { lt: (new Date()).toISOString() };
                 }
@@ -2320,7 +2322,7 @@ app.route("/promotions")
                 }
             }
             // Filter promtions that have ended already or not ended
-            if (ended) {
+            if (ended !== undefined && ended !== "null") {
                 if (ended === "true") {
                     where.endTime = { lt: (new Date()).toISOString() };
                 }
@@ -2613,6 +2615,7 @@ app.route("/transactions")
             return res.status(400).json({ "Bad Request": "type must be 'purchase' or 'adjustment'" });
         }
         // promotionIds and remark are optional for both purchase transcation and adjustment transaction
+        let userData;
         if (promotionIds) {
             if (!Array.isArray(promotionIds)) {
                 return res.status(400).json({ "Bad Request": "Invalid PromotionIds" });
@@ -2813,6 +2816,14 @@ app.route("/transactions")
                     return res.status(499).json({ message: "Failed to update user points" });
                 }
             }
+            await prisma.user.update({
+                where: { utorid: utorid },
+                data: {
+                    pastTransactions: {
+                        connect: { id: created.id }
+                    }
+                }
+            });
             created.promotionIds = created.promotionIds.map((promotion) => promotion.id);
             return res.status(201).json(created);
         } else if (type === "adjustment") {
@@ -2862,7 +2873,10 @@ app.route("/transactions")
             try {
                 await prisma.user.update({
                     where: { utorid: utorid },
-                    data: { points: { increment: amount } }
+                    data: {
+                        points: { increment: amount },
+                        pastTransactions: { connect: { id: created.id } }
+                    }
                 });
             } catch (error) {
                 console.log(error);
@@ -2902,12 +2916,6 @@ app.route("/transactions")
                 return res.status(404).json({ "Not Found": "Promotion not found" });
             }
             filters.promotionIds = { some: { id: promoId } };
-        }
-        if (name !== undefined && name !== null) {
-            if (typeof (name) !== "string") {
-                return res.status(400).json({ "Bad Request": "Invalid name" });
-            }
-            filters.name = name;
         }
         if (createdBy !== undefined && createdBy !== null) {
             if (typeof (createdBy) !== "string") {
@@ -2983,27 +2991,59 @@ app.route("/transactions")
             });
         }
         // retrieve transactions
-        const result = await prisma.transaction.findMany({
-            where: filters,
-            skip: (page - 1) * limit,
-            take: parseInt(limit),
-            select: {
-                id: true,
-                utorid: true,
-                amount: true,
-                type: true,
-                spent: true,
-                promotionIds: { select: { id: true } },
-                suspicious: true,
-                remark: true,
-                createdBy: true,
-                relatedId: true,
-                redeemed: true,
-                sender: true,
-                recipient: true,
-                sent: true
+        let result;
+        if (name !== undefined && name !== null) {
+            if (typeof (name) !== "string") {
+                return res.status(400).json({ "Bad Request": "Invalid name" });
             }
-        });
+            let user = await prisma.user.findUnique({
+                where: {
+                    utorid: name
+                },
+                include: {
+                    pastTransactions: {
+                        select: {
+                            id: true,
+                            amount: true,
+                            type: true,
+                            spent: true,
+                            promotionIds: { select: { id: true } },
+                            suspicious: true,
+                            remark: true,
+                            createdBy: true,
+                            relatedId: true,
+                            redeemed: true,
+                            sender: true,
+                            recipient: true,
+                            sent: true
+                        }
+                    }
+                }
+            });
+            result = user.pastTransactions.slice((page - 1) * limit, ((page - 1) * limit) + limit);
+        } else {
+            result = await prisma.transaction.findMany({
+                where: filters,
+                skip: (page - 1) * limit,
+                take: parseInt(limit),
+                select: {
+                    id: true,
+                    utorid: true,
+                    amount: true,
+                    type: true,
+                    spent: true,
+                    promotionIds: { select: { id: true } },
+                    suspicious: true,
+                    remark: true,
+                    createdBy: true,
+                    relatedId: true,
+                    redeemed: true,
+                    sender: true,
+                    recipient: true,
+                    sent: true
+                }
+            });
+        }
         // keep only relevant fields
         for (const tx of result) {
             if (tx.type === "purchase") {
@@ -3267,6 +3307,14 @@ app.route("/users/me/transactions")
                 createdBy: true
             }
         });
+        await prisma.user.update({
+            where: { id: req.user.id },
+            data: {
+                pastTransactions: {
+                    connect: { id: transaction.id }
+                }
+            }
+        });
         // redemption transaction must be processed by cashier later though path
         return res.status(201).json(transaction);
     })
@@ -3453,7 +3501,10 @@ app.route("/users/:userId/transactions")
         // deduct points from sender
         await prisma.user.update({
             where: { id: req.user.id },
-            data: { points: { decrement: amount } }
+            data: {
+                points: { decrement: amount },
+                pastTransactions: { connect: { id: senderTransaction.id } }
+            }
         });
         // one for receiving the amount and set relatedId to sender's userId
         data.relatedId = req.user.id;
@@ -3478,7 +3529,10 @@ app.route("/users/:userId/transactions")
         // add points to receiver
         await prisma.user.update({
             where: { id: userId },
-            data: { points: { increment: amount } }
+            data: {
+                points: { increment: amount },
+                pastTransactions: { connect: { id: receiverTransaction.id } }
+            }
         });
         return res.status(201).json(senderTransaction);
     })

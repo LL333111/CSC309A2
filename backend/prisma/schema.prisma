@@ -28,22 +28,23 @@ enum PromotionType {
 }
 
 model User {
-  id         Int         @id @default(autoincrement())
-  utorid     String      @unique
-  name       String
-  email      String      @unique
-  birthday   String?
-  role       RoleType    @default(regular)
-  points     Int         @default(0)
-  createdAt  String
-  lastLogin  String?
-  verified   Boolean     @default(false)
-  avatarUrl  String? // 头像
-  password   String?
-  promotions Promotion[] // 用户拥有的promotions
-  suspicious Boolean     @default(false) // 是否被标记为suspicious
-  resetToken String? // reset token
-  expiresAt  String? // reset token expires At
+  id               Int           @id @default(autoincrement())
+  utorid           String        @unique
+  name             String
+  email            String        @unique
+  birthday         String?
+  role             RoleType      @default(regular)
+  points           Int           @default(0)
+  createdAt        String
+  lastLogin        String?
+  verified         Boolean       @default(false)
+  avatarUrl        String? // 头像
+  password         String?
+  promotions       Promotion[] // 用户拥有的promotions
+  suspicious       Boolean       @default(false) // 是否被标记为suspicious
+  resetToken       String? // reset token
+  expiresAt        String? // reset token expires At
+  pastTransactions Transaction[] // 用户所有的past transaction
 
   guestsEvent     Event[] @relation("EventOrganizers")
   organizersEvent Event[] @relation("EventGuests")
@@ -98,4 +99,6 @@ model Transaction {
   recipient    String?
   suspicious   Boolean     @default(false)
   promotionIds Promotion[] @relation("PromotionTransaction")
+  user         User?       @relation(fields: [userId], references: [id])
+  userId       Int?
 }

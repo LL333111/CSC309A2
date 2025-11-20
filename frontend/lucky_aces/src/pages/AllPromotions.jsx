@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { getAllPromotions } from "../APIRequest"
-import { QRCodeSVG } from 'qrcode.react';
 
 function AllPromotions() {
   const [_loading, _setLoading] = useState(true);
@@ -35,10 +34,10 @@ function AllPromotions() {
           break;
         case "upcoming":
           startedParam = "false";
-          endedParam = "false";
+          endedParam = null;
           break;
         case "ended":
-          startedParam = "true";
+          startedParam = null;
           endedParam = "true";
           break;
         default:

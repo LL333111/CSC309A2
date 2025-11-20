@@ -8,7 +8,7 @@ const Navbar = () => {
   const [activeSection, setActiveSection] = useState('Home');
   const navigate = useNavigate();
 
-  const { user, role } = useLoggedInUser();
+  const { role } = useLoggedInUser();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -31,7 +31,7 @@ const Navbar = () => {
                 onClick={(e) => { handleNavClick("Home", "/", e); }}>Home</p>
             </li>
             {/* Menu when not login*/}
-            {role == 0 && <>
+            {role === 0 && <>
               <li className="nav-item">
                 <p className={`nav-link ${activeSection === "Login" ? 'active' : ''}`}
                   onClick={(e) => { handleNavClick("Login", "/login", e); }}>Login</p>
