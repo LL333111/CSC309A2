@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { getAllEvents } from "../APIRequest"
+import "./PublishedEvents.css"
 
 function PublishedEvents() {
   const [_loading, _setLoading] = useState(true);
@@ -12,7 +13,6 @@ function PublishedEvents() {
   const [nameFilter, setNameFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [showFullFilter, setShowFullFilter] = useState("any");
-  const [publishedFilter, setPublishedFilter] = useState("any");
   const [statusFilter, setStatusFilter] = useState("any");
 
   const { loading, token } = useLoggedInUser();
@@ -103,7 +103,6 @@ function PublishedEvents() {
     setNameFilter("");
     setLocationFilter("");
     setShowFullFilter("any");
-    setPublishedFilter("any");
     setStatusFilter("any");
     setPage(1);
     setTotalPage(null);
@@ -111,7 +110,13 @@ function PublishedEvents() {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString('en-CA', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
   const getEventStatus = (event) => {
@@ -119,27 +124,31 @@ function PublishedEvents() {
     const startDate = new Date(event.startTime);
     const endDate = new Date(event.endTime);
 
-    if (now < startDate) return 'Upcoming';
-    if (now > endDate) return 'Ended';
-    return 'Active';
+    if (now < startDate) return 'upcoming';
+    if (now > endDate) return 'ended';
+    return 'active';
   }
 
   return (
-    <div>
+    <div className="published-events-container">
       {_loading ? (
-        <div>
+        <div className="loading-container">
           <h2>Loading...</h2>
-          {/* 可以添加加载动画 */}
         </div>
       ) : (
         <div>
-          <button onClick={toggleFilter}>
+          <div className="page-header">
+            <h1 className="page-title">Published Events</h1>
+            <p className="page-subtitle">Browse all published events. Filter by name, location, or status to find events that interest you.</p>
+          </div>
+
+          <button className="filter-toggle-btn" onClick={toggleFilter}>
             Filter {isFilterOpen ? '✕' : '☰'}
           </button>
           {isFilterOpen && (
-            <section>
-              <div>
-                <div>
+            <section className="filter-panel">
+              <div className="filter-grid">
+                <div className="filter-group">
                   <label htmlFor="name-filter">Name: </label>
                   <input
                     type="text"
@@ -149,7 +158,7 @@ function PublishedEvents() {
                     placeholder="Input Event Name.."
                   />
                 </div>
-                <div>
+                <div className="filter-group">
                   <label htmlFor="location-filter">Location: </label>
                   <input
                     type="text"
@@ -159,8 +168,8 @@ function PublishedEvents() {
                     placeholder="Input Event Location.."
                   />
                 </div>
-                <div>
-                  <label htmlFor="showFull-filter">Show Full: </label>
+                <div className="filter-group">
+                  <label htmlFor="showFull-filter">Show Full Events Only: </label>
                   <select
                     id="showFull-filter"
                     value={showFullFilter}
@@ -171,44 +180,79 @@ function PublishedEvents() {
                     <option value="false">False</option>
                   </select>
                 </div>
+                <div className="filter-group">
+                  <label htmlFor="status-filter">Status: </label>
+                  <select
+                    id="status-filter"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option value="any">Any</option>
+                    <option value="active">Active</option>
+                    <option value="upcoming">Upcoming</option>
+                    <option value="ended">Ended</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <button onClick={handleApply}>Apply</button>
-                <button onClick={handleReset}>Reset</button>
+              <div className="filter-actions">
+                <button className="apply-btn" onClick={handleApply}>Apply</button>
+                <button className="reset-btn" onClick={handleReset}>Reset</button>
               </div>
             </section>
           )}
 
-          <div>
+          <div className="events-list">
             {eventList.length === 0 ? (
-              <div>
-                <p>You do not have available events.</p>
+              <div className="no-events">
+                <div className="no-events-icon">📅</div>
+                <p>No published events available at the moment.</p>
+                <p>Check back later for new events!</p>
               </div>
             ) : (
-              eventList.map((event) => (
-                <div key={event.id}>
-                  <div>
-                    <h3>{event.name}</h3>
-                    <span>
-                      {getEventStatus(event)}
-                    </span>
-                  </div>
+              eventList.map((event) => {
+                const status = getEventStatus(event);
 
-                  <div>
-                    <p><strong>Location: </strong>{event.location}</p>
-                    <p><strong>Start Date: </strong>{formatDate(event.startTime)}</p>
-                    <p><strong>End Date: </strong>{formatDate(event.endTime)}</p>
-                    <p><strong>Capacity: </strong>{event.capacity || "no limit"}</p>
-                    <p><strong>Number of Guests: </strong>{event.numGuests}</p>
-                    <p><strong>Description: </strong>{event.description || 'N/A'}</p>
+                return (
+                  <div className={`event-card`} key={event.id}>
+                    <div className="event-header">
+                      <h3 className="event-title">{event.name}</h3>
+                      <span className={`event-status status-${status}`}>
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </span>
+                    </div>
+
+                    <div className="event-details">
+                      <div className="event-detail-item">
+                        <strong>Location:</strong>
+                        <p>{event.location}</p>
+                      </div>
+                      <div className="event-detail-item">
+                        <strong>Start Date:</strong>
+                        <p>{formatDate(event.startTime)}</p>
+                      </div>
+                      <div className="event-detail-item">
+                        <strong>End Date:</strong>
+                        <p>{formatDate(event.endTime)}</p>
+                      </div>
+                      <div className="event-detail-item">
+                        <strong>Capacity:</strong>
+                        <div className="capacity-info">
+                          <span>{event.numGuests} / {event.capacity || "∞"}</span>
+                        </div>
+                      </div>
+                      <div className="event-detail-item">
+                        <strong>Description:</strong>
+                        <p>{event.description || 'No description available'}</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
           {eventList.length > 0 && (
-            <div>
+            <div className="pagination">
               <button
                 onClick={handlePrevious}
                 disabled={page === 1}
@@ -227,9 +271,8 @@ function PublishedEvents() {
             </div>
           )}
         </div>
-      )
-      }
-    </div >
+      )}
+    </div>
   )
 }
 

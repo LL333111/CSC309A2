@@ -250,3 +250,25 @@ export async function getAllUsers(name, page, role, verified, activated, token) 
     alert("get all promotions API request error");
   }
 }
+
+// /transactions
+export async function getAllTransactions(name, type, page, createdBy, suspicious, promotionId, relatedId, amount, operator, token,) {
+  try {
+    const response = await fetch(`${API}/transactions?page=${page}&limit=5${name === null ? "" : `&name=${name}`}${type === null ? "" : `&type=${type}`}${createdBy === null ? "" : `&createdBy=${createdBy}`}${suspicious === null ? "" : `&suspicious=${suspicious}`}${promotionId === null ? "" : `&promotionId=${promotionId}`}${relatedId === null ? "" : `&relatedId=${relatedId}`}${amount === null ? "" : `&amount=${amount}`}${operator === null ? "" : `&operator=${operator}`}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get all promotions ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get all promotions API request error: ", error);
+    alert("get all promotions API request error");
+  }
+}

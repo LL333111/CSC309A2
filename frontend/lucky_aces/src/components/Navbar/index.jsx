@@ -97,6 +97,10 @@ const Navbar = () => {
                 <p className={`nav-link ${activeSection === "AllEvents" ? 'active' : ''}`}
                   onClick={(e) => { handleNavClick("AllEvents", "/all_events", e); }}>All Events</p>
               </li>
+              <li className="nav-item">
+                <p className={`nav-link ${activeSection === "AllTransactions" ? 'active' : ''}`}
+                  onClick={(e) => { handleNavClick("AllTransactions", "/all_transactions", e); }}>All Transactions</p>
+              </li>
             </>}
             {/* 404 page*/}
             <li className="nav-item">

@@ -17,6 +17,7 @@ import YourPromotions from './pages/YourPromotions';
 import AllEvents from './pages/AllEvents';
 import PublishedEvents from './pages/PublishedEvents';
 import AllUsers from './pages/AllUsers';
+import AllTransactions from './pages/AllTransactions';
 import Auth from './components/auth';
 import NotFound from './pages/NotFound';
 
@@ -45,6 +46,7 @@ function App() {
             <Route path="all_events" element={<NeedLogin min_role={3}><AllEvents /></NeedLogin>} />
             <Route path="published_events" element={<NeedLogin min_role={1}><PublishedEvents /></NeedLogin>} />
             <Route path="all_users" element={<NeedLogin min_role={3}><AllUsers /></NeedLogin>} />
+            <Route path="all_transactions" element={<NeedLogin min_role={3}><AllTransactions /></NeedLogin>} />
 
             <Route path="*" element={<NotFound />} />
           </Route>

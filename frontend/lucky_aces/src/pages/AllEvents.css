@@ -1,0 +1,497 @@
+/* CSS变量定义 - 蓝白主题 */
+:root {
+  /* 颜色系统 */
+  --primary-blue: #2b6cb0;
+  --primary-blue-dark: #2c5282;
+  --primary-blue-light: #3182ce;
+  --primary-blue-faded: rgba(49, 130, 206, 0.1);
+
+  --neutral-white: #ffffff;
+  --neutral-bg: #f8fafc;
+  --neutral-border: #e2e8f0;
+  --neutral-text: #2d3748;
+  --neutral-text-light: #4a5568;
+  --neutral-text-lighter: #718096;
+
+  /* 状态颜色 */
+  --status-active: #38a169;
+  --status-upcoming: #dd6b20;
+  --status-ended: #718096;
+  --status-draft: #e53e3e;
+
+  /* 尺寸系统 */
+  --border-radius-sm: 6px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 20px;
+  --spacing-xl: 24px;
+  --spacing-xxl: 32px;
+
+  /* 阴影系统 */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 8px 15px rgba(0, 0, 0, 0.1);
+  --shadow-focus: 0 0 0 3px var(--primary-blue-faded);
+
+  /* 过渡效果 */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.4s ease;
+
+  /* 字体系统 */
+  --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+
+  /* 布局断点 */
+  --breakpoint-mobile: 768px;
+}
+
+/* 重置和基础样式 */
+.all-events-container {
+  font-family: var(--font-family);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+  background-color: var(--neutral-bg);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  font-size: var(--font-size-xl);
+  color: var(--primary-blue);
+  font-weight: 600;
+}
+
+/* 筛选器切换按钮 */
+.filter-toggle-btn {
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-light));
+  color: var(--neutral-white);
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: var(--spacing-lg);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  width: fit-content;
+}
+
+.filter-toggle-btn:hover {
+  background: linear-gradient(135deg, var(--primary-blue-dark), var(--primary-blue));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.filter-toggle-btn:active {
+  transform: translateY(0);
+}
+
+/* 筛选器面板 */
+.filter-panel {
+  background: var(--neutral-white);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--neutral-border);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.filter-group label {
+  font-weight: 600;
+  color: var(--neutral-text);
+  font-size: var(--font-size-base);
+}
+
+.filter-group select,
+.filter-group input {
+  padding: var(--spacing-sm);
+  border: 2px solid var(--neutral-border);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
+  background: var(--neutral-white);
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+  outline: none;
+  border-color: var(--primary-blue-light);
+  box-shadow: var(--shadow-focus);
+}
+
+/* 筛选器操作按钮 */
+.filter-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.apply-btn,
+.reset-btn {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  font-size: var(--font-size-base);
+  min-width: 100px;
+}
+
+.apply-btn {
+  background: var(--primary-blue-light);
+  color: var(--neutral-white);
+}
+
+.apply-btn:hover {
+  background: var(--primary-blue);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.reset-btn {
+  background: var(--neutral-border);
+  color: var(--neutral-text-light);
+}
+
+.reset-btn:hover {
+  background: #cbd5e0;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 事件列表 */
+.events-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.no-events {
+  text-align: center;
+  padding: var(--spacing-xxl);
+  background: var(--neutral-white);
+  border-radius: var(--border-radius-lg);
+  color: var(--neutral-text-lighter);
+  font-size: var(--font-size-md);
+  box-shadow: var(--shadow-sm);
+  grid-column: 1 / -1;
+}
+
+/* 事件卡片通用样式 */
+.event-card {
+  background: var(--neutral-white);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  border-left: 6px solid var(--primary-blue-light);
+  transition: all var(--transition-normal);
+  border: 1px solid var(--neutral-border);
+  animation: fadeIn 0.4s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.event-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px solid #f7fafc;
+  gap: var(--spacing-sm);
+}
+
+.event-title {
+  margin: 0;
+  color: var(--neutral-text);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  flex: 1;
+  line-height: 1.3;
+}
+
+/* 事件状态标签 */
+.event-status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.status-active {
+  background: rgba(56, 161, 105, 0.1);
+  color: var(--status-active);
+  border: 1px solid rgba(56, 161, 105, 0.3);
+}
+
+.status-upcoming {
+  background: rgba(221, 107, 32, 0.1);
+  color: var(--status-upcoming);
+  border: 1px solid rgba(221, 107, 32, 0.3);
+}
+
+.status-ended {
+  background: rgba(113, 128, 150, 0.1);
+  color: var(--status-ended);
+  border: 1px solid rgba(113, 128, 150, 0.3);
+}
+
+/* 事件详情网格布局 */
+.event-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.event-detail-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px solid #f7fafc;
+}
+
+.event-detail-item:last-child {
+  border-bottom: none;
+}
+
+.event-detail-item strong {
+  color: var(--neutral-text-light);
+  font-weight: 600;
+  min-width: 140px;
+}
+
+.event-detail-item p {
+  margin: 0;
+  flex: 1;
+}
+
+/* 容量指示器 */
+.capacity-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* 管理信息样式 */
+.admin-info {
+  background: rgba(49, 130, 206, 0.05);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  border-left: 3px solid var(--primary-blue-light);
+}
+
+/* 分页控件 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-xxl);
+  padding: var(--spacing-lg);
+  background: var(--neutral-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+}
+
+.pagination button {
+  background: var(--primary-blue-light);
+  color: var(--neutral-white);
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  font-size: var(--font-size-base);
+  min-width: 140px;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: var(--primary-blue);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.pagination button:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+  transform: none;
+  opacity: 0.6;
+}
+
+.pagination span {
+  font-weight: 600;
+  color: var(--neutral-text);
+  font-size: var(--font-size-base);
+  padding: 0 var(--spacing-sm);
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .all-events-container {
+    padding: var(--spacing-sm);
+  }
+
+  .events-list {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+
+  .event-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .event-status {
+    align-self: flex-start;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+  }
+
+  .pagination button {
+    min-width: 100%;
+  }
+
+  .filter-actions {
+    justify-content: stretch;
+  }
+
+  .apply-btn,
+  .reset-btn {
+    flex: 1;
+    min-width: auto;
+  }
+
+  .event-detail-item strong {
+    min-width: 120px;
+  }
+
+  .filter-panel {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+  }
+}
+
+/* 中等屏幕优化 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .events-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .filter-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 无障碍访问优化 */
+@media (prefers-reduced-motion: reduce) {
+
+  .event-card,
+  .filter-panel,
+  .filter-toggle-btn,
+  .apply-btn,
+  .reset-btn,
+  .pagination button {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* 打印样式 */
+@media print {
+
+  .filter-toggle-btn,
+  .filter-panel,
+  .pagination {
+    display: none;
+  }
+
+  .event-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+}

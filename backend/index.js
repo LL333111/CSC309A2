@@ -2910,18 +2910,6 @@ app.route("/transactions")
                 return res.status(400).json({ "Bad Request": "Invalid promotionId" });
             }
             const promoId = parseInt(promotionId);
-            let promo;
-            try {
-                promo = await prisma.promotion.findUnique({
-                    where: { id: promoId },
-                });
-            } catch (error) {
-                console.log(error);
-                return res.status(499).json({ message: "Failed to find promotion" });
-            }
-            if (promo === null) {
-                return res.status(404).json({ "Not Found": "Promotion not found" });
-            }
             filters.promotionIds = { some: { id: promoId } };
         }
         if (createdBy !== undefined && createdBy !== null) {
@@ -2947,10 +2935,10 @@ app.route("/transactions")
             if (!type) {
                 return res.status(400).json({ "Bad Request": "relatedId must be used with type adjustment" });
             }
-            if (typeof (relatedId) !== "number" || isNaN(relatedId)) {
+            if (isNaN(parseInt(relatedId)) || parseInt(relatedId) <= 0) {
                 return res.status(400).json({ "Bad Request": "Invalid relatedId" });
             }
-            filters.relatedId = relatedId;
+            filters.relatedId = parseInt(relatedId);
         }
         // amount must be used with operator
         if (amount !== undefined && amount !== null) {
@@ -2976,6 +2964,7 @@ app.route("/transactions")
             if (isNaN(parseInt(page)) || parseInt(page) <= 0) {
                 return res.status(400).json({ "Bad Request": "Invalid page" });
             }
+            page = parseInt(page);
         } else {
             page = 1;
         }
@@ -2983,6 +2972,7 @@ app.route("/transactions")
             if (isNaN(parseInt(limit)) || parseInt(limit) <= 0) {
                 return res.status(400).json({ "Bad Request": "Invalid limit" });
             }
+            limit = parseInt(limit);
         } else {
             limit = 10;
         }
@@ -3009,6 +2999,7 @@ app.route("/transactions")
                 },
                 include: {
                     pastTransactions: {
+                        where: filters,
                         select: {
                             id: true,
                             amount: true,
@@ -3031,8 +3022,6 @@ app.route("/transactions")
         } else {
             result = await prisma.transaction.findMany({
                 where: filters,
-                skip: (page - 1) * limit,
-                take: parseInt(limit),
                 select: {
                     id: true,
                     utorid: true,
@@ -3082,7 +3071,7 @@ app.route("/transactions")
         }
         return res.status(200).json({
             count: result.length,
-            results: result
+            results: result.slice((page - 1) * limit, ((page - 1) * limit) + limit)
         });
     })
     .all((req, res) => {
