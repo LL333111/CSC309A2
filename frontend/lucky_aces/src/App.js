@@ -20,6 +20,7 @@ import AllUsers from './pages/AllUsers';
 import AllTransactions from './pages/AllTransactions';
 import YourTransactions from './pages/YourTransactions';
 import ProcessRedemption from './pages/ProcessRedemption';
+import CreatePurchaseTransaction from './pages/CreatePurchaseTransaction';
 import Auth from './components/auth';
 import NotFound from './pages/NotFound';
 
@@ -41,6 +42,7 @@ function App() {
             <Route path="change_password" element={<NeedLogin min_role={1}><ChangePassword /></NeedLogin>} />
             <Route path="qr_init_transaction" element={<NeedLogin min_role={1}><QRInitTransaction /></NeedLogin>} />
             <Route path="transfer_transaction" element={<NeedLogin min_role={1}><CreateTransferTransaction /></NeedLogin>} />
+            <Route path="purchase_transaction" element={<NeedLogin min_role={2}><CreatePurchaseTransaction /></NeedLogin>} />
             <Route path="redemption_transaction" element={<NeedLogin min_role={1}><CreateRedemptionTransaction /></NeedLogin>} />
             <Route path="all_unprocessed_redemption_transaction" element={<NeedLogin min_role={1}><AllUnprocessedRedemption /></NeedLogin>} />
             <Route path="all_promotions" element={<NeedLogin min_role={3}><AllPromotions /></NeedLogin>} />

@@ -273,6 +273,30 @@ export async function getAllTransactions(name, type, page, createdBy, suspicious
   }
 }
 
+export async function createPurchase(utorid, spent, promotionIds, remark, token) {
+  try {
+    const response = await fetch(`${API}/transactions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        utorid,
+        type: "purchase",
+        spent,
+        promotionIds,
+        remark: remark === null ? null : remark,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("get all promotions API request error: ", error);
+    alert("get all promotions API request error");
+  }
+}
+
 // /transactions/:transactionId/processed
 export async function processRedemption(transactionId, token) {
   try {

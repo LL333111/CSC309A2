@@ -88,7 +88,11 @@ const Navbar = () => {
               </li>
               <li className="nav-item">
                 <p className={`nav-link ${activeSection === "ProcessRedemption" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("ProcessRedemption", "/process_redemption", e); }}>Process Redemption</p>
+                  onClick={(e) => { handleNavClick("ProcessRedemption", "/purchase_transaction", e); }}>Process Redemption</p>
+              </li>
+              <li className="nav-item">
+                <p className={`nav-link ${activeSection === "CreatePurchaseTransaction" ? 'active' : ''}`}
+                  onClick={(e) => { handleNavClick("CreatePurchaseTransaction", "/purchase_transaction", e); }}>Purchase Transaction</p>
               </li>
             </>}
             {/* Menu when Manager or higher */}
