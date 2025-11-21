@@ -272,3 +272,24 @@ export async function getAllTransactions(name, type, page, createdBy, suspicious
     alert("get all promotions API request error");
   }
 }
+
+// /transactions/:transactionId/processed
+export async function processRedemption(transactionId, token) {
+  try {
+    const response = await fetch(`${API}/transactions/${transactionId}/processed`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        processed: true,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("get all promotions API request error: ", error);
+    alert("get all promotions API request error");
+  }
+}

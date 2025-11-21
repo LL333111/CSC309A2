@@ -86,6 +86,10 @@ const Navbar = () => {
                 <p className={`nav-link ${activeSection === "Register" ? 'active' : ''}`}
                   onClick={(e) => { handleNavClick("Register", "/register", e); }}>Register</p>
               </li>
+              <li className="nav-item">
+                <p className={`nav-link ${activeSection === "ProcessRedemption" ? 'active' : ''}`}
+                  onClick={(e) => { handleNavClick("ProcessRedemption", "/process_redemption", e); }}>Process Redemption</p>
+              </li>
             </>}
             {/* Menu when Manager or higher */}
             {role >= 3 && <>

@@ -19,6 +19,7 @@ import PublishedEvents from './pages/PublishedEvents';
 import AllUsers from './pages/AllUsers';
 import AllTransactions from './pages/AllTransactions';
 import YourTransactions from './pages/YourTransactions';
+import ProcessRedemption from './pages/ProcessRedemption';
 import Auth from './components/auth';
 import NotFound from './pages/NotFound';
 
@@ -49,6 +50,8 @@ function App() {
             <Route path="all_users" element={<NeedLogin min_role={3}><AllUsers /></NeedLogin>} />
             <Route path="all_transactions" element={<NeedLogin min_role={3}><AllTransactions /></NeedLogin>} />
             <Route path="your_transactions" element={<NeedLogin min_role={1}><YourTransactions /></NeedLogin>} />
+            <Route path="process_redemption" element={<NeedLogin min_role={2}><ProcessRedemption /></NeedLogin>} />
+
 
             <Route path="*" element={<NotFound />} />
           </Route>
