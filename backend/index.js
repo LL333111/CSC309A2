@@ -3018,7 +3018,7 @@ app.route("/transactions")
                     }
                 }
             });
-            result = user.pastTransactions.slice((page - 1) * limit, ((page - 1) * limit) + limit);
+            result = user.pastTransactions;
         } else {
             result = await prisma.transaction.findMany({
                 where: filters,
