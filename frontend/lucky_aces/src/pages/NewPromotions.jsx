@@ -55,7 +55,7 @@ const NewPromotions = () => {
         if (pointsNum !== null && pointsNum <= 0) {
             alert("Points must be greater than 0");
             return;
-        } 1
+        }
 
         // Validate minSpending if provided
         const minSpendingNum = formData.minSpending ? parseFloat(formData.minSpending) : null;

@@ -1,4 +1,4 @@
-const API = "";
+const API = "http://localhost:3001";
 
 // /auth/tokens
 export async function login(utorid, password) {
@@ -163,6 +163,27 @@ export async function redemptionTransaction(amount, remark, token) {
   }
 }
 
+export async function yourTransactions(type, page, promotionId, relatedId, amount, operator, token,) {
+  try {
+    const response = await fetch(`${API}/users/me/transactions?page=${page}&limit=5${type === null ? "" : `&type=${type}`}${promotionId === null ? "" : `&promotionId=${promotionId}`}${relatedId === null ? "" : `&relatedId=${relatedId}`}${amount === null ? "" : `&amount=${amount}`}${operator === null ? "" : `&operator=${operator}`}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get all promotions ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("find your transaction API request error: ", error);
+    alert("find your transaction API request error");
+  }
+}
+
 // function for all unprocessed redemption
 export async function getAllUnprocessedRedemption(page, token) {
   try {
@@ -224,8 +245,8 @@ export async function getAllEvents(name, page, started, ended, location, showFul
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("get all promotions API request error: ", error);
-    alert("get all promotions API request error");
+    console.error("get all events API request error: ", error);
+    alert("get all events API request error");
   }
 }
 
@@ -338,8 +359,8 @@ export async function getAllUsers(name, page, role, verified, activated, token) 
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("get all promotions API request error: ", error);
-    alert("get all promotions API request error");
+    console.error("get all users API request error: ", error);
+    alert("get all users API request error");
   }
 }
 
@@ -404,8 +425,8 @@ export async function getAllTransactions(name, type, page, createdBy, suspicious
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("get all promotions API request error: ", error);
-    alert("get all promotions API request error");
+    console.error("get all transactions API request error: ", error);
+    alert("get all transactions API request error");
   }
 }
 
@@ -428,8 +449,8 @@ export async function createPurchase(utorid, spent, promotionIds, remark, token)
 
     return response.status;
   } catch (error) {
-    console.error("get all promotions API request error: ", error);
-    alert("get all promotions API request error");
+    console.error("create purchase transactions API request error: ", error);
+    alert("create purchase transactions API request error");
   }
 }
 
@@ -453,8 +474,8 @@ export async function createAdjustment(utorid, amount, relatedId, promotionIds, 
 
     return response.status;
   } catch (error) {
-    console.error("get all promotions API request error: ", error);
-    alert("get all promotions API request error");
+    console.error("create adjustment transactions API request error: ", error);
+    alert("create adjustment transactions API request error");
   }
 }
 
@@ -497,8 +518,8 @@ export async function markTransactionSuspicious(transactionId, suspicious, token
 
     return response.status;
   } catch (error) {
-    console.error("get all promotions API request error: ", error);
-    alert("get all promotions API request error");
+    console.error("mark Transactio Suspicious API request error: ", error);
+    alert("mark Transaction Suspicious API request error");
   }
 }
 
@@ -518,8 +539,8 @@ export async function processRedemption(transactionId, token) {
 
     return response.status;
   } catch (error) {
-    console.error("get all promotions API request error: ", error);
-    alert("get all promotions API request error");
+    console.error("process Redemption API request error: ", error);
+    alert("process Redemption API request error");
   }
 }
 
