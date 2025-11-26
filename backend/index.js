@@ -1061,6 +1061,10 @@ app.route("/events")
                 return res.status(403).json({ "Forbidden": "Not permit to use published filter" });
             }
             where.published = published === "true";
+        } else {
+            if (req.role === "regular" || req.role === "cashier") {
+                where.published = true;
+            }
         }
         // set select
         let select = {

@@ -61,7 +61,6 @@ function App() {
             <Route path="process_redemption" element={<NeedLogin min_role={2}><ProcessRedemption /></NeedLogin>} />
             <Route path="update_user/:userId" element={<NeedLogin min_role={3}><UpdateUser /></NeedLogin>} />
             <Route path="specific_transaction/:transactionId" element={<NeedLogin min_role={3}><SpecificTransaction /></NeedLogin>} />
-            <Route path="ved_promotion/:promotionId" element={<NeedLogin min_role={3}><VEDPromotion /></NeedLogin>} />
 
 
             <Route path="*" element={<NotFound />} />
