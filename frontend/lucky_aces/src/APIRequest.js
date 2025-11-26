@@ -261,6 +261,65 @@ export async function createEvent(name, description, location, date, startTime, 
   }
 }
 
+// /events/:eventId
+export async function getEventById(eventId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to get event by ID ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get event by ID API request error: ", error);
+    alert("get event by ID API request error");
+  }
+}
+
+export async function updateEventById(eventId, updateFields, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(updateFields),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update event by ID ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("update event by ID API request error: ", error);
+    alert("update event by ID API request error");
+  }
+}
+
+export async function deleteEventById(eventId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("delete event by ID API request error: ", error);
+    alert("delete event by ID API request error");
+  }
+}
 
 // /users
 export async function getAllUsers(name, page, role, verified, activated, token) {
@@ -500,4 +559,65 @@ export async function createPromotion(name, description, type, startTime, endTim
     console.error("create promotion API request error: ", error);
     alert("create promotion API request error");
   }
-} 
+}
+
+// / promotions/:promotionId
+export async function getPromotionById(promotionId, token) {
+  try {
+    const response = await fetch(`${API}/promotions/${promotionId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get promotion by ID ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get promotion by ID API request error: ", error);
+    alert("get promotion by ID API request error");
+  }
+}
+
+export async function updatePromotionById(promotionId, updateFields, token) {
+  try {
+    const response = await fetch(`${API}/promotions/${promotionId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(updateFields),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update promotion by ID ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("update promotion by ID API request error: ", error);
+    alert("update promotion by ID API request error");
+  }
+}
+
+export async function deletePromotionById(promotionId, token) {
+  try {
+    const response = await fetch(`${API}/promotions/${promotionId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("delete promotion by ID API request error: ", error);
+    alert("delete promotion by ID API request error");
+  }
+}
