@@ -1061,8 +1061,6 @@ app.route("/events")
                 return res.status(403).json({ "Forbidden": "Not permit to use published filter" });
             }
             where.published = published === "true";
-        } else {
-            where.published = true;
         }
         // set select
         let select = {
