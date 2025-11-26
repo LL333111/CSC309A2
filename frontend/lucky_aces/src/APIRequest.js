@@ -174,7 +174,7 @@ export async function yourTransactions(type, page, promotionId, relatedId, amoun
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get all promotions ${response.statusText}`);
+      throw new Error(`Failed to get your transactions ${response.statusText}`);
     }
     const data = await response.json();
     return data;
@@ -196,7 +196,7 @@ export async function getAllUnprocessedRedemption(page, token) {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get all unprocessed RedemptionTransaction ${response.statusText}`);
+      throw new Error(`Failed to get all unprocessed Redemption Transaction ${response.statusText}`);
     }
     const data = await response.json();
     return data;
@@ -240,7 +240,7 @@ export async function getAllEvents(name, page, started, ended, location, showFul
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get all promotions ${response.statusText}`);
+      throw new Error(`Failed to get all events ${response.statusText}`);
     }
     const data = await response.json();
     return data;
@@ -295,7 +295,7 @@ export async function getAllUsers(name, page, role, verified, activated, token) 
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get all promotions ${response.statusText} `);
+      throw new Error(`Failed to get all users ${response.statusText} `);
     }
     const data = await response.json();
     return data;
@@ -361,7 +361,7 @@ export async function getAllTransactions(name, type, page, createdBy, suspicious
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get all promotions ${response.statusText}`);
+      throw new Error(`Failed to get all transactions ${response.statusText}`);
     }
     const data = await response.json();
     return data;
