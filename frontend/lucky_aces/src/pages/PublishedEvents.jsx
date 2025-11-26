@@ -15,7 +15,7 @@ function PublishedEvents() {
   const [showFullFilter, setShowFullFilter] = useState("any");
   const [statusFilter, setStatusFilter] = useState("any");
 
-  const { loading, token } = useLoggedInUser();
+  const { loading, token, role } = useLoggedInUser();
 
   // page protection
   useEffect(() => {
@@ -57,7 +57,7 @@ function PublishedEvents() {
         endedParam,
         location,
         showFull,
-        null,
+        role >= 3 ? "true" : null,
         token
       );
 
