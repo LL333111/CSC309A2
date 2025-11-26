@@ -25,6 +25,10 @@ import Auth from './components/auth';
 import NotFound from './pages/NotFound';
 
 import NeedLogin from './NeedLogin';
+import UpdateUser from './pages/UpdateUsers';
+import SpecificTransaction from './pages/SpecificTransaction';
+import NewEvent from './pages/NewEvent';
+import NewPromotions from './pages/NewPromotions';
 
 function App() {
   return (
@@ -46,15 +50,17 @@ function App() {
             <Route path="redemption_transaction" element={<NeedLogin min_role={1}><CreateRedemptionTransaction /></NeedLogin>} />
             <Route path="all_unprocessed_redemption_transaction" element={<NeedLogin min_role={1}><AllUnprocessedRedemption /></NeedLogin>} />
             <Route path="all_promotions" element={<NeedLogin min_role={3}><AllPromotions /></NeedLogin>} />
+            <Route path="new_promotion" element={<NeedLogin min_role={3}><NewPromotions /></NeedLogin>} />
             <Route path="your_promotions" element={<NeedLogin min_role={1}><YourPromotions /></NeedLogin>} />
             <Route path="all_events" element={<NeedLogin min_role={3}><AllEvents /></NeedLogin>} />
+            <Route path="new_event" element={<NeedLogin min_role={3}><NewEvent /></NeedLogin>} />
             <Route path="published_events" element={<NeedLogin min_role={1}><PublishedEvents /></NeedLogin>} />
             <Route path="all_users" element={<NeedLogin min_role={3}><AllUsers /></NeedLogin>} />
             <Route path="all_transactions" element={<NeedLogin min_role={3}><AllTransactions /></NeedLogin>} />
             <Route path="your_transactions" element={<NeedLogin min_role={1}><YourTransactions /></NeedLogin>} />
             <Route path="process_redemption" element={<NeedLogin min_role={2}><ProcessRedemption /></NeedLogin>} />
-
-
+            <Route path="update_user/:userId" element={<NeedLogin min_role={3}><UpdateUser /></NeedLogin>} />
+            <Route path="specific_transaction/:transactionId" element={<NeedLogin min_role={3}><SpecificTransaction /></NeedLogin>} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

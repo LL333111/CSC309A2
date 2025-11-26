@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { getAllUsers } from "../APIRequest" // 改为引用getAllUsers
+import { useNavigate } from "react-router-dom";
+import "./AllUsers.css";
 
 function AllUsers() {
   const [_loading, _setLoading] = useState(true);
@@ -16,6 +18,7 @@ function AllUsers() {
   const [activatedFilter, setActivatedFilter] = useState("any"); // 新增activated过滤器
 
   const { loading, token, role } = useLoggedInUser();
+  const navigate = useNavigate();
 
   // page protection
   useEffect(() => {
@@ -136,21 +139,23 @@ function AllUsers() {
   }
 
   return (
-    <div>
+    <div className="all-users-container">
       {_loading ? (
-        <div>
+        <div className="loading-container">
           <h2>Loading...</h2>
           {/* 可以添加加载动画 */}
         </div>
       ) : (
         <div>
-          <button onClick={toggleFilter}>
-            Filter {isFilterOpen ? '✕' : '☰'}
+          <h1>All Users</h1>
+          <button className="filter-toggle-btn" onClick={toggleFilter}>
+            {isFilterOpen ? '✕ Hide Filters' : '☰ Show Filters'}
           </button>
           {isFilterOpen && (
-            <section>
-              <div>
-                <div>
+            <section className="filter-panel">
+              <h2>Filter Users</h2>
+              <div className="filter-grid">
+                <div className="filter-group">
                   <label htmlFor="name-filter">Name: </label>
                   <input
                     type="text"
@@ -160,7 +165,7 @@ function AllUsers() {
                     placeholder="Input User Name.."
                   />
                 </div>
-                <div>
+                <div className="filter-group">
                   <label htmlFor="role-filter">Role: </label>
                   <select
                     id="role-filter"
@@ -174,7 +179,7 @@ function AllUsers() {
                     <option value="superuser">Superuser</option>
                   </select>
                 </div>
-                <div>
+                <div className="filter-group">
                   <label htmlFor="verified-filter">Verified: </label>
                   <select
                     id="verified-filter"
@@ -186,7 +191,7 @@ function AllUsers() {
                     <option value="false">False</option>
                   </select>
                 </div>
-                <div>
+                <div className="filter-group">
                   <label htmlFor="activated-filter">Activated: </label>
                   <select
                     id="activated-filter"
@@ -199,36 +204,38 @@ function AllUsers() {
                   </select>
                 </div>
               </div>
-              <div>
-                <button onClick={handleApply}>Apply</button>
-                <button onClick={handleReset}>Reset</button>
+              <div className="filter-actions">
+                <button className="apply-btn" onClick={handleApply}>Apply Filters</button>
+                <button className="reset-btn" onClick={handleReset}>Reset Filters</button>
               </div>
             </section>
           )}
 
-          <div>
+          <div className="users-list">
             {userList.length === 0 ? ( // 改为userList
-              <div>
+              <div className="no-users">
                 <p>No users found.</p> {/* 改为users */}
               </div>
             ) : (
               userList.map((user) => ( // 改为userList和user
-                <div key={user.id}>
-                  <div>
-                    <h3>{user.name}</h3>
-                    <span>
+                <div key={user.id} className="user-card">
+                  <div className="user-header">
+                    <h3 className="user-name">{user.name}</h3>
+                    <span className={`user-role-badge role-${user.role}`}>
                       {getRoleDisplayName(user.role)}
                     </span>
                   </div>
 
-                  <div>
+                  <div className="user-details">
                     <p><strong>Email: </strong>{user.email}</p>
                     <p><strong>Role: </strong>{getRoleDisplayName(user.role)}</p>
                     <p><strong>Verified: </strong>{user.verified ? "Yes" : "No"}</p>
                     <p><strong>Activated: </strong>{user.activated ? "Yes" : "No"}</p>
                     <p><strong>Registration Date: </strong>{formatDate(user.registrationDate)}</p>
                     <p><strong>Last Login: </strong>{formatDate(user.lastLogin)}</p>
-                    {/* 添加其他需要显示的用户字段 */}
+                  </div>
+                  <div className="user-admin-actions">
+                    <button className="user-update-btn" onClick={() => navigate(`/update_user/${user.id}`)}>Update User</button>
                   </div>
                 </div>
               ))
@@ -236,7 +243,7 @@ function AllUsers() {
           </div>
 
           {userList.length > 0 && ( // 改为userList
-            <div>
+            <div className="pagination">
               <button
                 onClick={handlePrevious}
                 disabled={page === 1}

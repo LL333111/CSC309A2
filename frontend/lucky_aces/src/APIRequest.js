@@ -1,4 +1,4 @@
-const API = "http://localhost:3001";
+const API = "";
 
 // /auth/tokens
 export async function login(utorid, password) {
@@ -229,6 +229,39 @@ export async function getAllEvents(name, page, started, ended, location, showFul
   }
 }
 
+export async function createEvent(name, description, location, date, startTime, endTime, capacity, points, token) {
+  try {
+    const body = {
+      name,
+      description,
+      location,
+      startTime,
+      endTime,
+      points,
+    };
+
+    // Only include capacity if it's not null
+    if (capacity !== null) {
+      body.capacity = capacity;
+    }
+
+    const response = await fetch(`${API}/events`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("create event API request error: ", error);
+    alert("create event API request error");
+  }
+}
+
+
 // /users
 export async function getAllUsers(name, page, role, verified, activated, token) {
   try {
@@ -248,6 +281,50 @@ export async function getAllUsers(name, page, role, verified, activated, token) 
   } catch (error) {
     console.error("get all promotions API request error: ", error);
     alert("get all promotions API request error");
+  }
+}
+
+// /users/:userId
+export async function getUserById(userId, token) {
+  try {
+    const response = await fetch(`${API}/users/${userId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token} `,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get user by ID ${response.statusText} `);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get user by ID API request error: ", error);
+    alert("get user by ID API request error");
+  }
+}
+
+export async function updateUserById(userId, updateFields, token) {
+  try {
+    const response = await fetch(`${API}/users/${userId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token} `,
+      },
+      body: JSON.stringify(updateFields),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update user by ID ${response.statusText} `);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("update user by ID API request error: ", error);
+    alert("update user by ID API request error");
   }
 }
 
@@ -297,6 +374,75 @@ export async function createPurchase(utorid, spent, promotionIds, remark, token)
   }
 }
 
+export async function createAdjustment(utorid, amount, relatedId, promotionIds, remark, token) {
+  try {
+    const response = await fetch(`${API}/transactions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        utorid,
+        type: "adjustment",
+        amount,
+        relatedId,
+        promotionIds,
+        remark: remark === null ? null : remark,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("get all promotions API request error: ", error);
+    alert("get all promotions API request error");
+  }
+}
+
+// /transactions/:transactionId
+export async function getTransactionById(transactionId, token) {
+  try {
+    const response = await fetch(`${API}/transactions/${transactionId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get transaction by ID ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get transaction by ID API request error: ", error);
+    alert("get transaction by ID API request error");
+  }
+}
+
+
+// /transactions/:transactionId/suspicious
+export async function markTransactionSuspicious(transactionId, suspicious, token) {
+  try {
+    const response = await fetch(`${API}/transactions/${transactionId}/suspicious`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        suspicious,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("get all promotions API request error: ", error);
+    alert("get all promotions API request error");
+  }
+}
+
 // /transactions/:transactionId/processed
 export async function processRedemption(transactionId, token) {
   try {
@@ -317,3 +463,41 @@ export async function processRedemption(transactionId, token) {
     alert("get all promotions API request error");
   }
 }
+
+// / /promotions 
+export async function createPromotion(name, description, type, startTime, endTime, minSpending, rate, points, token) {
+  try {
+    const body = {
+      name,
+      description,
+      type,
+      startTime,
+      endTime,
+    };
+
+    // Add optional fields only if they're not null
+    if (minSpending !== null) {
+      body.minSpending = minSpending;
+    }
+    if (rate !== null) {
+      body.rate = rate;
+    }
+    if (points !== null) {
+      body.points = points;
+    }
+
+    const response = await fetch(`${API}/promotions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("create promotion API request error: ", error);
+    alert("create promotion API request error");
+  }
+} 

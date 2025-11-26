@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { getAllEvents } from "../APIRequest"
 import "./AllEvents.css"
 
 function AllEvents() {
+  const navigate = useNavigate();
   const [_loading, _setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(null);
@@ -143,8 +145,13 @@ function AllEvents() {
       ) : (
         <div>
           <div className="page-header">
-            <h1 className="page-title">All Events</h1>
-            <p className="page-subtitle">Browse all events. Filter by name, location, or status.</p>
+            <div>
+              <h1 className="page-title">All Events</h1>
+              <p className="page-subtitle">Browse all events. Filter by name, location, or status.</p>
+            </div>
+            <button className="create-event-btn" onClick={() => navigate('/new_event')}>
+              Create New Event
+            </button>
           </div>
 
           <button className="filter-toggle-btn" onClick={toggleFilter}>

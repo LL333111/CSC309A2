@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { getAllTransactions } from "../APIRequest"
 import "./AllTransactions.css"
@@ -19,6 +20,7 @@ function AllTransactions() {
   const [operatorFilter, setOperatorFilter] = useState("any");
 
   const { loading, token } = useLoggedInUser();
+  const navigate = useNavigate();
 
   // page protection
   useEffect(() => {
@@ -261,6 +263,15 @@ function AllTransactions() {
                       </>
                     )}
 
+                    {transaction.type === "purchase" && (
+                      <button
+                        className="edit-btn"
+                        onClick={() => navigate(`/specific_transaction/${transaction.id}`)}
+                      >
+                        Edit
+                      </button>
+                    )}
+
                     {transaction.type === "adjustment" && (
                       <>
                         <p><strong>Type: </strong>{transaction.type}</p>
@@ -273,6 +284,15 @@ function AllTransactions() {
                       </>
                     )}
 
+                    {transaction.type === "adjustment" && (
+                      <button
+                        className="edit-btn"
+                        onClick={() => navigate(`/specific_transaction/${transaction.id}`)}
+                      >
+                        Edit
+                      </button>
+                    )}
+
                     {transaction.type === "transfer" && (
                       <>
                         <p><strong>Type: </strong>{transaction.type}</p>
@@ -281,6 +301,15 @@ function AllTransactions() {
                         <p><strong>Recipient: </strong>{transaction.recipient}</p>
                         <p><strong>Remark: </strong>{transaction.remark}</p>
                       </>
+                    )}
+
+                    {transaction.type === "transfer" && (
+                      <button
+                        className="edit-btn"
+                        onClick={() => navigate(`/specific_transaction/${transaction.id}`)}
+                      >
+                        Edit
+                      </button>
                     )}
 
                     {transaction.type === "redemption" && (
@@ -294,6 +323,15 @@ function AllTransactions() {
                       </>
                     )}
 
+                    {transaction.type === "redemption" && (
+                      <button
+                        className="edit-btn"
+                        onClick={() => navigate(`/specific_transaction/${transaction.id}`)}
+                      >
+                        Edit
+                      </button>
+                    )}
+
                     {transaction.type === "event" && (
                       <>
                         <p><strong>Type: </strong>{transaction.type}</p>
@@ -303,6 +341,15 @@ function AllTransactions() {
                         <p><strong>Remark: </strong>{transaction.remark}</p>
                         <p><strong>Created By: </strong>{transaction.createdBy}</p>
                       </>
+                    )}
+
+                    {transaction.type === "event" && (
+                      <button
+                        className="edit-btn"
+                        onClick={() => navigate(`/specific_transaction/${transaction.id}`)}
+                      >
+                        Edit
+                      </button>
                     )}
                   </div>
                 </div>
