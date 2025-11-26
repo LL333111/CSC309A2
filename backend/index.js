@@ -3397,23 +3397,33 @@ app.route("/users/me/transactions")
         } else {
             limit = 10;
         }
-        data.utorid = req.user.utorid;
         if (processedBy === "true") {
             data.processedBy = null;
         }
-        // get the current author
-        const transactions = await prisma.transaction.findMany({
-            where: data,
-            select: {
-                id: true,
-                type: true,
-                spent: true,
-                amount: true,
-                promotionIds: { select: { id: true } },
-                remark: true,
-                createdBy: true,
+        let user = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            include: {
+                pastTransactions: {
+                    where: data,
+                    select: {
+                        id: true,
+                        amount: true,
+                        type: true,
+                        spent: true,
+                        promotionIds: { select: { id: true } },
+                        suspicious: true,
+                        remark: true,
+                        createdBy: true,
+                        relatedId: true,
+                        redeemed: true,
+                        sender: true,
+                        recipient: true,
+                        sent: true
+                    }
+                }
             }
         });
+        let transactions = user.pastTransactions;
         return res.status(200).json({
             count: transactions.length,
             results: transactions.slice((page - 1) * limit, ((page - 1) * limit) + limit)

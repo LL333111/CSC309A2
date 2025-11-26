@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
-import { getAllTransactions } from "../APIRequest"
+import { yourTransactions } from "../APIRequest"
 import "./YourTransactions.css"
 
 function YourTransactions() {
@@ -11,8 +11,6 @@ function YourTransactions() {
   const [transactionList, setTransactionList] = useState([]);
 
   const [typeFilter, setTypeFilter] = useState("any");
-  const [createdByFilter, setCreatedByFilter] = useState("");
-  const [suspiciousFilter, setSuspiciousFilter] = useState("any");
   const [promotionIdFilter, setPromotionIdFilter] = useState("");
   const [relatedIdFilter, setRelatedIdFilter] = useState("");
   const [amountFilter, setAmountFilter] = useState("");
@@ -31,19 +29,14 @@ function YourTransactions() {
   const fetchTransactions = async () => {
     try {
       let type = typeFilter !== "any" ? typeFilter : null;
-      let createdBy = createdByFilter || null;
-      let suspicious = suspiciousFilter !== "any" ? suspiciousFilter : null;
       let promotionId = promotionIdFilter ? parseInt(promotionIdFilter) : null;
       let relatedId = relatedIdFilter ? parseInt(relatedIdFilter) : null;
       let amount = amountFilter ? parseFloat(amountFilter) : null;
       let operator = operatorFilter !== "any" ? operatorFilter : null;
 
-      const data = await getAllTransactions(
-        user.utorid,
+      const data = await yourTransactions(
         type,
         page,
-        createdBy,
-        suspicious,
         promotionId,
         relatedId,
         amount,
@@ -101,8 +94,6 @@ function YourTransactions() {
   const handleReset = (e) => {
     e.preventDefault();
     setTypeFilter("any");
-    setCreatedByFilter("");
-    setSuspiciousFilter("any");
     setPromotionIdFilter("");
     setRelatedIdFilter("");
     setAmountFilter("");
@@ -144,28 +135,6 @@ function YourTransactions() {
                     <option value="adjustment">Adjustment</option>
                     <option value="event">Event</option>
                     <option value="transfer">Transfer</option>
-                  </select>
-                </div>
-                <div className="filter-group">
-                  <label htmlFor="createdBy-filter">Created By: </label>
-                  <input
-                    type="text"
-                    id="createdBy-filter"
-                    value={createdByFilter}
-                    onChange={(e) => setCreatedByFilter(e.target.value)}
-                    placeholder="UTORID.."
-                  />
-                </div>
-                <div className="filter-group">
-                  <label htmlFor="suspicious-filter">Suspicious: </label>
-                  <select
-                    id="suspicious-filter"
-                    value={suspiciousFilter}
-                    onChange={(e) => setSuspiciousFilter(e.target.value)}
-                  >
-                    <option value="any">Any</option>
-                    <option value="true">True</option>
-                    <option value="false">False</option>
                   </select>
                 </div>
                 <div className="filter-group">
