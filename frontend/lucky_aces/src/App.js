@@ -22,6 +22,7 @@ import YourTransactions from './pages/YourTransactions';
 import ProcessRedemption from './pages/ProcessRedemption';
 import CreatePurchaseTransaction from './pages/CreatePurchaseTransaction';
 import OrganizerEvents from './pages/OrganizerEvents';
+import RewardPoints from './pages/RewardPoints';
 import Auth from './components/auth';
 import NotFound from './pages/NotFound';
 
@@ -63,6 +64,7 @@ function App() {
             <Route path="update_user/:userId" element={<NeedLogin min_role={3}><UpdateUser /></NeedLogin>} />
             <Route path="specific_transaction/:transactionId" element={<NeedLogin min_role={3}><SpecificTransaction /></NeedLogin>} />
             <Route path="organizer_events" element={<NeedLogin min_role={1}><OrganizerEvents /></NeedLogin>} />
+            <Route path="reward_points/:eventId" element={<NeedLogin min_role={1}><RewardPoints /></NeedLogin>} />
 
 
             <Route path="*" element={<NotFound />} />

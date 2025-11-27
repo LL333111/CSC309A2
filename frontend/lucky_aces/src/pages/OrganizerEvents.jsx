@@ -147,6 +147,9 @@ function OrganizerEvents() {
                           </div>
                         </div>
                       )}
+                      {status !== "upcoming" && <div>
+                        <button onClick={() => navigate(`/reward_points/${event.id}`)}>Reward Points</button>
+                      </div>}
                     </div>
                   </div>
                 );

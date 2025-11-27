@@ -1999,12 +1999,12 @@ app.route("/events/:eventId/transactions")
             return res.status(403).json({ "Forbidden": "Manager or higher or organizer" });
         }
         // error handling - 400 Bad Request.
-        const { type, amount, utorid } = req.body;
+        const { type, amount, utorid, remark } = req.body;
         if (!type || !amount || typeof (type) !== "string" || typeof (amount) !== "number") {
             return res.status(400).json({ "Bad Request": "Invalid payload" });
         }
         // extra field
-        const allowedFields = ["type", "amount", "utorid"];
+        const allowedFields = ["type", "amount", "utorid", "remark"];
         const extraFields = Object.keys(req.body).filter((field) => {
             return !allowedFields.includes(field);
         });
@@ -2053,7 +2053,7 @@ app.route("/events/:eventId/transactions")
                     amount: amount,
                     type: type,
                     relatedId: eventId,
-                    remark: "Trivia winner",
+                    remark: remark,
                     createdBy: req.user.utorid
                 },
                 select: {
@@ -2121,7 +2121,7 @@ app.route("/events/:eventId/transactions")
                         amount: amount,
                         type: type,
                         relatedId: eventId,
-                        remark: "meditation session",
+                        remark: remark,
                         createdBy: req.user.utorid
                     },
                     select: {
@@ -2617,23 +2617,18 @@ app.route("/transactions")
         let data = {};
         const { utorid, type, spent, promotionIds, remark, amount, relatedId } = req.body;
         if (!utorid || typeof (utorid) !== 'string') {
-            console.log(1);
-            console.log(utorid);
             return res.status(400).json({ "Bad Request": "Invalid utorid" });
         }
         if (!type || typeof (type) !== 'string') {
-            console.log(2);
             return res.status(400).json({ "Bad Request": "Invalid type" });
         }
         if (type !== "purchase" && type !== "adjustment") {
-            console.log(3);
             return res.status(400).json({ "Bad Request": "type must be 'purchase' or 'adjustment'" });
         }
         // promotionIds and remark are optional for both purchase transcation and adjustment transaction
         let userData;
         if (promotionIds) {
             if (!Array.isArray(promotionIds)) {
-                console.log(4);
                 return res.status(400).json({ "Bad Request": "Invalid PromotionIds" });
             }
             // check if the promotion IDs does not exist
@@ -2649,7 +2644,6 @@ app.route("/transactions")
                 return res.status(499).json({ message: "Failed to find promotions" });
             }
             if (existingPromotions.length !== promotionIds.length) {
-                console.log(5);
                 return res.status(400).json({ "Bad Request": "One or more promotionIds are invalid" });
             }
             // check if the promotion is expired
@@ -2659,20 +2653,16 @@ app.route("/transactions")
                 const endDate = new Date(promo.endTime);
                 const startDate = new Date(promo.startTime);
                 if (now > endDate) {
-                    console.log(6);
                     return res.status(400).json({ "Bad Request": `Promotion with id ${promo.id} is expired` });
                 }
                 if (now < startDate) {
-                    console.log(7);
                     return res.status(400).json({ "Bad Request": `Promotion with id ${promo.id} is not started yet` });
                 }
                 if (type === "purchase") {
                     if (!spent || typeof (spent) !== "number" || Number.isNaN(spent) || spent <= 0) {
-                        console.log(8);
                         return res.status(400).json({ "Bad Request": "Invalid spent" });
                     }
                     if (promo.minSpending && spent < promo.minSpending) {
-                        console.log(9);
                         return res.status(400).json({ "Bad Request": `Promotion with id ${promo.id} requires minimum spending of ${promo.minSpending}` });
                     }
                 }
@@ -2694,7 +2684,6 @@ app.route("/transactions")
             let userPromotionIds = userData.promotions.map((prom) => prom.id);
             for (const promotionid of promotionIds) {
                 if (!userPromotionIds.includes(promotionid)) {
-                    console.log(10);
                     return res.status(400).json({ "Bad Request": `Promotion with id ${promotionid} has been used` });
                 }
             }
@@ -2704,7 +2693,6 @@ app.route("/transactions")
         data.remark = "";
         if (remark) {
             if (typeof (remark) !== "string") {
-                console.log(11);
                 return res.status(400).json({ "Bad Request": "Invalid remark" });
             }
             data.remark = remark;
@@ -2719,7 +2707,6 @@ app.route("/transactions")
         data.utorid = utorid;
         data.type = type;
         if (extraFields.length > 0) {
-            console.log(12);
             return res.status(400).json({
                 "Bad Request": "Include extra fields",
                 extraFields,
@@ -2728,7 +2715,6 @@ app.route("/transactions")
         if (type === "purchase") {
             // spent required for purchase
             if (!spent || typeof spent !== "number" || Number.isNaN(spent) || spent <= 0) {
-                console.log(13);
                 return res.status(400).json({ "Bad Request": "Invalid spent" });
             }
             // check for redempt transaction
@@ -2853,11 +2839,9 @@ app.route("/transactions")
             return res.status(201).json(created);
         } else if (type === "adjustment") {
             if (!amount || typeof amount !== "number" || !Number.isInteger(amount) || Number.isNaN(amount)) {
-                console.log(14);
                 return res.status(400).json({ "Bad Request": "Invalid amount" });
             }
             if (!relatedId || typeof relatedId !== "number" || !Number.isInteger(relatedId) || Number.isNaN(relatedId)) {
-                console.log(15);
                 return res.status(400).json({ "Bad Request": "Invalid relatedId" });
             }
             let relatedTransaction;

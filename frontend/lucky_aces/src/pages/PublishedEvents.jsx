@@ -64,7 +64,6 @@ function PublishedEvents() {
       if (totalPage === null) {
         setTotalPage(data.count % 5 === 0 ? Math.floor(data.count / 5) : Math.floor(data.count / 5) + 1);
       }
-      console.log(data);
 
       setEventList(data.results);
     } catch (error) {
