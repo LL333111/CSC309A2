@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
-import { login, processRedemption } from "../APIRequest";
+import { processRedemption } from "../APIRequest";
 import { useParams } from 'react-router-dom';
 
 function ProcessRedemption() {

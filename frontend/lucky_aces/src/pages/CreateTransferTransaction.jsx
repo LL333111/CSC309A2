@@ -1,10 +1,13 @@
 import { useLoggedInUser } from '../contexts/LoggedInUserContext'
 import { useState, useEffect } from 'react';
 import { transferTransaction } from '../APIRequest';
+import { useParams } from 'react-router-dom';
 
 function CreateTransferTransaction() {
+  const { utorid } = useParams();
+
   const [_loading, _setLoading] = useState(true);
-  const [recipientIDInput, setRecipientIDInput] = useState("");
+  const [recipientIDInput, setRecipientIDInput] = useState(utorid === undefined ? "" : utorid);
   const [amountInput, setAmountInput] = useState(0);
   const [remarkInput, setRemarkInput] = useState("");
 

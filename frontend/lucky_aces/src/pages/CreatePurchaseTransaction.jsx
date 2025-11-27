@@ -1,10 +1,13 @@
 import { useLoggedInUser } from '../contexts/LoggedInUserContext'
 import { useState, useEffect } from 'react';
 import { createPurchase } from '../APIRequest';
+import { useParams } from 'react-router-dom';
 
 function CreatePurchaseTransaction() {
+  const { utorid } = useParams();
+
   const [_loading, _setLoading] = useState(true);
-  const [utoridInput, setUtoridInput] = useState("");
+  const [utoridInput, setUtoridInput] = useState(utorid === undefined ? "" : utorid);
   const [spentInput, setSpentInput] = useState("");
   const [promotionIdsInput, setPromotionIdsInput] = useState("");
   const [remarkInput, setRemarkInput] = useState("");
