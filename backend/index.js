@@ -3453,6 +3453,53 @@ app.route("/users/me/transactions")
         res.status(405).json({ "Method Not Allowed": "Try Post & Get" });
     });
 
+app.route("/users/me/organizers")
+    .get(bearerToken, async (req, res) => {
+        // check authorization first
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        if (req.role != "manager" && req.role !== "superuser" && req.role !== "cashier" && req.role !== "regular") {
+            return res.status(403).json({ "Forbidden": "Not permitted to view organizers" });
+        }
+        // process query param
+        let { page, limit } = req.query;
+        if (page !== undefined && page !== null) {
+            if (Number.isNaN(parseInt(page))) {
+                return res.status(400).json({ "Bad Request": "Invalid page" });
+            }
+            page = parseInt(page);
+        } else {
+            page = 1;
+        }
+        if (limit !== undefined && limit !== null) {
+            if (Number.isNaN(parseInt(limit))) {
+                return res.status(400).json({ "Bad Request": "Invalid limit" });
+            }
+            limit = parseInt(limit);
+        } else {
+            limit = 10;
+        }
+        // find orginizer events
+        let user = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            select: {
+                organizersEvent: true,
+            }
+        });
+        if (user === null) {
+            return res.status(404).json({ "Not Found": "User not found" });
+        }
+        let events = user.organizersEvent;
+        return res.status(200).json({
+            count: events.length,
+            results: events.slice((page - 1) * limit, ((page - 1) * limit) + limit)
+        });
+    })
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Get" });
+    });
+
 app.route("/users/:userId/transactions")
     .post(bearerToken, async (req, res) => {
         // check authorization first
