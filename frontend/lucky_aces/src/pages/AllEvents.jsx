@@ -286,6 +286,12 @@ function AllEvents() {
                         </div>
                       )}
                     </div>
+                    <button
+                      className="ved-btn"
+                      onClick={() => navigate(`/ved_event/${event.id}`)}
+                    >
+                      View/Edit/Delete
+                    </button>
                   </div>
                 );
               })
