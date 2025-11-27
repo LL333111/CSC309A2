@@ -13,6 +13,11 @@ function VEDEvent() {
     const navigate = useNavigate();
     const [editing, setEditing] = useState(false);
     const [deleting, setDeleting] = useState(false);
+
+    // Get current datetime in datetime-local format for min attribute
+    const getCurrentDateTimeLocal = () => {
+        return new Date().toISOString().slice(0, 16);
+    };
     // Treat pointsRemain as points for editing purposes
     const [eventData, setEventData] = useState({
         id: '',
@@ -29,6 +34,23 @@ function VEDEvent() {
         guests: [],
         points: 0,
     });
+
+    const [copyEventData, setCopyEventData] = useState({
+        id: '',
+        name: '',
+        description: '',
+        location: '',
+        startTime: '',
+        endTime: '',
+        capacity: 0,
+        pointsRemain: 0,
+        pointsAwarded: 0,
+        published: false,
+        organizers: [],
+        guests: [],
+        points: 0,
+    });
+
 
     // page protection
     useEffect(() => {
@@ -63,6 +85,7 @@ function VEDEvent() {
             };
             setDeletePublished(data.published);
             setEventData({ ...formattedData, points: data.points });
+            setCopyEventData({ ...formattedData, points: data.points });
         } catch (error) {
             console.error("Failed to fetch event:", error);
         }
@@ -191,7 +214,7 @@ function VEDEvent() {
                             <span className="readonly-field">{eventData.id}</span>
                         </div>
                         {/* Editable name if current time is before start time */}
-                        {new Date() < new Date(eventData.startTime) && (
+                        {new Date() < new Date(copyEventData.startTime) && (
                             <div className="form-group">
                                 <label htmlFor="nameInput">Name: </label>
                                 <input
@@ -203,14 +226,14 @@ function VEDEvent() {
                             </div>
                         )}
                         {/* View-only name if current time is after start time */}
-                        {new Date() >= new Date(eventData.startTime) && (
+                        {new Date() >= new Date(copyEventData.startTime) && (
                             <div className="form-group">
                                 <label htmlFor="nameInput">Name: </label>
                                 <span className="readonly-field">{eventData.name || ''}</span>
                             </div>
                         )}
                         {/* Editable description if current time is before start time */}
-                        {new Date() < new Date(eventData.startTime) && (
+                        {new Date() < new Date(copyEventData.startTime) && (
                             <div className="form-group">
                                 <label htmlFor="descriptionInput">Description: </label>
                                 <textarea
@@ -222,14 +245,14 @@ function VEDEvent() {
                             </div>
                         )}
                         {/* View-only description if current time is after start time */}
-                        {new Date() >= new Date(eventData.startTime) && (
+                        {new Date() >= new Date(copyEventData.startTime) && (
                             <div className="form-group">
                                 <label htmlFor="descriptionInput">Description: </label>
                                 <span className="readonly-field">{eventData.description || ''}</span>
                             </div>
                         )}
                         {/* Editable location if current time is before start time */}
-                        {new Date() < new Date(eventData.startTime) && (
+                        {new Date() < new Date(copyEventData.startTime) && (
                             <div className="form-group">
                                 <label htmlFor="locationInput">Location: </label>
                                 <input
@@ -241,7 +264,7 @@ function VEDEvent() {
                             </div>
                         )}
                         {/* View-only location if current time is after start time */}
-                        {new Date() >= new Date(eventData.startTime) && (
+                        {new Date() >= new Date(copyEventData.startTime) && (
                             <div className="form-group">
                                 <label htmlFor="locationInput">Location: </label>
                                 <span className="readonly-field">{eventData.location || ''}</span>
@@ -249,7 +272,7 @@ function VEDEvent() {
                         )}
 
                         {/* Editable capacity if current time is before start time */}
-                        {new Date() < new Date(eventData.startTime) && (
+                        {new Date() < new Date(copyEventData.startTime) && (
                             <div className="form-group">
                                 <label htmlFor="capacityInput">Capacity: </label>
                                 <input
@@ -263,7 +286,7 @@ function VEDEvent() {
                         )}
 
                         {/* View-only capacity if current time is after start time */}
-                        {new Date() >= new Date(eventData.startTime) && (
+                        {new Date() >= new Date(copyEventData.startTime) && (
                             <div className="form-group">
                                 <label htmlFor="capacityInput">Capacity: </label>
                                 <span className="readonly-field">{eventData.capacity === null || eventData.capacity === '' ? 'Unlimited' : eventData.capacity}</span>
@@ -271,7 +294,7 @@ function VEDEvent() {
                         )}
 
                         {/* Editable start time if current time is before start time */}
-                        {new Date() < new Date(eventData.startTime) && (
+                        {new Date() < new Date(copyEventData.startTime) && (
 
                             <div className="form-group">
                                 <label htmlFor="startTimeInput">Start Time: </label>
@@ -279,13 +302,14 @@ function VEDEvent() {
                                     id="startTimeInput"
                                     type="datetime-local"
                                     value={eventData.startTime || ''}
+                                    min={getCurrentDateTimeLocal()}
                                     onChange={(e) => setEventData({ ...eventData, startTime: e.target.value })}
                                 />
                             </div>
                         )}
 
                         {/* Not editable start time if current time is after start time */}
-                        {new Date() >= new Date(eventData.startTime) && (
+                        {new Date() >= new Date(copyEventData.startTime) && (
                             <div className="form-group">
                                 <label htmlFor="startTimeInput">Start Time: </label>
                                 <span className="readonly-field">{eventData.startTime}</span>
@@ -293,20 +317,21 @@ function VEDEvent() {
                         )}
 
                         {/* Editable end time only if current time is before end time */}
-                        {new Date() < new Date(eventData.endTime) && (
+                        {new Date() < new Date(copyEventData.endTime) && (
                             <div className="form-group">
                                 <label htmlFor="endTimeInput">End Time: </label>
                                 <input
                                     id="endTimeInput"
                                     type="datetime-local"
                                     value={eventData.endTime || ''}
+                                    min={eventData.startTime || getCurrentDateTimeLocal()}
                                     onChange={(e) => setEventData({ ...eventData, endTime: e.target.value })}
                                 />
                             </div>
                         )}
 
                         {/* Not editable end time if current time is after end time */}
-                        {new Date() >= new Date(eventData.endTime) && (
+                        {new Date() >= new Date(copyEventData.endTime) && (
                             <div className="form-group">
                                 <label htmlFor="endTimeInput">End Time: </label>
                                 <span className="readonly-field">{eventData.endTime}</span>
