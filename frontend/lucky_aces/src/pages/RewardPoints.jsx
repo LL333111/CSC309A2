@@ -1,25 +1,23 @@
-import { useLoggedInUser } from '../contexts/LoggedInUserContext'
-import { useState, useEffect } from 'react';
-import { transferTransaction } from '../APIRequest';
-import { useParams } from 'react-router-dom';
+import { useLoggedInUser } from "../contexts/LoggedInUserContext";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from 'react-router-dom';
+import { createRewardTransaction } from "../APIRequest";
 
-function CreateTransferTransaction() {
-  const { utorid } = useParams();
-
+function RewardPoints() {
+  const navigate = useNavigate();
   const [_loading, _setLoading] = useState(true);
-  const [recipientIDInput, setRecipientIDInput] = useState(utorid === undefined ? "" : utorid);
-  const [amountInput, setAmountInput] = useState(0);
+  const [utoridInput, setUtoridInput] = useState("");
+  const [amountInput, setAmountInput] = useState(1);
   const [remarkInput, setRemarkInput] = useState("");
+  const { eventId } = useParams();
 
-  const [utoridShow, _setUtoridShow] = useState("");
   const [badRequest, _setBadRequest] = useState(false);
-  const [noUser, _setNoUser] = useState(false);
+  const [notFound, _setNotFound] = useState(false);
   const [forbidden, _setForbidden] = useState(false);
   const [success, _setSuccess] = useState(false);
 
   const { token, loading } = useLoggedInUser();
 
-  // page protection
   useEffect(() => {
     const timer = setTimeout(() => {
       _setLoading(loading);
@@ -30,34 +28,33 @@ function CreateTransferTransaction() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const response = await transferTransaction(recipientIDInput, amountInput, remarkInput, token);
+    const response = await createRewardTransaction(amountInput, utoridInput, remarkInput, token, eventId);
     switch (response) {
       case 400:
         _setBadRequest(true);
-        _setNoUser(false);
+        _setNotFound(false);
         _setForbidden(false);
         _setSuccess(false);
         break;
       case 404:
         _setBadRequest(false);
-        _setNoUser(true);
+        _setNotFound(true);
         _setForbidden(false);
         _setSuccess(false);
         break;
       case 403:
         _setBadRequest(false);
-        _setNoUser(false);
+        _setNotFound(false);
         _setForbidden(true);
         _setSuccess(false);
         break;
       case 201:
-        _setUtoridShow(recipientIDInput);
         _setBadRequest(false);
-        _setNoUser(false);
+        _setNotFound(false);
         _setForbidden(false);
         _setSuccess(true);
-        setRecipientIDInput("");
-        setAmountInput(0);
+        setUtoridInput("");
+        setAmountInput(1);
         setRemarkInput("");
         break
     }
@@ -72,31 +69,34 @@ function CreateTransferTransaction() {
         </div>
       ) : (
         <form onSubmit={(e) => handleSubmit(e)}>
-          <h1>Create Transfer Transaction</h1>
-          {success && <h3>{`Successfully made a transfer transaction to ${utoridShow}!`}</h3>}
-          {forbidden && <p>Sorry, You need to be verified before using this function.</p>}
+          <h1>Reward Points</h1>
+          {success && <h3>{`Successfully reward points`}</h3>}
+          {forbidden && <h3>{`Only a manager, higher authority, or the event organizer can reward points.`}</h3>}
           <div>
-            <label htmlFor="recipientIDInput">Recipient ID: </label>
+            <label htmlFor="utoridInput">UTORID: </label>
             <input
-              id="recipientIDInput"
+              id="utoridInput"
               type="text"
-              value={recipientIDInput}
-              onChange={(e) => setRecipientIDInput(e.target.value)}
-              required
+              value={utoridInput}
+              onChange={(e) => setUtoridInput(e.target.value)}
             />
-            {badRequest && <p>The ID of the recipient</p>}
-            {noUser && <p>No user with given ID</p>}
+            {badRequest && <p>Unique, Alphanumeric, 7-8 characters</p>}
+            {badRequest && <p>Please confirm that the user with this utorid is a guest of this event.</p>}
+            {notFound && <p>User with that UTORID not exists</p>}
           </div>
           <div>
             <label htmlFor="amountInput">Amount: </label>
             <input
               id="amountInput"
-              type="text"
+              type="number"
               value={amountInput}
               onChange={(e) => setAmountInput(e.target.value)}
               required
+              min={1}
+              step={1}
             />
-            {badRequest && <p>Must be a positive integer value, and less than the number of points you have.</p>}
+            {badRequest && <p>Must be a positive integer value.</p>}
+            {badRequest && <p>Please confirm that the event has sufficient points.</p>}
           </div>
           <div>
             <label htmlFor="remarkInput">Remark: </label>
@@ -108,11 +108,12 @@ function CreateTransferTransaction() {
             />
             {badRequest && <p>Any remark regarding this transaction</p>}
           </div>
-          <button type="submit">Transfer</button>
+          <button type="submit">Reward</button>
         </form>
-      )}
-    </div>
+      )
+      }
+    </div >
   )
 }
 
-export default CreateTransferTransaction;
+export default RewardPoints;

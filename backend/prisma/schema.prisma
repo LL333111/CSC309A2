@@ -46,8 +46,8 @@ model User {
   expiresAt        String? // reset token expires At
   pastTransactions Transaction[] // 用户所有的past transaction
 
-  guestsEvent     Event[] @relation("EventOrganizers")
-  organizersEvent Event[] @relation("EventGuests")
+  organizersEvent Event[] @relation("EventOrganizers")
+  guestsEvent     Event[] @relation("EventGuests")
 }
 
 model Event {

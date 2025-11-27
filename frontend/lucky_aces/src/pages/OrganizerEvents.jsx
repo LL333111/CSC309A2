@@ -1,22 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
-import { getAllEvents } from "../APIRequest"
-import "./AllEvents.css"
+import { getOrganizerEvents } from "../APIRequest"
 
-function AllEvents() {
+function OrganizerEvents() {
   const navigate = useNavigate();
   const [_loading, _setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(null);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [eventList, setEventList] = useState([]);
-
-  const [nameFilter, setNameFilter] = useState("");
-  const [locationFilter, setLocationFilter] = useState("");
-  const [showFullFilter, setShowFullFilter] = useState("any");
-  const [publishedFilter, setPublishedFilter] = useState("any");
-  const [statusFilter, setStatusFilter] = useState("any");
 
   const { loading, token, role } = useLoggedInUser();
 
@@ -30,45 +22,14 @@ function AllEvents() {
 
   const fetchEvents = async () => {
     try {
-      let name = nameFilter || null;
-      let location = locationFilter || null;
-      let showFull = showFullFilter !== "any" ? showFullFilter : null;
-      let published = publishedFilter !== "any" ? publishedFilter : null;
-      let startedParam, endedParam;
-
-      switch (statusFilter) {
-        case "active":
-          startedParam = "true";
-          endedParam = "false";
-          break;
-        case "upcoming":
-          startedParam = "false";
-          endedParam = null;
-          break;
-        case "ended":
-          startedParam = null;
-          endedParam = "true";
-          break;
-        default:
-          startedParam = null;
-          endedParam = null;
-      }
-
-      const data = await getAllEvents(
-        name,
+      const data = await getOrganizerEvents(
         page,
-        startedParam,
-        endedParam,
-        location,
-        showFull,
-        published,
-        token
+        token,
       );
 
       if (totalPage === null) {
         setTotalPage(data.count % 5 === 0 ? Math.floor(data.count / 5) : Math.floor(data.count / 5) + 1);
       }
-      console.log(data);
 
       setEventList(data.results);
     } catch (error) {
@@ -90,29 +51,6 @@ function AllEvents() {
   const handleNext = (e) => {
     e.preventDefault();
     setPage(page === totalPage ? page : page + 1);
-  }
-
-  const toggleFilter = () => {
-    setIsFilterOpen(!isFilterOpen);
-  }
-
-  const handleApply = async (e) => {
-    e.preventDefault();
-    setPage(1);
-    setTotalPage(null);
-    fetchEvents();
-  }
-
-  const handleReset = (e) => {
-    e.preventDefault();
-    setNameFilter("");
-    setLocationFilter("");
-    setShowFullFilter("any");
-    setPublishedFilter("any");
-    setStatusFilter("any");
-    setPage(1);
-    setTotalPage(null);
-    fetchEvents();
   }
 
   const formatDate = (dateString) => {
@@ -146,91 +84,15 @@ function AllEvents() {
         <div>
           <div className="page-header">
             <div>
-              <h1 className="page-title">All Events</h1>
-              <p className="page-subtitle">Browse all events. Filter by name, location, or status.</p>
+              <h1 className="page-title">Organizer Events</h1>
+              <p className="page-subtitle">The events you are responsible for.</p>
             </div>
-            <button className="create-event-btn" onClick={() => navigate('/new_event')}>
-              Create New Event
-            </button>
           </div>
-
-          <button className="filter-toggle-btn" onClick={toggleFilter}>
-            Filter {isFilterOpen ? '✕' : '☰'}
-          </button>
-          {isFilterOpen && (
-            <section className="filter-panel">
-              <div className="filter-grid">
-                <div className="filter-group">
-                  <label htmlFor="name-filter">Name: </label>
-                  <input
-                    type="text"
-                    id="name-filter"
-                    value={nameFilter}
-                    onChange={(e) => setNameFilter(e.target.value)}
-                    placeholder="Input Event Name.."
-                  />
-                </div>
-                <div className="filter-group">
-                  <label htmlFor="location-filter">Location: </label>
-                  <input
-                    type="text"
-                    id="location-filter"
-                    value={locationFilter}
-                    onChange={(e) => setLocationFilter(e.target.value)}
-                    placeholder="Input Event Location.."
-                  />
-                </div>
-                <div className="filter-group">
-                  <label htmlFor="showFull-filter">Show Full: </label>
-                  <select
-                    id="showFull-filter"
-                    value={showFullFilter}
-                    onChange={(e) => setShowFullFilter(e.target.value)}
-                  >
-                    <option value="any">Any</option>
-                    <option value="true">True</option>
-                    <option value="false">False</option>
-                  </select>
-                </div>
-                <div className="filter-group">
-                  <label htmlFor="published-filter">Published: </label>
-                  <select
-                    id="published-filter"
-                    value={publishedFilter}
-                    onChange={(e) => setPublishedFilter(e.target.value)}
-                  >
-                    <option value="any">Any</option>
-                    <option value="true">True</option>
-                    <option value="false">False</option>
-                  </select>
-                </div>
-                {role >= 3 && (
-                  <div className="filter-group">
-                    <label htmlFor="status-filter">Status: </label>
-                    <select
-                      id="status-filter"
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                      <option value="any">Any</option>
-                      <option value="active">Active</option>
-                      <option value="upcoming">Upcoming</option>
-                      <option value="ended">Ended</option>
-                    </select>
-                  </div>
-                )}
-              </div>
-              <div className="filter-actions">
-                <button className="apply-btn" onClick={handleApply}>Apply</button>
-                <button className="reset-btn" onClick={handleReset}>Reset</button>
-              </div>
-            </section>
-          )}
 
           <div className="events-list">
             {eventList.length === 0 ? (
               <div className="no-events">
-                <p>You do not have available events.</p>
+                <p>You are not responsible for any events.</p>
               </div>
             ) : (
               eventList.map((event) => {
@@ -320,4 +182,4 @@ function AllEvents() {
   )
 }
 
-export default AllEvents;
+export default OrganizerEvents;

@@ -226,6 +226,7 @@ async function seedData() {
       sender: "super001",
       recipient: "regul001",
       sent: 10,
+      utorid: "super001",
     },
     {
       type: "transfer",
@@ -236,6 +237,7 @@ async function seedData() {
       sender: "super001",
       recipient: "mana001",
       sent: 10,
+      utorid: "super001",
     },
     {
       type: "redemption",
@@ -360,6 +362,7 @@ async function seedData() {
       sender: "super001",
       recipient: "mana001",
       sent: 10,
+      utorid: "mana001",
     },
   ];
   const mockTransactionsRegul = [
@@ -372,6 +375,7 @@ async function seedData() {
       sender: "super001",
       recipient: "regul001",
       sent: 10,
+      utorid: "mana001",
     },
   ];
   // transactions

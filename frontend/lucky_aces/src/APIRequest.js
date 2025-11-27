@@ -163,6 +163,27 @@ export async function redemptionTransaction(amount, remark, token) {
   }
 }
 
+export async function yourTransactions(type, page, promotionId, relatedId, amount, operator, token,) {
+  try {
+    const response = await fetch(`${API}/users/me/transactions?page=${page}&limit=5${type === null ? "" : `&type=${type}`}${promotionId === null ? "" : `&promotionId=${promotionId}`}${relatedId === null ? "" : `&relatedId=${relatedId}`}${amount === null ? "" : `&amount=${amount}`}${operator === null ? "" : `&operator=${operator}`}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get your transactions ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("find your transaction API request error: ", error);
+    alert("find your transaction API request error");
+  }
+}
+
 // function for all unprocessed redemption
 export async function getAllUnprocessedRedemption(page, token) {
   try {
@@ -175,7 +196,7 @@ export async function getAllUnprocessedRedemption(page, token) {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get all unprocessed RedemptionTransaction ${response.statusText}`);
+      throw new Error(`Failed to get all unprocessed Redemption Transaction ${response.statusText}`);
     }
     const data = await response.json();
     return data;
@@ -219,13 +240,105 @@ export async function getAllEvents(name, page, started, ended, location, showFul
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get all promotions ${response.statusText}`);
+      throw new Error(`Failed to get all events ${response.statusText}`);
     }
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("get all promotions API request error: ", error);
-    alert("get all promotions API request error");
+    console.error("get all events API request error: ", error);
+    alert("get all events API request error");
+  }
+}
+
+export async function createEvent(name, description, location, date, startTime, endTime, capacity, points, token) {
+  try {
+    const body = {
+      name,
+      description,
+      location,
+      startTime,
+      endTime,
+      points,
+    };
+
+    // Only include capacity if it's not null
+    if (capacity !== null) {
+      body.capacity = capacity;
+    }
+
+    const response = await fetch(`${API}/events`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("create event API request error: ", error);
+    alert("create event API request error");
+  }
+}
+
+// /events/:eventId
+export async function getEventById(eventId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to get event by ID ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get event by ID API request error: ", error);
+    alert("get event by ID API request error");
+  }
+}
+
+export async function updateEventById(eventId, updateFields, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(updateFields),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update event by ID ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("update event by ID API request error: ", error);
+    alert("update event by ID API request error");
+  }
+}
+
+export async function deleteEventById(eventId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("delete event by ID API request error: ", error);
+    alert("delete event by ID API request error");
   }
 }
 
@@ -241,13 +354,57 @@ export async function getAllUsers(name, page, role, verified, activated, token) 
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get all promotions ${response.statusText} `);
+      throw new Error(`Failed to get all users ${response.statusText} `);
     }
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("get all promotions API request error: ", error);
-    alert("get all promotions API request error");
+    console.error("get all users API request error: ", error);
+    alert("get all users API request error");
+  }
+}
+
+// /users/:userId
+export async function getUserById(userId, token) {
+  try {
+    const response = await fetch(`${API}/users/${userId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token} `,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get user by ID ${response.statusText} `);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get user by ID API request error: ", error);
+    alert("get user by ID API request error");
+  }
+}
+
+export async function updateUserById(userId, updateFields, token) {
+  try {
+    const response = await fetch(`${API}/users/${userId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token} `,
+      },
+      body: JSON.stringify(updateFields),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update user by ID ${response.statusText} `);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("update user by ID API request error: ", error);
+    alert("update user by ID API request error");
   }
 }
 
@@ -263,13 +420,13 @@ export async function getAllTransactions(name, type, page, createdBy, suspicious
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get all promotions ${response.statusText}`);
+      throw new Error(`Failed to get all transactions ${response.statusText}`);
     }
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("get all promotions API request error: ", error);
-    alert("get all promotions API request error");
+    console.error("get all transactions API request error: ", error);
+    alert("get all transactions API request error");
   }
 }
 
@@ -292,8 +449,77 @@ export async function createPurchase(utorid, spent, promotionIds, remark, token)
 
     return response.status;
   } catch (error) {
-    console.error("get all promotions API request error: ", error);
-    alert("get all promotions API request error");
+    console.error("create purchase transactions API request error: ", error);
+    alert("create purchase transactions API request error");
+  }
+}
+
+export async function createAdjustment(utorid, amount, relatedId, promotionIds, remark, token) {
+  try {
+    const response = await fetch(`${API}/transactions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        utorid,
+        type: "adjustment",
+        amount,
+        relatedId,
+        promotionIds,
+        remark: remark === null ? null : remark,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("create adjustment transactions API request error: ", error);
+    alert("create adjustment transactions API request error");
+  }
+}
+
+// /transactions/:transactionId
+export async function getTransactionById(transactionId, token) {
+  try {
+    const response = await fetch(`${API}/transactions/${transactionId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get transaction by ID ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get transaction by ID API request error: ", error);
+    alert("get transaction by ID API request error");
+  }
+}
+
+
+// /transactions/:transactionId/suspicious
+export async function markTransactionSuspicious(transactionId, suspicious, token) {
+  try {
+    const response = await fetch(`${API}/transactions/${transactionId}/suspicious`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        suspicious,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("mark Transactio Suspicious API request error: ", error);
+    alert("mark Transaction Suspicious API request error");
   }
 }
 
@@ -313,7 +539,152 @@ export async function processRedemption(transactionId, token) {
 
     return response.status;
   } catch (error) {
-    console.error("get all promotions API request error: ", error);
-    alert("get all promotions API request error");
+    console.error("process Redemption API request error: ", error);
+    alert("process Redemption API request error");
+  }
+}
+
+// / /promotions 
+export async function createPromotion(name, description, type, startTime, endTime, minSpending, rate, points, token) {
+  try {
+    const body = {
+      name,
+      description,
+      type,
+      startTime,
+      endTime,
+    };
+
+    // Add optional fields only if they're not null
+    if (minSpending !== null) {
+      body.minSpending = minSpending;
+    }
+    if (rate !== null) {
+      body.rate = rate;
+    }
+    if (points !== null) {
+      body.points = points;
+    }
+
+    const response = await fetch(`${API}/promotions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("create promotion API request error: ", error);
+    alert("create promotion API request error");
+  }
+}
+
+// / promotions/:promotionId
+export async function getPromotionById(promotionId, token) {
+  try {
+    const response = await fetch(`${API}/promotions/${promotionId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get promotion by ID ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get promotion by ID API request error: ", error);
+    alert("get promotion by ID API request error");
+  }
+}
+
+export async function updatePromotionById(promotionId, updateFields, token) {
+  try {
+    const response = await fetch(`${API}/promotions/${promotionId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(updateFields),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update promotion by ID ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("update promotion by ID API request error: ", error);
+    alert("update promotion by ID API request error");
+  }
+}
+
+export async function deletePromotionById(promotionId, token) {
+  try {
+    const response = await fetch(`${API}/promotions/${promotionId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("delete promotion by ID API request error: ", error);
+    alert("delete promotion by ID API request error");
+  }
+}
+
+// /users/me/organizers
+export async function getOrganizerEvents(page, token) {
+  try {
+    const response = await fetch(`${API}/users/me/organizers?page=${page}&limit=5`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get organizers events ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get organizers events API request error: ", error);
+    alert("get organizers events API request error");
+  }
+}
+
+// /events/:eventId/transactions
+export async function createRewardTransaction(amount, utorid, remark, token, eventId) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}/transactions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        utorid: utorid === "" ? null : utorid,
+        type: "event",
+        amount: Number(amount),
+        remark: remark === null ? null : remark,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("create adjustment transactions API request error: ", error);
+    alert("create adjustment transactions API request error");
   }
 }

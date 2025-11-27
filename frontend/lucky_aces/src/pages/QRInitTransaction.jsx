@@ -29,7 +29,7 @@ function QRInitTransaction() {
             <p><strong>Current Points: </strong>{user.points}</p>
             <h3>Your QR Code</h3>
             <div>
-              <QRCodeSVG value={user.utorid} size={256} level="H" />
+              <QRCodeSVG value={`http://localhost:3000/qr_init_detail/${user.utorid}`} size={256} level="H" />
             </div>
           </div>
         </div>

@@ -16,6 +16,14 @@ function EditProfile() {
   const [birthdayInput, setBirthdayInput] = useState(user !== null ? user.birthday : "");
   const [avatarInput, setAvatarInput] = useState(user !== null ? user.avatarUrl : "");
 
+  useEffect(() => {
+    if (user) {
+      setNameInput(user.name || "");
+      setEmailInput(user.email || "");
+      setBirthdayInput(user.birthday || "");
+      setAvatarInput(user.avatarUrl || "");
+    }
+  }, [user]);
 
   // loading
   useEffect(() => {

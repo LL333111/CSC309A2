@@ -1062,7 +1062,9 @@ app.route("/events")
             }
             where.published = published === "true";
         } else {
-            where.published = true;
+            if (req.role === "regular" || req.role === "cashier") {
+                where.published = true;
+            }
         }
         // set select
         let select = {
@@ -1997,12 +1999,12 @@ app.route("/events/:eventId/transactions")
             return res.status(403).json({ "Forbidden": "Manager or higher or organizer" });
         }
         // error handling - 400 Bad Request.
-        const { type, amount, utorid } = req.body;
+        const { type, amount, utorid, remark } = req.body;
         if (!type || !amount || typeof (type) !== "string" || typeof (amount) !== "number") {
             return res.status(400).json({ "Bad Request": "Invalid payload" });
         }
         // extra field
-        const allowedFields = ["type", "amount", "utorid"];
+        const allowedFields = ["type", "amount", "utorid", "remark"];
         const extraFields = Object.keys(req.body).filter((field) => {
             return !allowedFields.includes(field);
         });
@@ -2046,11 +2048,12 @@ app.route("/events/:eventId/transactions")
             let transaction;
             transaction = await prisma.transaction.create({
                 data: {
+                    utorid: utorid,
                     recipient: utorid,
                     amount: amount,
                     type: type,
                     relatedId: eventId,
-                    remark: "Trivia winner",
+                    remark: remark,
                     createdBy: req.user.utorid
                 },
                 select: {
@@ -2113,11 +2116,12 @@ app.route("/events/:eventId/transactions")
                 let transaction;
                 transaction = await prisma.transaction.create({
                     data: {
+                        utorid: user.utorid,
                         recipient: user.utorid,
                         amount: amount,
                         type: type,
                         relatedId: eventId,
-                        remark: "meditation session",
+                        remark: remark,
                         createdBy: req.user.utorid
                     },
                     select: {
@@ -3397,23 +3401,33 @@ app.route("/users/me/transactions")
         } else {
             limit = 10;
         }
-        data.utorid = req.user.utorid;
         if (processedBy === "true") {
             data.processedBy = null;
         }
-        // get the current author
-        const transactions = await prisma.transaction.findMany({
-            where: data,
-            select: {
-                id: true,
-                type: true,
-                spent: true,
-                amount: true,
-                promotionIds: { select: { id: true } },
-                remark: true,
-                createdBy: true,
+        let user = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            include: {
+                pastTransactions: {
+                    where: data,
+                    select: {
+                        id: true,
+                        amount: true,
+                        type: true,
+                        spent: true,
+                        promotionIds: { select: { id: true } },
+                        suspicious: true,
+                        remark: true,
+                        createdBy: true,
+                        relatedId: true,
+                        redeemed: true,
+                        sender: true,
+                        recipient: true,
+                        sent: true
+                    }
+                }
             }
         });
+        let transactions = user.pastTransactions;
         return res.status(200).json({
             count: transactions.length,
             results: transactions.slice((page - 1) * limit, ((page - 1) * limit) + limit)
@@ -3421,6 +3435,53 @@ app.route("/users/me/transactions")
     })
     .all((req, res) => {
         res.status(405).json({ "Method Not Allowed": "Try Post & Get" });
+    });
+
+app.route("/users/me/organizers")
+    .get(bearerToken, async (req, res) => {
+        // check authorization first
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        if (req.role != "manager" && req.role !== "superuser" && req.role !== "cashier" && req.role !== "regular") {
+            return res.status(403).json({ "Forbidden": "Not permitted to view organizers" });
+        }
+        // process query param
+        let { page, limit } = req.query;
+        if (page !== undefined && page !== null) {
+            if (Number.isNaN(parseInt(page))) {
+                return res.status(400).json({ "Bad Request": "Invalid page" });
+            }
+            page = parseInt(page);
+        } else {
+            page = 1;
+        }
+        if (limit !== undefined && limit !== null) {
+            if (Number.isNaN(parseInt(limit))) {
+                return res.status(400).json({ "Bad Request": "Invalid limit" });
+            }
+            limit = parseInt(limit);
+        } else {
+            limit = 10;
+        }
+        // find orginizer events
+        let user = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            select: {
+                organizersEvent: true,
+            }
+        });
+        if (user === null) {
+            return res.status(404).json({ "Not Found": "User not found" });
+        }
+        let events = user.organizersEvent;
+        return res.status(200).json({
+            count: events.length,
+            results: events.slice((page - 1) * limit, ((page - 1) * limit) + limit)
+        });
+    })
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Get" });
     });
 
 app.route("/users/:userId/transactions")
@@ -3465,6 +3526,7 @@ app.route("/users/:userId/transactions")
         data.createdBy = req.user.utorid;
         data.sent = amount;
         data.sender = req.user.utorid;
+        data.utorid = req.user.utorid;
         data.recipient = recipientUser.utorid;
         let senderData = await prisma.user.findUnique({
             where: {
@@ -3507,6 +3569,7 @@ app.route("/users/:userId/transactions")
         });
         // one for receiving the amount and set relatedId to sender's userId
         data.relatedId = req.user.id;
+        data.utorid = recipientUser.utorid;
         let receiverTransaction;
         try {
             receiverTransaction = await prisma.transaction.create({

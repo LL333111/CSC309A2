@@ -361,6 +361,32 @@
   }
 }
 
+/* Detail Button */
+.edit-btn {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: linear-gradient(135deg, var(--primary-blue-light), var(--primary-blue));
+  color: var(--neutral-white);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+}
+
+.edit-btn:hover {
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.edit-btn:active {
+  transform: translateY(0);
+}
+
 @media (max-width: 768px) {
   .all-transactions-container {
     padding: var(--spacing-sm);
