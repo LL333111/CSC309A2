@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
-import { processRedemption } from "../APIRequest";
+import { login, processRedemption } from "../APIRequest";
+import { useParams } from 'react-router-dom';
 
 function ProcessRedemption() {
+  const { transactionId } = useParams();
+
   const [_loading, _setLoading] = useState(true);
-  const [transactionIdInput, setTransactionIdInput] = useState("");
+  const [transactionIdInput, setTransactionIdInput] = useState(transactionId === undefined ? "" : transactionId);
 
   const [badRequest, _setBadRequest] = useState(false);
   const [noTransaction, _setNoTransaction] = useState(false);
