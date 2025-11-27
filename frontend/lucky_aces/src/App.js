@@ -23,6 +23,7 @@ import ProcessRedemption from './pages/ProcessRedemption';
 import CreatePurchaseTransaction from './pages/CreatePurchaseTransaction';
 import OrganizerEvents from './pages/OrganizerEvents';
 import RewardPoints from './pages/RewardPoints';
+import QRInitDetail from './pages/QRInitDetail';
 import Auth from './components/auth';
 import NotFound from './pages/NotFound';
 
@@ -50,8 +51,11 @@ function App() {
             <Route path="edit_profile" element={<NeedLogin min_role={1}><EditProfile /></NeedLogin>} />
             <Route path="change_password" element={<NeedLogin min_role={1}><ChangePassword /></NeedLogin>} />
             <Route path="qr_init_transaction" element={<NeedLogin min_role={1}><QRInitTransaction /></NeedLogin>} />
+            <Route path="qr_init_detail/:utorid" element={<NeedLogin min_role={1}><QRInitDetail /></NeedLogin>} />
             <Route path="transfer_transaction" element={<NeedLogin min_role={1}><CreateTransferTransaction /></NeedLogin>} />
+            <Route path="transfer_transaction/:utorid" element={<NeedLogin min_role={1}><CreateTransferTransaction /></NeedLogin>} />
             <Route path="purchase_transaction" element={<NeedLogin min_role={2}><CreatePurchaseTransaction /></NeedLogin>} />
+            <Route path="purchase_transaction/:utorid" element={<NeedLogin min_role={2}><CreatePurchaseTransaction /></NeedLogin>} />
             <Route path="redemption_transaction" element={<NeedLogin min_role={1}><CreateRedemptionTransaction /></NeedLogin>} />
             <Route path="all_unprocessed_redemption_transaction" element={<NeedLogin min_role={1}><AllUnprocessedRedemption /></NeedLogin>} />
             <Route path="all_promotions" element={<NeedLogin min_role={3}><AllPromotions /></NeedLogin>} />
@@ -64,6 +68,7 @@ function App() {
             <Route path="all_transactions" element={<NeedLogin min_role={3}><AllTransactions /></NeedLogin>} />
             <Route path="your_transactions" element={<NeedLogin min_role={1}><YourTransactions /></NeedLogin>} />
             <Route path="process_redemption" element={<NeedLogin min_role={2}><ProcessRedemption /></NeedLogin>} />
+            <Route path="process_redemption/:transactionId" element={<NeedLogin min_role={2}><ProcessRedemption /></NeedLogin>} />
             <Route path="update_user/:userId" element={<NeedLogin min_role={3}><UpdateUser /></NeedLogin>} />
             <Route path="specific_transaction/:transactionId" element={<NeedLogin min_role={3}><SpecificTransaction /></NeedLogin>} />
             <Route path="organizer_events" element={<NeedLogin min_role={1}><OrganizerEvents /></NeedLogin>} />
