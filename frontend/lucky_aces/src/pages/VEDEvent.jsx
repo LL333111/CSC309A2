@@ -72,34 +72,57 @@ function VEDEvent() {
         setEditing(true);
         try {
             const updateFields = {};
-
             // Only include fields that are editable per API spec
             if (eventData.name !== undefined && eventData.name !== '') {
-                updateFields.name = eventData.name;
+                if (new Date() < new Date(eventData.startTime)) {
+                    updateFields.name = null; // No change to name
+                } else {
+                    updateFields.name = eventData.name;
+                }
             }
             if (eventData.description !== undefined && eventData.description !== '') {
-                updateFields.description = eventData.description;
+                if (new Date() < new Date(eventData.startTime)) {
+                    updateFields.description = null; // No change to description
+                } else {
+                    updateFields.description = eventData.description;
+                }
             }
             if (eventData.location !== undefined && eventData.location !== '') {
-                updateFields.location = eventData.location;
+                if (new Date() < new Date(eventData.startTime)) {
+                    updateFields.location = null; // No change to location
+                } else {
+                    updateFields.location = eventData.location;
+                }
             }
 
             // Convert datetime-local to ISO 8601 format with microseconds
             if (eventData.startTime) {
-                const startDate = new Date(eventData.startTime);
-                updateFields.startTime = startDate.toISOString().replace('Z', '.000000+00:00');
+                if (new Date() < new Date(eventData.startTime)) {
+                    const startDate = new Date(eventData.startTime);
+                    updateFields.startTime = startDate.toISOString().replace('Z', '.000000+00:00');
+                } else {
+                    updateFields.startTime = null; // No change to start time
+                }
             }
             if (eventData.endTime) {
-                const endDate = new Date(eventData.endTime);
-                updateFields.endTime = endDate.toISOString().replace('Z', '.000000+00:00');
+                if (new Date(eventData.endTime) < new Date()) {
+                    const endDate = new Date(eventData.endTime);
+                    updateFields.endTime = endDate.toISOString().replace('Z', '.000000+00:00');
+                } else {
+                    updateFields.endTime = null; // No change to end time
+                }
             }
 
             // Capacity: number or null
             if (eventData.capacity !== undefined) {
-                if (eventData.capacity === '' || eventData.capacity === null) {
-                    updateFields.capacity = null;
+                if (new Date() < new Date(eventData.startTime)) {
+                    if (eventData.capacity === '' || eventData.capacity === null) {
+                        updateFields.capacity = null;
+                    } else {
+                        updateFields.capacity = parseInt(eventData.capacity);
+                    }
                 } else {
-                    updateFields.capacity = parseInt(eventData.capacity);
+                    updateFields.capacity = null; // No change to capacity
                 }
             }
 
@@ -160,9 +183,6 @@ function VEDEvent() {
                 </div>
             ) : (
                 <>
-                    // points , endtime, published  can be changed if start time before current time end time after current time
-                    // endtime can not be chnaged if current time after end time
-
                     <form onSubmit={handleUpdateEvent} className="event-form">
                         <h1>View Your Event</h1>
 
