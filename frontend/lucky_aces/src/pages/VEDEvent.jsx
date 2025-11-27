@@ -9,6 +9,7 @@ function VEDEvent() {
     const [_loading, _setLoading] = useState(true);
     const { loading, token } = useLoggedInUser();
     const { eventId } = useParams();
+    const [deletePublished, setDeletePublished] = useState(false);
     const navigate = useNavigate();
     const [editing, setEditing] = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -60,7 +61,7 @@ function VEDEvent() {
                 endTime: endTimeFormatted,
                 capacity: capacityFormatted,
             };
-
+            setDeletePublished(data.published);
             setEventData({ ...formattedData, points: data.points });
         } catch (error) {
             console.error("Failed to fetch event:", error);
@@ -127,12 +128,12 @@ function VEDEvent() {
 
             // Points , Not points remained or awarded
             if (eventData.points !== undefined && eventData.points !== '') {
-                updateFields.points = parseInt(eventData.points);
+                updateFields.points = parseInt(eventData.points) === 0 ? null : parseInt(eventData.points);
             }
 
             // Published: boolean
             if (eventData.published !== undefined) {
-                updateFields.published = eventData.published;
+                updateFields.published = eventData.published ? true : null;
             }
 
             console.log('Sending update:', updateFields);
@@ -376,24 +377,28 @@ function VEDEvent() {
                             />
                         </div>
 
-                        {/* Always editable published */}
-                        <div className="form-group">
-                            <label htmlFor="publishedInput">Published: </label>
-                            <select
-                                id="publishedInput"
-                                value={eventData.published}
-                                onChange={(e) => setEventData({ ...eventData, published: e.target.value === 'true' })}
-                            >
-                                <option value="true">True</option>
-                                <option value="false">False</option>
-                            </select>
-                        </div>
+                        {deletePublished ?
+                            <div className="form-group">
+                                <label>Published: </label>
+                                <span className="readonly-field">True</span>
+                            </div> :
+                            <div className="form-group">
+                                <label htmlFor="publishedInput">Published: </label>
+                                <select
+                                    id="publishedInput"
+                                    value={eventData.published}
+                                    onChange={(e) => setEventData({ ...eventData, published: e.target.value === 'true' })}
+                                >
+                                    <option value="true">True</option>
+                                    <option value="false">False</option>
+                                </select>
+                            </div>}
 
                         <button type="submit" className="submit-btn" disabled={editing}>
                             {editing ? "Updating..." : "Update Event"}
                         </button>
                     </form>
-                    {!eventData.published && (
+                    {!deletePublished && (
                         <button onClick={() => handleDeleteEvent(eventData.id)} className="delete-btn" disabled={deleting}>
                             {deleting ? "Deleting..." : "Delete Event"}
                         </button>
