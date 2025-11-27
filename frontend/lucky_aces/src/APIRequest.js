@@ -682,3 +682,49 @@ export async function deletePromotionById(promotionId, token) {
     alert("delete promotion by ID API request error");
   }
 }
+
+// /users/me/organizers
+export async function getOrganizerEvents(page, token) {
+  try {
+    const response = await fetch(`${API}/users/me/organizers?page=${page}&limit=5`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get organizers events ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get organizers events API request error: ", error);
+    alert("get organizers events API request error");
+  }
+}
+
+// /events/:eventId/transactions
+export async function createRewardTransaction(amount, utorid, remark, token, eventId) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}/transactions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        utorid: utorid === "" ? null : utorid,
+        type: "event",
+        amount: Number(amount),
+        remark: remark === null ? null : remark,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("create adjustment transactions API request error: ", error);
+    alert("create adjustment transactions API request error");
+  }
+}

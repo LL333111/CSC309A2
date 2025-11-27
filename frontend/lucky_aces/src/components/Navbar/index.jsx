@@ -79,6 +79,10 @@ const Navbar = () => {
                 <p className={`nav-link ${activeSection === "YourTransactions" ? 'active' : ''}`}
                   onClick={(e) => { handleNavClick("YourTransactions", "/your_transactions", e); }}>Your Transactions</p>
               </li>
+              <li className="nav-item">
+                <p className={`nav-link ${activeSection === "OrganizerEvents" ? 'active' : ''}`}
+                  onClick={(e) => { handleNavClick("OrganizerEvents", "/organizer_events", e); }}>Organizer Events</p>
+              </li>
             </>}
             {/* Menu when cashier or higher */}
             {role >= 2 && <>
@@ -88,7 +92,7 @@ const Navbar = () => {
               </li>
               <li className="nav-item">
                 <p className={`nav-link ${activeSection === "ProcessRedemption" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("ProcessRedemption", "/purchase_transaction", e); }}>Process Redemption</p>
+                  onClick={(e) => { handleNavClick("ProcessRedemption", "/process_redemption", e); }}>Process Redemption</p>
               </li>
               <li className="nav-item">
                 <p className={`nav-link ${activeSection === "CreatePurchaseTransaction" ? 'active' : ''}`}

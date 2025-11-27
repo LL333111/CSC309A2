@@ -16,7 +16,7 @@ function PublishedEvents() {
   const [showFullFilter, setShowFullFilter] = useState("any");
   const [statusFilter, setStatusFilter] = useState("any");
 
-  const { loading, token } = useLoggedInUser();
+  const { loading, token, role } = useLoggedInUser();
   const navigate = useNavigate();
 
   // page protection
@@ -59,14 +59,13 @@ function PublishedEvents() {
         endedParam,
         location,
         showFull,
-        null,
+        role >= 3 ? "true" : null,
         token
       );
 
       if (totalPage === null) {
         setTotalPage(data.count % 5 === 0 ? Math.floor(data.count / 5) : Math.floor(data.count / 5) + 1);
       }
-      console.log(data);
 
       setEventList(data.results);
     } catch (error) {

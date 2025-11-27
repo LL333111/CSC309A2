@@ -76,7 +76,7 @@ function AllUnprocessedRedemption() {
                   </button>
                   {showQRCode === redemption.id && (
                     <div style={{ border: '1px solid #ccc' }}>
-                      <QRCodeSVG value={redemption} size={128} level="M" />
+                      <QRCodeSVG value={`http://localhost:3000/process_redemption/${redemption.id}`} size={128} level="M" />
                       <p>Transaction ID: {redemption.id}</p>
                     </div>
                   )}

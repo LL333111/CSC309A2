@@ -48,6 +48,26 @@
     --font-size-sm: 12px;
     --font-size-base: 14px;
     --font-size-md: 16px;
+}
+
+.ved-btn {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin-top: var(--spacing-md);
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+    color: var(--neutral-white);
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.ved-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, var(--primary-blue-light), var(--primary-blue));
     --font-size-lg: 18px;
     --font-size-xl: 20px;
 

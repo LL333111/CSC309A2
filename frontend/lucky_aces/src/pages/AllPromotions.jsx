@@ -204,6 +204,12 @@ function AllPromotions() {
                       <p><strong>Rate: </strong>{promotion.rate}</p>
                       <p><strong>Points: </strong>{promotion.points}</p>
                     </div>
+                    <button
+                      className="ved-btn"
+                      onClick={() => navigate(`/ved_promotion/${promotion.id}`)}
+                    >
+                      View/Edit/Delete
+                    </button>
                   </div>
                 );
               })

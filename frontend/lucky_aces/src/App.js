@@ -21,6 +21,8 @@ import AllTransactions from './pages/AllTransactions';
 import YourTransactions from './pages/YourTransactions';
 import ProcessRedemption from './pages/ProcessRedemption';
 import CreatePurchaseTransaction from './pages/CreatePurchaseTransaction';
+import OrganizerEvents from './pages/OrganizerEvents';
+import RewardPoints from './pages/RewardPoints';
 import Auth from './components/auth';
 import NotFound from './pages/NotFound';
 
@@ -64,8 +66,10 @@ function App() {
             <Route path="process_redemption" element={<NeedLogin min_role={2}><ProcessRedemption /></NeedLogin>} />
             <Route path="update_user/:userId" element={<NeedLogin min_role={3}><UpdateUser /></NeedLogin>} />
             <Route path="specific_transaction/:transactionId" element={<NeedLogin min_role={3}><SpecificTransaction /></NeedLogin>} />
-            <Route path="ved_promotion/:promotionId" element={<NeedLogin min_role={3}><VEDPromotion /></NeedLogin>} />
+            <Route path="organizer_events" element={<NeedLogin min_role={1}><OrganizerEvents /></NeedLogin>} />
+            <Route path="reward_points/:eventId" element={<NeedLogin min_role={1}><RewardPoints /></NeedLogin>} />
             <Route path="ved_event/:eventId" element={<NeedLogin min_role={3}><VEDEvent /></NeedLogin>} />
+            <Route path="ved_promotion/:promotionId" element={<NeedLogin min_role={3}><VEDPromotion /></NeedLogin>} />
             <Route path="event_rsvp/:eventId" element={<NeedLogin min_role={1}><EventRSVP /></NeedLogin>} />
 
             <Route path="*" element={<NotFound />} />
