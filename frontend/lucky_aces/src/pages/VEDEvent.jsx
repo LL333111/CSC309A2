@@ -25,7 +25,8 @@ function VEDEvent() {
         pointsAwarded: 0,
         published: false,
         organizers: [],
-        guests: []
+        guests: [],
+        points: 0,
     });
 
     // page protection
@@ -60,7 +61,7 @@ function VEDEvent() {
                 capacity: capacityFormatted,
             };
 
-            setEventData(formattedData);
+            setEventData({ ...formattedData, points: data.points });
         } catch (error) {
             console.error("Failed to fetch event:", error);
         }
@@ -102,9 +103,9 @@ function VEDEvent() {
                 }
             }
 
-            // T
-            if (eventData.pointsRemain !== undefined && eventData.pointsRemain !== '') {
-                updateFields.points = parseInt(eventData.pointsRemain);
+            // Points , Not points remained or awarded
+            if (eventData.points !== undefined && eventData.points !== '') {
+                updateFields.points = parseInt(eventData.points);
             }
 
             // Published: boolean
@@ -160,7 +161,7 @@ function VEDEvent() {
             ) : (
                 <>
                     <form onSubmit={handleUpdateEvent} className="event-form">
-                        <h1>Edit Your Event</h1>
+                        <h1>View Your Event</h1>
 
                         <div className="form-group">
                             <label>Event ID: </label>
@@ -216,26 +217,6 @@ function VEDEvent() {
                                 onChange={(e) => setEventData({ ...eventData, endTime: e.target.value })}
                             />
                         </div>
-
-                        <div className="form-group">
-                            <label htmlFor="pointsInput">Points: </label>
-                            <input
-                                id="pointsInput"
-                                type="number"
-                                value={eventData.pointsRemain || ''}
-                                onChange={(e) => setEventData({ ...eventData, pointsRemain: e.target.value })}
-                                placeholder="Points for organizers to distribute"
-                            />
-                        </div>
-
-
-                        {/* View-only */}
-                        {eventData.pointsAwarded !== undefined && (
-                            <div className="form-group">
-                                <label>Points Awarded: </label>
-                                <span className="readonly-field">{eventData.pointsAwarded}</span>
-                            </div>
-                        )}
 
                         <div className="form-group">
                             <label htmlFor="publishedInput">Published: </label>
@@ -295,6 +276,34 @@ function VEDEvent() {
                                 </div>
                             </div>
                         )}
+
+                        {/* View-only: Points Awarded */}
+                        {eventData.pointsAwarded !== undefined && (
+                            <div className="form-group">
+                                <label>Points Awarded: </label>
+                                <span className="readonly-field">{eventData.pointsAwarded}</span>
+                            </div>
+                        )}
+
+                        {/* View-only: Points Remain */}
+                        {eventData.pointsRemain !== undefined && (
+                            <div className="form-group">
+                                <label>Points Remain: </label>
+                                <span className="readonly-field">{eventData.pointsRemain}</span>
+                            </div>
+                        )}
+
+                        {/* Edit Points */}
+                        <div className="form-group">
+                            <label htmlFor="pointsInput">Points: </label>
+                            <input
+                                id="pointsInput"
+                                type="number"
+                                value={eventData.points || ''}
+                                onChange={(e) => setEventData({ ...eventData, points: e.target.value })}
+                                placeholder="Points for organizers to distribute"
+                            />
+                        </div>
 
                         <button type="submit" className="submit-btn" disabled={editing}>
                             {editing ? "Updating..." : "Update Event"}
