@@ -29,6 +29,9 @@ import UpdateUser from './pages/UpdateUsers';
 import SpecificTransaction from './pages/SpecificTransaction';
 import NewEvent from './pages/NewEvent';
 import NewPromotions from './pages/NewPromotions';
+import VEDPromotion from './pages/VEDPromotion';
+import VEDEvent from './pages/VEDEvent';
+import EventRSVP from './pages/EventRSVP';
 
 function App() {
   return (
@@ -62,7 +65,8 @@ function App() {
             <Route path="update_user/:userId" element={<NeedLogin min_role={3}><UpdateUser /></NeedLogin>} />
             <Route path="specific_transaction/:transactionId" element={<NeedLogin min_role={3}><SpecificTransaction /></NeedLogin>} />
             <Route path="ved_promotion/:promotionId" element={<NeedLogin min_role={3}><VEDPromotion /></NeedLogin>} />
-
+            <Route path="ved_event/:eventId" element={<NeedLogin min_role={3}><VEDEvent /></NeedLogin>} />
+            <Route path="event_rsvp/:eventId" element={<NeedLogin min_role={1}><EventRSVP /></NeedLogin>} />
 
             <Route path="*" element={<NotFound />} />
           </Route>

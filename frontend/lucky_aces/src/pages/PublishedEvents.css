@@ -343,6 +343,24 @@
   gap: var(--spacing-xs);
 }
 
+.rsvp-btn {
+  margin-top: var(--spacing-md);
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.rsvp-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
 .pagination {
   display: flex;
   justify-content: center;

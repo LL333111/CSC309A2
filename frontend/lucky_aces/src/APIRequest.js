@@ -1,4 +1,4 @@
-const API = "http://localhost:3001";
+const API = "";
 
 // /auth/tokens
 export async function login(utorid, password) {
@@ -339,6 +339,46 @@ export async function deleteEventById(eventId, token) {
   } catch (error) {
     console.error("delete event by ID API request error: ", error);
     alert("delete event by ID API request error");
+  }
+}
+
+// /events/:eventId/guests/me - RSVP to event
+export async function rsvpToEvent(eventId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}/guests/me`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      return response.status;
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("RSVP to event API request error: ", error);
+    alert("RSVP to event API request error");
+  }
+}
+
+// /events/:eventId/guests/me - Cancel RSVP
+export async function cancelRsvpToEvent(eventId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}/guests/me`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("cancel RSVP to event API request error: ", error);
+    alert("cancel RSVP to event API request error");
   }
 }
 

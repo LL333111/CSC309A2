@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
+import { useNavigate } from "react-router-dom";
 import { getAllEvents } from "../APIRequest"
 import "./PublishedEvents.css"
 
@@ -16,6 +17,7 @@ function PublishedEvents() {
   const [statusFilter, setStatusFilter] = useState("any");
 
   const { loading, token } = useLoggedInUser();
+  const navigate = useNavigate();
 
   // page protection
   useEffect(() => {
@@ -245,6 +247,13 @@ function PublishedEvents() {
                         <p>{event.description || 'No description available'}</p>
                       </div>
                     </div>
+
+                    <button
+                      className="rsvp-btn"
+                      onClick={() => navigate(`/event_rsvp/${event.id}`)}
+                    >
+                      View Details & RSVP
+                    </button>
                   </div>
                 );
               })
