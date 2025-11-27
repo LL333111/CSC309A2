@@ -309,10 +309,12 @@ function VEDEvent() {
                             {editing ? "Updating..." : "Update Event"}
                         </button>
                     </form>
+                    {!eventData.published && (
+                        <button onClick={() => handleDeleteEvent(eventData.id)} className="delete-btn" disabled={deleting}>
+                            {deleting ? "Deleting..." : "Delete Event"}
+                        </button>
+                    )}
 
-                    <button onClick={() => handleDeleteEvent(eventData.id)} className="delete-btn" disabled={deleting}>
-                        {deleting ? "Deleting..." : "Delete Event"}
-                    </button>
                 </>
             )}
         </div>
