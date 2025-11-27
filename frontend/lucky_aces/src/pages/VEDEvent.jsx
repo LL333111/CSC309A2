@@ -160,6 +160,9 @@ function VEDEvent() {
                 </div>
             ) : (
                 <>
+                    // points , endtime, published  can be changed if start time before current time end time after current time
+                    // endtime can not be chnaged if current time after end time
+
                     <form onSubmit={handleUpdateEvent} className="event-form">
                         <h1>View Your Event</h1>
 
@@ -167,79 +170,128 @@ function VEDEvent() {
                             <label>Event ID: </label>
                             <span className="readonly-field">{eventData.id}</span>
                         </div>
+                        {/* Editable name if current time is before start time */}
+                        {new Date() < new Date(eventData.startTime) && (
+                            <div className="form-group">
+                                <label htmlFor="nameInput">Name: </label>
+                                <input
+                                    id="nameInput"
+                                    type="text"
+                                    value={eventData.name || ''}
+                                    onChange={(e) => setEventData({ ...eventData, name: e.target.value })}
+                                />
+                            </div>
+                        )}
+                        {/* View-only name if current time is after start time */}
+                        {new Date() >= new Date(eventData.startTime) && (
+                            <div className="form-group">
+                                <label htmlFor="nameInput">Name: </label>
+                                <span className="readonly-field">{eventData.name || ''}</span>
+                            </div>
+                        )}
+                        {/* Editable description if current time is before start time */}
+                        {new Date() < new Date(eventData.startTime) && (
+                            <div className="form-group">
+                                <label htmlFor="descriptionInput">Description: </label>
+                                <textarea
+                                    id="descriptionInput"
+                                    value={eventData.description || ''}
+                                    onChange={(e) => setEventData({ ...eventData, description: e.target.value })}
+                                    rows="3"
+                                />
+                            </div>
+                        )}
+                        {/* View-only description if current time is after start time */}
+                        {new Date() >= new Date(eventData.startTime) && (
+                            <div className="form-group">
+                                <label htmlFor="descriptionInput">Description: </label>
+                                <span className="readonly-field">{eventData.description || ''}</span>
+                            </div>
+                        )}
+                        {/* Editable location if current time is before start time */}
+                        {new Date() < new Date(eventData.startTime) && (
+                            <div className="form-group">
+                                <label htmlFor="locationInput">Location: </label>
+                                <input
+                                    id="locationInput"
+                                    type="text"
+                                    value={eventData.location || ''}
+                                    onChange={(e) => setEventData({ ...eventData, location: e.target.value })}
+                                />
+                            </div>
+                        )}
+                        {/* View-only location if current time is after start time */}
+                        {new Date() >= new Date(eventData.startTime) && (
+                            <div className="form-group">
+                                <label htmlFor="locationInput">Location: </label>
+                                <span className="readonly-field">{eventData.location || ''}</span>
+                            </div>
+                        )}
 
-                        <div className="form-group">
-                            <label htmlFor="nameInput">Name: </label>
-                            <input
-                                id="nameInput"
-                                type="text"
-                                value={eventData.name || ''}
-                                onChange={(e) => setEventData({ ...eventData, name: e.target.value })}
-                            />
-                        </div>
+                        {/* Editable capacity if current time is before start time */}
+                        {new Date() < new Date(eventData.startTime) && (
+                            <div className="form-group">
+                                <label htmlFor="capacityInput">Capacity: </label>
+                                <input
+                                    id="capacityInput"
+                                    type="number"
+                                    value={eventData.capacity || ''}
+                                    onChange={(e) => setEventData({ ...eventData, capacity: e.target.value })}
+                                    placeholder="Leave empty for unlimited"
+                                />
+                            </div>
+                        )}
 
-                        <div className="form-group">
-                            <label htmlFor="descriptionInput">Description: </label>
-                            <textarea
-                                id="descriptionInput"
-                                value={eventData.description || ''}
-                                onChange={(e) => setEventData({ ...eventData, description: e.target.value })}
-                                rows="3"
-                            />
-                        </div>
+                        {/* View-only capacity if current time is after start time */}
+                        {new Date() >= new Date(eventData.startTime) && (
+                            <div className="form-group">
+                                <label htmlFor="capacityInput">Capacity: </label>
+                                <span className="readonly-field">{eventData.capacity === null || eventData.capacity === '' ? 'Unlimited' : eventData.capacity}</span>
+                            </div>
+                        )}
 
-                        <div className="form-group">
-                            <label htmlFor="locationInput">Location: </label>
-                            <input
-                                id="locationInput"
-                                type="text"
-                                value={eventData.location || ''}
-                                onChange={(e) => setEventData({ ...eventData, location: e.target.value })}
-                            />
-                        </div>
+                        {/* Editable start time if current time is before start time */}
+                        {new Date() < new Date(eventData.startTime) && (
 
-                        <div className="form-group">
-                            <label htmlFor="startTimeInput">Start Time: </label>
-                            <input
-                                id="startTimeInput"
-                                type="datetime-local"
-                                value={eventData.startTime || ''}
-                                onChange={(e) => setEventData({ ...eventData, startTime: e.target.value })}
-                            />
-                        </div>
+                            <div className="form-group">
+                                <label htmlFor="startTimeInput">Start Time: </label>
+                                <input
+                                    id="startTimeInput"
+                                    type="datetime-local"
+                                    value={eventData.startTime || ''}
+                                    onChange={(e) => setEventData({ ...eventData, startTime: e.target.value })}
+                                />
+                            </div>
+                        )}
 
-                        <div className="form-group">
-                            <label htmlFor="endTimeInput">End Time: </label>
-                            <input
-                                id="endTimeInput"
-                                type="datetime-local"
-                                value={eventData.endTime || ''}
-                                onChange={(e) => setEventData({ ...eventData, endTime: e.target.value })}
-                            />
-                        </div>
+                        {/* Not editable start time if current time is after start time */}
+                        {new Date() >= new Date(eventData.startTime) && (
+                            <div className="form-group">
+                                <label htmlFor="startTimeInput">Start Time: </label>
+                                <span className="readonly-field">{eventData.startTime}</span>
+                            </div>
+                        )}
 
-                        <div className="form-group">
-                            <label htmlFor="publishedInput">Published: </label>
-                            <select
-                                id="publishedInput"
-                                value={eventData.published}
-                                onChange={(e) => setEventData({ ...eventData, published: e.target.value === 'true' })}
-                            >
-                                <option value="true">True</option>
-                                <option value="false">False</option>
-                            </select>
-                        </div>
+                        {/* Editable end time only if current time is before end time */}
+                        {new Date() < new Date(eventData.endTime) && (
+                            <div className="form-group">
+                                <label htmlFor="endTimeInput">End Time: </label>
+                                <input
+                                    id="endTimeInput"
+                                    type="datetime-local"
+                                    value={eventData.endTime || ''}
+                                    onChange={(e) => setEventData({ ...eventData, endTime: e.target.value })}
+                                />
+                            </div>
+                        )}
 
-                        <div className="form-group">
-                            <label htmlFor="capacityInput">Capacity: </label>
-                            <input
-                                id="capacityInput"
-                                type="number"
-                                value={eventData.capacity || ''}
-                                onChange={(e) => setEventData({ ...eventData, capacity: e.target.value })}
-                                placeholder="Leave empty for unlimited"
-                            />
-                        </div>
+                        {/* Not editable end time if current time is after end time */}
+                        {new Date() >= new Date(eventData.endTime) && (
+                            <div className="form-group">
+                                <label htmlFor="endTimeInput">End Time: </label>
+                                <span className="readonly-field">{eventData.endTime}</span>
+                            </div>
+                        )}
 
                         {/* View-only organizers */}
                         {eventData.organizers && (
@@ -293,7 +345,7 @@ function VEDEvent() {
                             </div>
                         )}
 
-                        {/* Edit Points */}
+                        {/* Always editable Points */}
                         <div className="form-group">
                             <label htmlFor="pointsInput">Points: </label>
                             <input
@@ -303,6 +355,19 @@ function VEDEvent() {
                                 onChange={(e) => setEventData({ ...eventData, points: e.target.value })}
                                 placeholder="Points for organizers to distribute"
                             />
+                        </div>
+
+                        {/* Always editable published */}
+                        <div className="form-group">
+                            <label htmlFor="publishedInput">Published: </label>
+                            <select
+                                id="publishedInput"
+                                value={eventData.published}
+                                onChange={(e) => setEventData({ ...eventData, published: e.target.value === 'true' })}
+                            >
+                                <option value="true">True</option>
+                                <option value="false">False</option>
+                            </select>
                         </div>
 
                         <button type="submit" className="submit-btn" disabled={editing}>
