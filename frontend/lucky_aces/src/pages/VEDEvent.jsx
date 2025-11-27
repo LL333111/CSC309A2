@@ -74,40 +74,39 @@ function VEDEvent() {
             const updateFields = {};
             // Only include fields that are editable per API spec
             if (eventData.name !== undefined && eventData.name !== '') {
-                if (new Date() < new Date(eventData.startTime)) {
+                if (new Date(eventData.startTime) < new Date()) {
                     updateFields.name = null; // No change to name
                 } else {
                     updateFields.name = eventData.name;
                 }
             }
             if (eventData.description !== undefined && eventData.description !== '') {
-                if (new Date() < new Date(eventData.startTime)) {
+                if (new Date(eventData.startTime) < new Date()) {
                     updateFields.description = null; // No change to description
                 } else {
                     updateFields.description = eventData.description;
                 }
             }
             if (eventData.location !== undefined && eventData.location !== '') {
-                if (new Date() < new Date(eventData.startTime)) {
+                if (new Date(eventData.startTime) < new Date()) {
                     updateFields.location = null; // No change to location
                 } else {
                     updateFields.location = eventData.location;
                 }
             }
-
             // Convert datetime-local to ISO 8601 format with microseconds
             if (eventData.startTime) {
                 if (new Date() < new Date(eventData.startTime)) {
                     const startDate = new Date(eventData.startTime);
-                    updateFields.startTime = startDate.toISOString().replace('Z', '.000000+00:00');
+                    updateFields.startTime = startDate.toISOString();
                 } else {
                     updateFields.startTime = null; // No change to start time
                 }
             }
             if (eventData.endTime) {
-                if (new Date(eventData.endTime) < new Date()) {
+                if (new Date(eventData.endTime) > new Date()) {
                     const endDate = new Date(eventData.endTime);
-                    updateFields.endTime = endDate.toISOString().replace('Z', '.000000+00:00');
+                    updateFields.endTime = endDate.toISOString();
                 } else {
                     updateFields.endTime = null; // No change to end time
                 }
