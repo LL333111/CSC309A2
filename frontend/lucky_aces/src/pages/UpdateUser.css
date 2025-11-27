@@ -268,12 +268,12 @@
 }
 
 /* Clear Suspicious Button - Orange */
-.clear-suspicious-button {
+.suspicious-button {
     background: var(--warning-orange);
     color: var(--neutral-white);
 }
 
-.clear-suspicious-button:hover:not(:disabled) {
+.suspicious-button:hover:not(:disabled) {
     background: #dd6b20;
 }
 

@@ -551,7 +551,8 @@ app.route("/users/:userId")
                         createdAt: true,
                         verified: true,
                         avatarUrl: true,
-                        promotions: true
+                        promotions: true,
+                        suspicious: true
                     }
                 })
             }
