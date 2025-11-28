@@ -103,6 +103,31 @@
     cursor: pointer;
 }
 
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    transition: var(--transition);
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: var(--shadow-focus);
+}
+
+.readonly-field {
+    padding: 0.75rem;
+    background: #f3f4f6;
+    border-radius: var(--border-radius);
+    color: #6b7280;
+    font-weight: 500;
+}
+
 .form-actions {
     display: flex;
     gap: var(--spacing-md);

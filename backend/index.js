@@ -1244,7 +1244,7 @@ app.route("/events/:eventId")
             if (typeof (startTime) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid startTime" });
             }
-            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}\+\d{2}:\d{2}$/.test(startTime) || (new Date(startTime)).toISOString() <= (new Date()).toISOString()) {
+            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(startTime) || (new Date(startTime)).toISOString() <= (new Date()).toISOString()) {
                 return res.status(400).json({ "Bad Request": "Invalid startTime" });
             }
             if ((new Date(event.startTime)).toISOString() <= (new Date()).toISOString()) {
@@ -1263,7 +1263,7 @@ app.route("/events/:eventId")
             if (typeof (endTime) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid endTime" });
             }
-            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}\+\d{2}:\d{2}$/.test(endTime) || (new Date(endTime)).toISOString() <= (new Date()).toISOString()) {
+            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(endTime) || (new Date(endTime)).toISOString() <= (new Date()).toISOString()) {
                 return res.status(400).json({ "Bad Request": "Invalid endTime" });
             }
             if ((new Date(event.endTime)).toISOString() <= (new Date()).toISOString()) {
@@ -2476,7 +2476,7 @@ app.route("/promotions/:promotionId")
             data.rate = rate;
         }
         if (points) {
-            if (typeof (points) !== "number" || !Number.isInteger(points) || !isNaN(points) || points <= 0) {
+            if (typeof (points) !== "number" || !Number.isInteger(points) || isNaN(points) || points <= 0) {
                 return res.status(400).json({ "Bad Request": "Invalid points" });
             }
             data.points = points;

@@ -38,8 +38,7 @@ function EventRSVP() {
                 const attending = data.guests.some(guest => guest.id === user.id);
                 setIsAttending(attending);
             } else if (user && data.numGuests !== undefined) {
-                // For non-organizers, we can't see full guest list
-                // Need to track separately or check via another endpoint
+
                 setIsAttending(false);
             }
         } catch (error) {
