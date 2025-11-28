@@ -1246,7 +1246,8 @@ app.route("/events/:eventId")
             if (typeof (startTime) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid startTime" });
             }
-            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(startTime) || (new Date(startTime)).toISOString() <= (new Date()).toISOString()) {
+            // Fix: Update regex to allow timezone offset or no timezone
+            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/.test(startTime) || (new Date(startTime)).toISOString() <= (new Date()).toISOString()) {
                 return res.status(400).json({ "Bad Request": "Invalid startTime" });
             }
             if ((new Date(event.startTime)).toISOString() <= (new Date()).toISOString()) {
@@ -1258,14 +1259,16 @@ app.route("/events/:eventId")
                     return res.status(400).json({ "Bad Request": "Invalid startTime" });
                 }
             }
-            data.startTime = startTime.split('.')[0] + 'Z';
+            // Fix: Don't force add 'Z', keep the original timezone
+            data.startTime = startTime;
             select.startTime = true;
         }
         if (endTime !== undefined && endTime !== null) {
             if (typeof (endTime) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid endTime" });
             }
-            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(endTime) || (new Date(endTime)).toISOString() <= (new Date()).toISOString()) {
+            // Fix: Update regex to allow timezone offset or no timezone
+            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/.test(endTime) || (new Date(endTime)).toISOString() <= (new Date()).toISOString()) {
                 return res.status(400).json({ "Bad Request": "Invalid endTime" });
             }
             if ((new Date(event.endTime)).toISOString() <= (new Date()).toISOString()) {
@@ -1283,7 +1286,8 @@ app.route("/events/:eventId")
                     return res.status(400).json({ "Bad Request": "Invalid startTime and endTime" });
                 }
             }
-            data.endTime = endTime.split('.')[0] + 'Z';
+            // Fix: Don't force add 'Z', keep the original timezone
+            data.endTime = endTime;
             select.endTime = true;
         }
         if (capacity !== undefined && capacity !== null) {

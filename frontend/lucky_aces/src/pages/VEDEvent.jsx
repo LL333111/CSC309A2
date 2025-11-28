@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
-import { useParams, useNavigate } from "react-router-dom"; // ISSUE FIX: Added useNavigate for redirect after delete
+import { useParams, useNavigate } from "react-router-dom";
 import { getEventById, updateEventById, deleteEventById } from "../APIRequest";
 import './VEDEvent.css';
-
 
 function VEDEvent() {
     const [_loading, _setLoading] = useState(true);
@@ -18,7 +17,39 @@ function VEDEvent() {
     const getCurrentDateTimeLocal = () => {
         return new Date().toISOString().slice(0, 16);
     };
-    // Treat pointsRemain as points for editing purposes
+
+    // Get minimum end time: maximum of current time and start time
+    const getMinEndTime = () => {
+        const now = new Date();
+        const startTime = eventData.startTime ? new Date(eventData.startTime) : null;
+
+        // If startTime is not set, use current time
+        if (!startTime) {
+            return now.toISOString().slice(0, 16);
+        }
+
+        // Return the later of current time and startTime
+        return now > startTime ? now.toISOString().slice(0, 16) : startTime.toISOString().slice(0, 16);
+    };
+
+    // Convert local time to backend required format (without timezone information)
+    const localToISOString = (localDateTimeString) => {
+        if (!localDateTimeString) return '';
+
+        // Create a new Date object, parse local time string as local time
+        const localDate = new Date(localDateTimeString);
+
+        // Manually build ISO string to avoid timezone conversion
+        const year = localDate.getFullYear();
+        const month = String(localDate.getMonth() + 1).padStart(2, '0');
+        const day = String(localDate.getDate()).padStart(2, '0');
+        const hours = String(localDate.getHours()).padStart(2, '0');
+        const minutes = String(localDate.getMinutes()).padStart(2, '0');
+        const seconds = String(localDate.getSeconds()).padStart(2, '0');
+
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    };
+
     const [eventData, setEventData] = useState({
         id: '',
         name: '',
@@ -51,8 +82,7 @@ function VEDEvent() {
         points: 0,
     });
 
-
-    // page protection
+    // Page protection
     useEffect(() => {
         const timer = setTimeout(() => {
             _setLoading(loading);
@@ -118,19 +148,17 @@ function VEDEvent() {
                     updateFields.location = eventData.location;
                 }
             }
-            // Convert datetime-local to ISO 8601 format with microseconds
+            // Convert datetime-local to ISO 8601 format - use new conversion function to avoid timezone issues
             if (eventData.startTime) {
                 if (new Date() < new Date(eventData.startTime)) {
-                    const startDate = new Date(eventData.startTime);
-                    updateFields.startTime = startDate.toISOString();
+                    updateFields.startTime = localToISOString(eventData.startTime);
                 } else {
                     updateFields.startTime = null; // No change to start time
                 }
             }
             if (eventData.endTime) {
                 if (new Date(eventData.endTime) > new Date()) {
-                    const endDate = new Date(eventData.endTime);
-                    updateFields.endTime = endDate.toISOString();
+                    updateFields.endTime = localToISOString(eventData.endTime);
                 } else {
                     updateFields.endTime = null; // No change to end time
                 }
@@ -280,7 +308,6 @@ function VEDEvent() {
                                     type="number"
                                     value={eventData.capacity || ''}
                                     onChange={(e) => setEventData({ ...eventData, capacity: e.target.value })}
-                                    placeholder="Leave empty for unlimited"
                                 />
                             </div>
                         )}
@@ -324,7 +351,7 @@ function VEDEvent() {
                                     id="endTimeInput"
                                     type="datetime-local"
                                     value={eventData.endTime || ''}
-                                    min={eventData.startTime || getCurrentDateTimeLocal()}
+                                    min={getMinEndTime()}
                                     onChange={(e) => setEventData({ ...eventData, endTime: e.target.value })}
                                 />
                             </div>
@@ -397,6 +424,8 @@ function VEDEvent() {
                                 id="pointsInput"
                                 type="number"
                                 value={eventData.points || ''}
+                                min={1}
+                                step={1}
                                 onChange={(e) => setEventData({ ...eventData, points: e.target.value })}
                                 placeholder="Points for organizers to distribute"
                             />
