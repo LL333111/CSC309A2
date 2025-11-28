@@ -2336,7 +2336,11 @@ app.route("/promotions")
             // Regular user only see the active promotions
             const userData = await prisma.user.findUnique({
                 where: { id: req.user.id },
-                include: { promotions: true },
+                include: {
+                    promotions: {
+                        where: where
+                    }
+                },
             });
 
             const now = new Date();

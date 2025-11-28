@@ -12,7 +12,6 @@ function YourPromotions() {
 
   const [nameFilter, setNameFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("any");
-  const [statusFilter, setStatusFilter] = useState("any");
 
   const { loading, token } = useLoggedInUser();
 
@@ -26,29 +25,10 @@ function YourPromotions() {
 
   const fetchPromotions = async () => {
     try {
-      let startedParam, endedParam;
-
-      switch (statusFilter) {
-        case "active":
-          startedParam = "true";
-          endedParam = "false";
-          break;
-        case "upcoming":
-          startedParam = "false";
-          endedParam = null;
-          break;
-        case "ended":
-          startedParam = null;
-          endedParam = "true";
-          break;
-        default:
-          startedParam = null;
-          endedParam = null;
-      }
       let name = nameFilter || null;
       let type = typeFilter !== "any" ? typeFilter : null;
 
-      const data = await getAllPromotions(name, type, page, startedParam, endedParam, token, "true");
+      const data = await getAllPromotions(name, type, page, null, null, token, "true");
       if (totalPage === null) {
         setTotalPage(data.count % 5 === 0 ? Math.floor(data.count / 5) : Math.floor(data.count / 5) + 1);
       }
@@ -89,7 +69,6 @@ function YourPromotions() {
     e.preventDefault();
     setNameFilter("");
     setTypeFilter("any");
-    setStatusFilter("any");
     setPage(1);
     setTotalPage(null);
   }
@@ -153,19 +132,6 @@ function YourPromotions() {
                     <option value="any">Any</option>
                     <option value="automatic">Automatic</option>
                     <option value="one-time">One-time</option>
-                  </select>
-                </div>
-                <div className="filter-group">
-                  <label htmlFor="status-filter">Status</label>
-                  <select
-                    id="status-filter"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                  >
-                    <option value="any">Any</option>
-                    <option value="active">Active</option>
-                    <option value="upcoming">Upcoming</option>
-                    <option value="ended">Ended</option>
                   </select>
                 </div>
               </div>
