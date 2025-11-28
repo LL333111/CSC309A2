@@ -64,6 +64,10 @@ function UpdateUser() {
         }
     }
 
+    const handleMarkSuspicious = () => {
+        handleUpdateUser({ suspicious: true });
+    }
+
     const handleClearSuspicious = () => {
         handleUpdateUser({ suspicious: false });
     }
@@ -140,9 +144,18 @@ function UpdateUser() {
                                         {actionLoading ? 'Promoting...' : 'Promote to Cashier'}
                                     </button>
                                 )}
-                                {userData.suspicious && (
+                                {userData.role === "cashier" && !userData.suspicious && (
                                     <button
-                                        className="action-button clear-suspicious-button"
+                                        className="action-button suspicious-button"
+                                        onClick={handleMarkSuspicious}
+                                        disabled={actionLoading}
+                                    >
+                                        {actionLoading ? 'Marking...' : 'Mark Suspicious Flag'}
+                                    </button>
+                                )}
+                                {userData.role === "cashier" && userData.suspicious && (
+                                    <button
+                                        className="action-button suspicious-button"
                                         onClick={handleClearSuspicious}
                                         disabled={actionLoading}
                                     >

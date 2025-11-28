@@ -390,7 +390,7 @@ app.route("/users/me")
                 createdAt: true,
                 lastLogin: true,
                 verified: true,
-                avatarUrl: true
+                avatarUrl: true,
             }
         });
         res.status(200).json(result);
@@ -423,7 +423,8 @@ app.route("/users/me")
                 lastLogin: true,
                 verified: true,
                 avatarUrl: true,
-                promotions: true
+                promotions: true,
+                guestsEvent: true,
             }
         });
         // error handling - 404 Not Found
@@ -551,7 +552,8 @@ app.route("/users/:userId")
                         createdAt: true,
                         verified: true,
                         avatarUrl: true,
-                        promotions: true
+                        promotions: true,
+                        suspicious: true
                     }
                 })
             }
@@ -1139,20 +1141,20 @@ app.route("/events/:eventId")
             location: true,
             startTime: true,
             endTime: true,
-            capacity: true
+            capacity: true,
+            numGuests: true
         }
         if (organizerIds.includes(req.user.id) || req.role === "manager" || req.role === "superuser") {
             select.pointsRemain = true;
             select.pointsAwarded = true;
             select.published = true;
-            select.organizers = true,
-                select.guests = true;
+            select.organizers = true;
+            select.guests = true;
         } else {
             if (event.published === false) {
                 return res.status(404).json({ "Not Found": "Event not visible" });
             }
-            select.organizers = true,
-                select.numGuests = true
+            select.organizers = true;
         }
         let result = await prisma.event.findUnique({
             where: {
@@ -1731,7 +1733,7 @@ app.route("/events/:eventId/guests/me")
         }
         // error handling - 403 Forbidden
         // Regular
-        if (req.role !== "regular") {
+        if (req.role !== "regular" && req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
             return res.status(403).json({ "Forbidden": "Regular" });
         }
         // get organizers of the event
@@ -1826,7 +1828,7 @@ app.route("/events/:eventId/guests/me")
         }
         // error handling - 403 Forbidden
         // if not "Regular"
-        if (req.role !== "regular") {
+        if (req.role !== "regular" && req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
             return res.status(403).json({ "Forbidden": "Regular" });
         }
         // process eventId
