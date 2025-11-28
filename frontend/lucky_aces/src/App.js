@@ -24,6 +24,7 @@ import CreatePurchaseTransaction from './pages/CreatePurchaseTransaction';
 import OrganizerEvents from './pages/OrganizerEvents';
 import RewardPoints from './pages/RewardPoints';
 import QRInitDetail from './pages/QRInitDetail';
+import EditEventsUsers from './pages/EditEventsUsers';
 import Auth from './components/auth';
 import NotFound from './pages/NotFound';
 
@@ -76,6 +77,7 @@ function App() {
             <Route path="ved_event/:eventId" element={<NeedLogin min_role={3}><VEDEvent /></NeedLogin>} />
             <Route path="ved_promotion/:promotionId" element={<NeedLogin min_role={3}><VEDPromotion /></NeedLogin>} />
             <Route path="event_rsvp/:eventId" element={<NeedLogin min_role={1}><EventRSVP /></NeedLogin>} />
+            <Route path="edit_events_users/:eventId" element={<NeedLogin min_role={1}><EditEventsUsers /></NeedLogin>} />
 
             <Route path="*" element={<NotFound />} />
           </Route>

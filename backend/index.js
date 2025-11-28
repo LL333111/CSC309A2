@@ -1498,7 +1498,7 @@ app.route("/events/:eventId/organizers")
             }
         });
         if (guests.length > 0) {
-            return res.status(400).json({ "Bad Request": "User is already an guests" });
+            return res.status(400).json({ "Bad Request": "User is already an organizer" });
         }
         // add organizer
         let result = await prisma.event.update({

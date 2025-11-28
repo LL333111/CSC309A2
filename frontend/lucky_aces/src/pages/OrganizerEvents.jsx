@@ -150,6 +150,7 @@ function OrganizerEvents() {
                       {status !== "upcoming" && <div>
                         <button onClick={() => navigate(`/reward_points/${event.id}`)}>Reward Points</button>
                       </div>}
+                      <button onClick={() => navigate(`/edit_events_users/${event.id}`)}>Edit Event Users</button>
                     </div>
                   </div>
                 );

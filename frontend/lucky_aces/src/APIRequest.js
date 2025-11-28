@@ -1,4 +1,4 @@
-const API = "";
+const API = "http://localhost:3001";
 
 // /auth/tokens
 export async function login(utorid, password) {
@@ -726,5 +726,83 @@ export async function createRewardTransaction(amount, utorid, remark, token, eve
   } catch (error) {
     console.error("create adjustment transactions API request error: ", error);
     alert("create adjustment transactions API request error");
+  }
+}
+
+// /events/:eventId/organizers
+export async function addOrganizer(utorid, eventId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}/organizers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        utorid,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("add organizer API request error: ", error);
+    alert("add organizer API request error");
+  }
+}
+
+// /events/:eventId/organizers/:userId
+export async function removeOrganizer(eventId, userId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}/organizers/${userId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("remove organizer API request error: ", error);
+    alert("remove organizer API request error");
+  }
+}
+
+// /events/:eventId/guests
+export async function addGuest(utorid, eventId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}/guests`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        utorid,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("add guests API request error: ", error);
+    alert("add guests API request error");
+  }
+}
+
+// /events/:eventId/organizers/:userId
+export async function removeGuest(eventId, userId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}/guests/${userId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("remove guests API request error: ", error);
+    alert("remove guests API request error");
   }
 }
