@@ -124,7 +124,7 @@ function YourTransactions() {
       case "transfer":
         return `${transaction.sender === user.utorid ? "-" : ""}${formatNumber(transaction.sent)} pts`;
       case "event":
-        return `${formatNumber(transaction.awarded)} pts`;
+        return `${formatNumber(transaction.amount)} pts`;
       default:
         return `${formatNumber(transaction.amount)} pts`;
     }
