@@ -367,9 +367,9 @@ function VEDPromotion() {
                         </button>
                     </form>
 
-                    <button onClick={() => handleDeletePromotion(promotionData.id)} className="delete-btn" disabled={deleting}>
+                    {new Date(copyPromotionData.startTime) > new Date() && <button onClick={() => handleDeletePromotion(promotionData.id)} className="delete-btn" disabled={deleting}>
                         {deleting ? "Deleting..." : "Delete Promotion"}
-                    </button>
+                    </button>}
                 </>
             )}
         </div>
