@@ -141,7 +141,7 @@ function EventRSVP() {
     };
 
     return (
-        <div className="event-rsvp-container">
+        <div className="event-rsvp-container" data-surface="flat">
             {_loading ? (
                 <div className="loading-container">
                     <h2>Loading...</h2>
@@ -157,7 +157,10 @@ function EventRSVP() {
                 <>
                     <div className="event-detail-card">
                         <div className="event-header">
-                            <h1>{eventData.name}</h1>
+                            <div>
+                                <p className="eyebrow">Events · RSVP</p>
+                                <h1 className="page-title">{eventData.name}</h1>
+                            </div>
                             <span className={`status-badge status-${getEventStatus()}`}>
                                 {getEventStatus().toUpperCase()}
                             </span>

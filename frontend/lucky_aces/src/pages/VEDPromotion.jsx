@@ -218,16 +218,28 @@ function VEDPromotion() {
     };
 
     return (
-        <div className="ved-promotion-container">
+        <div className="ved-promotion-container" data-surface="flat">
             {_loading ? (
-                <div>
-                    <h2>Loading...</h2>
+                <div className="loading-container" data-surface="flat">
+                    <h2>Loading promotion tools...</h2>
+                    <p>Fetching the latest promotion rules.</p>
                 </div>
             ) : (
-                <>
-                    <form onSubmit={handleUpdatePromotion} className="promotion-form">
-                        <h1>Edit Your Promotion</h1>
+                <section className="promotion-manage-panel">
+                    <div className="form-hero">
+                        <div>
+                            <p className="eyebrow">Promotions · Manage</p>
+                            <h1 className="page-title">{promotionData.name || 'Manage Promotion'}</h1>
+                            <p className="page-subtitle">Update rules, rewards, and scheduling for this promotion.</p>
+                        </div>
+                        <div className="hero-meta">
+                            {promotionData.type && (
+                                <span className="status-chip status-info">{promotionData.type}</span>
+                            )}
+                        </div>
+                    </div>
 
+                    <form onSubmit={handleUpdatePromotion} className="promotion-form">
                         {/* View-only field: id (in GET, not in PATCH) */}
                         <div className="form-group">
                             <label>Promotion ID: </label>

@@ -2,6 +2,7 @@ import { useLoggedInUser } from '../contexts/LoggedInUserContext'
 import { useState, useEffect } from 'react';
 import { transferTransaction } from '../APIRequest';
 import { useParams } from 'react-router-dom';
+import "./TransactionFormPages.css";
 
 function CreateTransferTransaction() {
   const { utorid } = useParams();
@@ -64,52 +65,78 @@ function CreateTransferTransaction() {
   }
 
   return (
-    <div>
+    <div className="page-shell single-form-page" data-surface="flat">
       {_loading ? (
-        <div>
+        <div className="loading-container" data-surface="flat">
           <h2>Loading...</h2>
-          {/* 可以添加加载动画 */}
+          <p>Preparing your transfer workspace.</p>
         </div>
       ) : (
-        <form onSubmit={(e) => handleSubmit(e)}>
-          <h1>Create Transfer Transaction</h1>
-          {success && <h3>{`Successfully made a transfer transaction to ${utoridShow}!`}</h3>}
-          {forbidden && <p>Sorry, You need to be verified before using this function.</p>}
+        <section className="transaction-form-card">
           <div>
-            <label htmlFor="recipientIDInput">Recipient ID: </label>
-            <input
-              id="recipientIDInput"
-              type="text"
-              value={recipientIDInput}
-              onChange={(e) => setRecipientIDInput(e.target.value)}
-              required
-            />
-            {badRequest && <p>The ID of the recipient</p>}
-            {noUser && <p>No user with given ID</p>}
+            <p className="eyebrow">Wallet · Transfer</p>
+            <h1 className="page-title">Create Transfer Transaction</h1>
+            <p className="page-subtitle single-form-subtitle">Send points securely between verified community members.</p>
           </div>
-          <div>
-            <label htmlFor="amountInput">Amount: </label>
-            <input
-              id="amountInput"
-              type="text"
-              value={amountInput}
-              onChange={(e) => setAmountInput(e.target.value)}
-              required
-            />
-            {badRequest && <p>Must be a positive integer value, and less than the number of points you have.</p>}
+
+          <div className="transaction-feedback">
+            {success && (
+              <div className="success-message">
+                {`Successfully transferred points to ${utoridShow}.`}
+              </div>
+            )}
+            {forbidden && (
+              <div className="error-message">You must be verified before sending transfers.</div>
+            )}
+            {noUser && (
+              <div className="error-message">No user exists with the provided UTORid.</div>
+            )}
           </div>
-          <div>
-            <label htmlFor="remarkInput">Remark: </label>
-            <input
-              id="remarkInput"
-              type="text"
-              value={remarkInput}
-              onChange={(e) => setRemarkInput(e.target.value)}
-            />
-            {badRequest && <p>Any remark regarding this transaction</p>}
-          </div>
-          <button type="submit">Transfer</button>
-        </form>
+
+          <form className="transaction-form" onSubmit={(e) => handleSubmit(e)}>
+            <div className="form-group">
+              <label htmlFor="recipientIDInput">Recipient ID</label>
+              <input
+                id="recipientIDInput"
+                type="text"
+                value={recipientIDInput}
+                onChange={(e) => setRecipientIDInput(e.target.value)}
+                placeholder="Enter UTORid"
+                required
+              />
+              {badRequest && <p className="field-error">Please provide a valid recipient UTORid.</p>}
+            </div>
+            <div className="form-group">
+              <label htmlFor="amountInput">Amount</label>
+              <input
+                id="amountInput"
+                type="number"
+                min="1"
+                step="1"
+                value={amountInput}
+                onChange={(e) => setAmountInput(e.target.value)}
+                required
+              />
+              {badRequest && (
+                <p className="field-error">Must be a positive integer within your available balance.</p>
+              )}
+            </div>
+            <div className="form-group">
+              <label htmlFor="remarkInput">Remark</label>
+              <input
+                id="remarkInput"
+                type="text"
+                value={remarkInput}
+                onChange={(e) => setRemarkInput(e.target.value)}
+                placeholder="Optional context"
+              />
+              {badRequest && <p className="field-error">Share any short remark about this transfer.</p>}
+            </div>
+            <div className="form-actions">
+              <button className="btn-primary" type="submit">Transfer Points</button>
+            </div>
+          </form>
+        </section>
       )}
     </div>
   )

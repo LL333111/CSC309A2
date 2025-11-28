@@ -98,141 +98,192 @@ function UpdateUser() {
     }
 
     // 3 is manager, 4 is superuser
+    const isLoadingUser = _loading || !userData;
+    const hasManagerPrivileges = role === 3 || role === 4;
+    const isSuperuser = role === 4;
+    const roleBadgeClass = userData?.role ? `role-${userData.role}` : 'role-regular';
+
     return (
-        <div className="update-user-container">
-            <h2>Update User</h2>
-            {_loading || !userData ? (
+        <div className="update-user-container" data-surface="flat">
+            {isLoadingUser ? (
                 <div className="loading-container">
-                    <p>Loading user data...</p>
+                    <h2>Loading...</h2>
+                    <p>Retrieving member details.</p>
+                </div>
+            ) : !userData ? (
+                <div className="error-container">
+                    <h2>User Not Found</h2>
+                    <button className="back-btn" onClick={() => navigate('/all_users')}>
+                        Back to All Users
+                    </button>
                 </div>
             ) : (
-                <>
-                    {/* User Information Card */}
-                    <div className="user-info-card">
-                        <h3>User Information</h3>
-                        <p><strong>User ID:</strong> {userId}</p>
-                        <p><strong>Name:</strong> {userData.name}</p>
-                        <p><strong>Email:</strong> {userData.email}</p>
-                        <p><strong>Role:</strong> {userData.role}</p>
-                        <p><strong>Points:</strong> {userData.points}</p>
-                        <p><strong>Verified:</strong> {userData.verified ? "Yes" : "No"}</p>
-                        <p><strong>Suspicious:</strong> {userData.suspicious ? "Yes" : "No"}</p>
-                        {userData.birthday && <p><strong>Birthday:</strong> {userData.birthday}</p>}
+                <div className="user-detail-card">
+                    <div className="user-header">
+                        <div>
+                            <p className="eyebrow">Directory · User Detail</p>
+                            <h1 className="page-title">{userData.name || userData.email || 'Update User'}</h1>
+                            <p className="user-subtitle">Adjust permissions, verification state, and trust flags for this account.</p>
+                        </div>
+                        <div className="user-header-meta">
+                            <span className={`status-badge ${roleBadgeClass}`}>{userData.role || 'unknown'}</span>
+                            {userData.suspicious && <span className="status-badge status-flagged">Flagged</span>}
+                        </div>
                     </div>
 
-                    {/* Actions Section */}
-                    <div className="actions-section">
-                        <h3>Available Actions</h3>
+                    <div className="user-info-grid">
+                        <div className="info-item">
+                            <strong>User ID</strong>
+                            <p>{userId}</p>
+                        </div>
+                        <div className="info-item">
+                            <strong>Email</strong>
+                            <p>{userData.email || '—'}</p>
+                        </div>
+                        <div className="info-item">
+                            <strong>Points</strong>
+                            <p>{userData.points ?? 0}</p>
+                        </div>
+                        <div className="info-item">
+                            <strong>Verified</strong>
+                            <p>{userData.verified ? 'Yes' : 'No'}</p>
+                        </div>
+                        <div className="info-item">
+                            <strong>Activated</strong>
+                            <p>{userData.activated ? 'Yes' : 'No'}</p>
+                        </div>
+                        {userData.birthday && (
+                            <div className="info-item">
+                                <strong>Birthday</strong>
+                                <p>{userData.birthday}</p>
+                            </div>
+                        )}
+                    </div>
 
-                        {(role === 3 || role === 4) ? (
-                            <div className="button-group">
+                    <div className="status-pill-row">
+                        <span className={`status-pill ${userData.verified ? 'status-verified' : 'status-unverified'}`}>
+                            {userData.verified ? 'Verified' : 'Unverified'}
+                        </span>
+                        <span className={`status-pill ${userData.activated ? 'status-active' : 'status-inactive'}`}>
+                            {userData.activated ? 'Activated' : 'Inactive'}
+                        </span>
+                        {userData.suspicious && (
+                            <span className="status-pill status-flagged">Suspicious</span>
+                        )}
+                    </div>
+
+                    <div className="action-section">
+                        <h3>Manager Controls</h3>
+                        {hasManagerPrivileges ? (
+                            <div className="action-grid">
                                 {!userData.verified && (
                                     <button
-                                        className="action-button verify-button"
+                                        className="action-btn action-success"
                                         onClick={handleVerifyUser}
                                         disabled={actionLoading}
                                     >
-                                        {actionLoading ? 'Verifying...' : 'Verify User'}
+                                        {actionLoading ? 'Verifying…' : 'Verify User'}
                                     </button>
                                 )}
                                 {userData.role === "regular" && !userData.suspicious && (
                                     <button
-                                        className="action-button promote-button"
+                                        className="action-btn action-primary"
                                         onClick={handlePromoteToCashier}
                                         disabled={actionLoading}
                                     >
-                                        {actionLoading ? 'Promoting...' : 'Promote to Cashier'}
+                                        {actionLoading ? 'Promoting…' : 'Promote to Cashier'}
                                     </button>
                                 )}
                                 {userData.role === "cashier" && !userData.suspicious && (
                                     <button
-                                        className="action-button suspicious-button"
+                                        className="action-btn action-warning"
                                         onClick={handleMarkSuspicious}
                                         disabled={actionLoading}
                                     >
-                                        {actionLoading ? 'Marking...' : 'Mark Suspicious Flag'}
+                                        {actionLoading ? 'Flagging…' : 'Mark Suspicious'}
                                     </button>
                                 )}
                                 {userData.role === "cashier" && userData.suspicious && (
                                     <button
-                                        className="action-button suspicious-button"
+                                        className="action-btn action-warning"
                                         onClick={handleClearSuspicious}
                                         disabled={actionLoading}
                                     >
-                                        {actionLoading ? 'Clearing...' : 'Clear Suspicious Flag'}
+                                        {actionLoading ? 'Clearing…' : 'Clear Suspicious Flag'}
                                     </button>
                                 )}
                                 {userData.role === "cashier" && (
                                     <button
-                                        className="action-button revoke-button"
+                                        className="action-btn action-danger"
                                         onClick={handleRevokeCashier}
                                         disabled={actionLoading}
                                     >
-                                        {actionLoading ? 'Revoking...' : 'Revoke Cashier Status'}
+                                        {actionLoading ? 'Revoking…' : 'Revoke Cashier Role'}
                                     </button>
                                 )}
                             </div>
                         ) : (
-                            <div className="warning-notice">
-                                You must be a Manager or Superuser.
+                            <div className="notice warning-notice">
+                                You must be a manager or superuser to update this account.
                             </div>
                         )}
+                    </div>
 
-                        {role === 4 && (
-                            <div className="button-group">
+                    {isSuperuser && (
+                        <div className="action-section">
+                            <h3>Superuser Controls</h3>
+                            <div className="action-grid">
                                 {(userData.role === "regular" || userData.role === "cashier") && (
                                     <button
-                                        className="action-button promote-button"
+                                        className="action-btn action-primary"
                                         onClick={handlePromoteToManager}
                                         disabled={actionLoading}
                                     >
-                                        {actionLoading ? 'Promoting...' : 'Promote to Manager'}
+                                        {actionLoading ? 'Promoting…' : 'Promote to Manager'}
                                     </button>
                                 )}
                                 {userData.role !== "superuser" && (
                                     <button
-                                        className="action-button promote-button"
+                                        className="action-btn action-primary"
                                         onClick={handlePromoteToSuperuser}
                                         disabled={actionLoading}
                                     >
-                                        {actionLoading ? 'Promoting...' : 'Promote to Superuser'}
+                                        {actionLoading ? 'Promoting…' : 'Promote to Superuser'}
                                     </button>
                                 )}
                                 {userData.role === "manager" && (
                                     <button
-                                        className="action-button revoke-button"
+                                        className="action-btn action-danger"
                                         onClick={handleRevokeManager}
                                         disabled={actionLoading}
                                     >
-                                        {actionLoading ? 'Revoking...' : 'Revoke Manager Status'}
+                                        {actionLoading ? 'Revoking…' : 'Revoke Manager Role'}
                                     </button>
                                 )}
                             </div>
-                        )}
-                        {/* Warning for suspicious users */}
-                        {userData.role === "regular" && userData.suspicious && (role === 3 || role === 4) && (
-                            <div className="warning-notice">
-                                Cannot promote to Cashier: User is flagged as suspicious.
-                            </div>
-                        )}
+                        </div>
+                    )}
 
-                        {/* Info for manager/superuser users */}
-                        {(userData.role === "manager" || userData.role === "superuser") && role === 3 && (
-                            <div className="info-notice">
-                                This user is a {userData.role}. Only superusers can modify manager/superuser roles.
-                            </div>
-                        )}
+                    {userData.role === "regular" && userData.suspicious && hasManagerPrivileges && (
+                        <div className="notice warning-notice">
+                            Cannot promote to cashier while the suspicious flag is active.
+                        </div>
+                    )}
 
-                        {/* Back button */}
-                        <button
-                            className="cancel-button"
-                            onClick={() => navigate('/all_users')}
-                            style={{ marginTop: 'var(--spacing-lg)' }}
-                        >
-                            Back to All Users
-                        </button>
-                    </div>
-                </>
+                    {(userData.role === "manager" || userData.role === "superuser") && role === 3 && (
+                        <div className="notice info-notice">
+                            This account is {userData.role}. Only superusers can modify manager or superuser roles.
+                        </div>
+                    )}
+
+                    <button
+                        type="button"
+                        className="back-btn"
+                        onClick={() => navigate('/all_users')}
+                    >
+                        Back to All Users
+                    </button>
+                </div>
             )}
         </div>
     );

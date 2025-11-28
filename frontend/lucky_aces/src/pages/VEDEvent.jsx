@@ -227,16 +227,28 @@ function VEDEvent() {
     };
 
     return (
-        <div className="ved-event-container">
+        <div className="ved-event-container" data-surface="flat">
             {_loading ? (
-                <div>
-                    <h2>Loading...</h2>
+                <div className="loading-container" data-surface="flat">
+                    <h2>Loading event tools...</h2>
+                    <p>Pulling the latest event details.</p>
                 </div>
             ) : (
-                <>
-                    <form onSubmit={handleUpdateEvent} className="event-form">
-                        <h1>View Your Event</h1>
+                <section className="event-manage-panel">
+                    <div className="form-hero">
+                        <div>
+                            <p className="eyebrow">Events · Manage</p>
+                            <h1 className="page-title">{eventData.name || 'Manage Event'}</h1>
+                            <p className="page-subtitle">Adjust timing, capacity, and publishing state for this event.</p>
+                        </div>
+                        <div className="hero-meta">
+                            <span className={`status-chip ${eventData.published ? 'status-live' : 'status-draft'}`}>
+                                {eventData.published ? 'Published' : 'Draft'}
+                            </span>
+                        </div>
+                    </div>
 
+                    <form onSubmit={handleUpdateEvent} className="event-form">
                         <div className="form-group">
                             <label>Event ID: </label>
                             <span className="readonly-field">{eventData.id}</span>
@@ -448,17 +460,21 @@ function VEDEvent() {
                                 </select>
                             </div>}
 
-                        <button type="submit" className="submit-btn" disabled={editing}>
-                            {editing ? "Updating..." : "Update Event"}
-                        </button>
-                    </form>
-                    {!deletePublished && (
-                        <button onClick={() => handleDeleteEvent(eventData.id)} className="delete-btn" disabled={deleting}>
-                            {deleting ? "Deleting..." : "Delete Event"}
-                        </button>
-                    )}
+                        <div className="form-actions">
+                            <button type="submit" className="submit-btn" disabled={editing}>
+                                {editing ? "Updating..." : "Update Event"}
+                            </button>
+                        </div>
+                        </form>
 
-                </>
+                        {!deletePublished && (
+                            <div className="danger-zone">
+                                <button type="button" onClick={() => handleDeleteEvent(eventData.id)} className="delete-btn" disabled={deleting}>
+                                    {deleting ? "Deleting..." : "Delete Event"}
+                                </button>
+                            </div>
+                        )}
+                    </section>
             )}
         </div>
     )

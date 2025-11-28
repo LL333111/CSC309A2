@@ -1,0 +1,58 @@
+/* Login Page - Refined glassmorphism */
+
+.login-container {
+    width: min(540px, 100%);
+    margin: 0 auto;
+    padding: clamp(2rem, 4vw, 4rem) 1.25rem;
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: var(--radius-lg);
+    padding: clamp(2rem, 3vw, 3rem);
+    border: 1px solid rgba(31, 111, 235, 0.12);
+    box-shadow: var(--shadow-md);
+    text-align: left;
+}
+
+.login-card h1 {
+    margin: 0;
+    text-align: center;
+}
+
+.login-subtitle {
+    text-align: center;
+    color: var(--neutral-500);
+    margin-bottom: 2rem;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.login-button {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.register-link {
+    margin-top: 2rem;
+    text-align: center;
+    color: var(--neutral-500);
+}
+
+.register-link p {
+    margin: 0.35rem 0;
+}
+
+.register-link a {
+    color: var(--brand-primary-500);
+}
+
+@media (max-width: 768px) {
+    .login-card {
+        padding: 2rem 1.5rem;
+    }
+}

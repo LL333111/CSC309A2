@@ -114,27 +114,86 @@ function AllTransactions() {
     fetchTransactions();
   }
 
+  const formatNumber = (value) => value === null || value === undefined ? "—" : Number(value).toLocaleString();
+
+  const formatAmount = (transaction) => {
+    switch (transaction.type) {
+      case "purchase":
+        return `${formatNumber(transaction.amount ?? transaction.spent)} pts`;
+      case "redemption":
+        return `-${formatNumber(transaction.redeemed)} pts`;
+      case "adjustment":
+        return `${formatNumber(transaction.amount)} pts`;
+      case "transfer":
+        return `${formatNumber(transaction.sent)} pts`;
+      case "event":
+        return `${formatNumber(transaction.awarded)} pts`;
+      default:
+        return `${formatNumber(transaction.amount)} pts`;
+    }
+  };
+
+  const getPrimaryParty = (transaction) => {
+    switch (transaction.type) {
+      case "transfer":
+        return transaction.sender ? `Sender: ${transaction.sender}` : "Sender: —";
+      case "event":
+        return transaction.recipient ? `Recipient: ${transaction.recipient}` : "Recipient: —";
+      default:
+        return transaction.utorid ? `User: ${transaction.utorid}` : "User: —";
+    }
+  };
+
+  const getSecondaryParty = (transaction) => {
+    switch (transaction.type) {
+      case "transfer":
+        return transaction.recipient ? `Recipient: ${transaction.recipient}` : null;
+      case "event":
+        return transaction.relatedId ? `Event ID: ${transaction.relatedId}` : null;
+      case "adjustment":
+        return transaction.relatedId ? `Related Tx: ${transaction.relatedId}` : null;
+      case "redemption":
+        return transaction.relatedId ? `Processed by #${transaction.relatedId}` : "Unprocessed";
+      default:
+        return null;
+    }
+  };
+
+  const getPromotionSummary = (transaction) => {
+    if (!transaction.promotionIds || transaction.promotionIds.length === 0) {
+      return "No promotion";
+    }
+    return `Promo ${transaction.promotionIds.map((promo) => `#${promo.id}`).join(", ")}`;
+  };
+
+  const capitalize = (value) => value ? value.charAt(0).toUpperCase() + value.slice(1) : "—";
+
   return (
-    <div className="all-transactions-container">
+    <div className="page-shell transactions-page">
       {_loading ? (
-        <div className="loading-container">
+        <div className="loading-container" data-surface="flat">
           <h2>Loading...</h2>
         </div>
       ) : (
-        <div>
-          <div className="page-header">
-            <h1 className="page-title">All Transactions</h1>
-            <p className="page-subtitle">Browse all transaction. Filter by type, ID, or status.</p>
-          </div>
+        <>
+          <header className="transactions-header" data-surface="flat">
+            <div>
+              <p className="eyebrow">Ledger · Transactions</p>
+              <h1 className="page-title">All Transactions</h1>
+              <p className="page-subtitle">Audit every transaction with precise filters and quick links.</p>
+            </div>
+            <div className="header-actions">
+              <button className="filter-toggle-btn" onClick={toggleFilter}>
+                {isFilterOpen ? "Hide Filters" : "Show Filters"}
+              </button>
+            </div>
+          </header>
 
-          <button className="filter-toggle-btn" onClick={toggleFilter}>
-            Filter {isFilterOpen ? '✕' : '☰'}
-          </button>
           {isFilterOpen && (
             <section className="filter-panel">
               <div className="filter-grid">
                 <div className="filter-group">
-                  <label htmlFor="type-filter">Type: </label>
+                  <label htmlFor="type-filter">Type</label>
                   <select
                     id="type-filter"
                     value={typeFilter}
@@ -149,17 +208,17 @@ function AllTransactions() {
                   </select>
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="createdBy-filter">Created By: </label>
+                  <label htmlFor="createdBy-filter">Created By</label>
                   <input
                     type="text"
                     id="createdBy-filter"
                     value={createdByFilter}
                     onChange={(e) => setCreatedByFilter(e.target.value)}
-                    placeholder="UTORID.."
+                    placeholder="UTORID"
                   />
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="suspicious-filter">Suspicious: </label>
+                  <label htmlFor="suspicious-filter">Suspicious</label>
                   <select
                     id="suspicious-filter"
                     value={suspiciousFilter}
@@ -171,7 +230,7 @@ function AllTransactions() {
                   </select>
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="promotionId-filter">Promotion ID: </label>
+                  <label htmlFor="promotionId-filter">Promotion ID</label>
                   <input
                     type="number"
                     id="promotionId-filter"
@@ -183,7 +242,7 @@ function AllTransactions() {
                   />
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="relatedId-filter">Related ID: </label>
+                  <label htmlFor="relatedId-filter">Related ID</label>
                   <input
                     type="number"
                     id="relatedId-filter"
@@ -194,13 +253,11 @@ function AllTransactions() {
                     step="1"
                   />
                   {relatedIdFilter && typeFilter === "any" && (
-                    <small>
-                      When using the Related ID filter, the type must be selected.
-                    </small>
+                    <small>When using the Related ID filter, the type must be selected.</small>
                   )}
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="operator-filter">Amount Operator: </label>
+                  <label htmlFor="operator-filter">Amount Operator</label>
                   <select
                     id="operator-filter"
                     value={operatorFilter}
@@ -212,7 +269,7 @@ function AllTransactions() {
                   </select>
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="amount-filter">Amount: </label>
+                  <label htmlFor="amount-filter">Amount</label>
                   <input
                     type="number"
                     id="amount-filter"
@@ -222,9 +279,7 @@ function AllTransactions() {
                     step="0.01"
                   />
                   {amountFilter && operatorFilter === "any" && (
-                    <small>
-                      When using the amount filter, you must select the operator.
-                    </small>
+                    <small>When using the amount filter, you must select the operator.</small>
                   )}
                 </div>
               </div>
@@ -235,148 +290,102 @@ function AllTransactions() {
             </section>
           )}
 
-          <div className="transactions-list">
+          <section className="table-card" data-surface="flat">
             {transactionList.length === 0 ? (
-              <div className="no-transactions">
-                <p>No transactions found.</p>
+              <div className="empty-state">
+                <div className="empty-state-icon">📄</div>
+                <h3>No transactions found</h3>
+                <p>Try broadening your filters or refresh the search.</p>
               </div>
             ) : (
-              transactionList.map((transaction) => (
-                <div
-                  className="transaction-card"
-                  data-type={transaction.type}
-                  key={transaction.id}
-                >
-                  <div className="transaction-header">
-                    <h3>Transaction ID: {transaction.id}</h3>
-                  </div>
-                  <div className="transaction-details">
-                    {transaction.type === "purchase" && (
-                      <>
-                        <p><strong>Type: </strong>{transaction.type}</p>
-                        <p><strong>User: </strong>{transaction.utorid}</p>
-                        <p><strong>Spent: </strong>{transaction.spent}</p>
-                        <p><strong>Amount: </strong>{transaction.amount}</p>
-                        <p><strong>Used Promotion: </strong>{transaction.promotionIds.length === 0 ? "No Promotion" : transaction.promotionIds.map(object => object.id).join(', ')}</p>
-                        <p><strong>Remark: </strong>{transaction.remark}</p>
-                        <p><strong>Created By: </strong>{transaction.createdBy}</p>
-                      </>
-                    )}
+              <div className="table-scroll">
+                <table className="data-table transactions-table">
+                  <thead>
+                    <tr>
+                      <th>Transaction</th>
+                      <th>Type</th>
+                      <th>Parties</th>
+                      <th>Amount</th>
+                      <th>Promotions / Flags</th>
+                      <th>Created By</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactionList.map((transaction) => {
+                      const primaryParty = getPrimaryParty(transaction);
+                      const secondaryParty = getSecondaryParty(transaction);
+                      const promotionSummary = getPromotionSummary(transaction);
+                      const typeLabel = capitalize(transaction.type);
 
-                    {transaction.type === "purchase" && (
-                      <button
-                        className="edit-btn"
-                        onClick={() => navigate(`/specific_transaction/${transaction.id}`)}
-                      >
-                        Edit
-                      </button>
-                    )}
-
-                    {transaction.type === "adjustment" && (
-                      <>
-                        <p><strong>Type: </strong>{transaction.type}</p>
-                        <p><strong>User: </strong>{transaction.utorid}</p>
-                        <p><strong>Amount: </strong>{transaction.amount}</p>
-                        <p><strong>Used Promotion: </strong>{transaction.promotionIds.length === 0 ? "No Promotion" : transaction.promotionIds.map(object => object.id).join(', ')}</p>
-                        <p><strong>Related Transaction: </strong>{transaction.relatedId}</p>
-                        <p><strong>Remark: </strong>{transaction.remark}</p>
-                        <p><strong>Created By: </strong>{transaction.createdBy}</p>
-                      </>
-                    )}
-
-                    {transaction.type === "adjustment" && (
-                      <button
-                        className="edit-btn"
-                        onClick={() => navigate(`/specific_transaction/${transaction.id}`)}
-                      >
-                        Edit
-                      </button>
-                    )}
-
-                    {transaction.type === "transfer" && (
-                      <>
-                        <p><strong>Type: </strong>{transaction.type}</p>
-                        <p><strong>Amount: </strong>{transaction.sent}</p>
-                        <p><strong>Sender: </strong>{transaction.sender}</p>
-                        <p><strong>Recipient: </strong>{transaction.recipient}</p>
-                        <p><strong>Remark: </strong>{transaction.remark}</p>
-                      </>
-                    )}
-
-                    {transaction.type === "transfer" && (
-                      <button
-                        className="edit-btn"
-                        onClick={() => navigate(`/specific_transaction/${transaction.id}`)}
-                      >
-                        Edit
-                      </button>
-                    )}
-
-                    {transaction.type === "redemption" && (
-                      <>
-                        <p><strong>Type: </strong>{transaction.type}</p>
-                        <p><strong>User: </strong>{transaction.utorid}</p>
-                        <p><strong>Redeemed: </strong>{transaction.redeemed}</p>
-                        <p><strong>Remark: </strong>{transaction.remark}</p>
-                        <p><strong>Created By: </strong>{transaction.createdBy}</p>
-                        <p><strong>Processed By: </strong>{transaction.relatedId === null ? "Unprocessed" : transaction.relatedId}</p>
-                      </>
-                    )}
-
-                    {transaction.type === "redemption" && (
-                      <button
-                        className="edit-btn"
-                        onClick={() => navigate(`/specific_transaction/${transaction.id}`)}
-                      >
-                        Edit
-                      </button>
-                    )}
-
-                    {transaction.type === "event" && (
-                      <>
-                        <p><strong>Type: </strong>{transaction.type}</p>
-                        <p><strong>Amount: </strong>{transaction.awarded}</p>
-                        <p><strong>Recipient: </strong>{transaction.recipient}</p>
-                        <p><strong>Sender Event: </strong>{transaction.relatedId}</p>
-                        <p><strong>Remark: </strong>{transaction.remark}</p>
-                        <p><strong>Created By: </strong>{transaction.createdBy}</p>
-                      </>
-                    )}
-
-                    {transaction.type === "event" && (
-                      <button
-                        className="edit-btn"
-                        onClick={() => navigate(`/specific_transaction/${transaction.id}`)}
-                      >
-                        Edit
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))
+                      return (
+                        <tr key={transaction.id}>
+                          <td>
+                            <div className="table-cell-primary">
+                              <p className="table-title">Transaction #{transaction.id}</p>
+                              {transaction.remark && <p className="table-meta">{transaction.remark}</p>}
+                            </div>
+                          </td>
+                          <td>
+                            <span className="table-chip is-muted">{typeLabel}</span>
+                          </td>
+                          <td>
+                            <div className="table-meta-stack">
+                              <span>{primaryParty}</span>
+                              {secondaryParty && <span className="table-meta">{secondaryParty}</span>}
+                            </div>
+                          </td>
+                          <td>{formatAmount(transaction)}</td>
+                          <td>
+                            <div className="table-meta-stack">
+                              <span>{promotionSummary}</span>
+                              {transaction.suspicious && (
+                                <span className="table-chip is-danger">Flagged</span>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <div className="table-meta-stack">
+                              <span>{transaction.createdBy || "—"}</span>
+                              {transaction.updatedAt && (
+                                <span className="table-meta">Updated: {new Date(transaction.updatedAt).toLocaleDateString()}</span>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <div className="table-actions">
+                              <button
+                                type="button"
+                                className="btn-secondary"
+                                onClick={() => navigate(`/specific_transaction/${transaction.id}`)}
+                              >
+                                View
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </section>
 
           {transactionList.length > 0 && (
-            <div className="pagination">
-              <button
-                onClick={handlePrevious}
-                disabled={page === 1}
-              >
+            <section className="pagination" data-surface="flat">
+              <button onClick={handlePrevious} disabled={page === 1}>
                 Previous Page
               </button>
               <span>
                 Page {page} of {totalPage || 1}
               </span>
-              <button
-                onClick={handleNext}
-                disabled={page === totalPage}
-              >
+              <button onClick={handleNext} disabled={page === totalPage}>
                 Next Page
               </button>
-            </div>
+            </section>
           )}
-        </div>
+        </>
       )}
     </div>
   )

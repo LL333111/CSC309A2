@@ -139,13 +139,13 @@ function PublishedEvents() {
       ) : (
         <div>
           <div className="page-header">
+            <p className="eyebrow">Events · Published</p>
             <h1 className="page-title">Published Events</h1>
             <p className="page-subtitle">Browse all published events. Filter by name, location, or status to find events that interest you.</p>
+            <button className="filter-toggle-btn" onClick={toggleFilter}>
+              {isFilterOpen ? 'Hide Filters' : 'Show Filters'}
+            </button>
           </div>
-
-          <button className="filter-toggle-btn" onClick={toggleFilter}>
-            Filter {isFilterOpen ? '✕' : '☰'}
-          </button>
           {isFilterOpen && (
             <section className="filter-panel">
               <div className="filter-grid">

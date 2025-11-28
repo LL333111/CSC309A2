@@ -1,6 +1,7 @@
 import { useLoggedInUser } from '../contexts/LoggedInUserContext'
 import { useState, useEffect } from 'react';
 import { redemptionTransaction } from '../APIRequest';
+import "./TransactionFormPages.css";
 
 function CreateRedemptionTransaction() {
   const [_loading, _setLoading] = useState(true);
@@ -47,40 +48,57 @@ function CreateRedemptionTransaction() {
   }
 
   return (
-    <div>
+    <div className="page-shell single-form-page" data-surface="flat">
       {_loading ? (
-        <div>
+        <div className="loading-container" data-surface="flat">
           <h2>Loading...</h2>
-          {/* 可以添加加载动画 */}
+          <p>Preparing the redemption console.</p>
         </div>
       ) : (
-        <form onSubmit={(e) => handleSubmit(e)}>
-          <h1>Create Redemption Transaction</h1>
-          {success && <h3>{`Successfully made a redemption transaction!`}</h3>}
-          {forbidden && <p>Sorry, You need to be verified before using this function.</p>}
+        <section className="transaction-form-card">
           <div>
-            <label htmlFor="amountInput">Amount: </label>
-            <input
-              id="amountInput"
-              type="text"
-              value={amountInput}
-              onChange={(e) => setAmountInput(e.target.value)}
-              required
-            />
-            {badRequest && <p>Must be a positive integer value, and less than the number of points you have.</p>}
+            <p className="eyebrow">Wallet · Redemption</p>
+            <h1 className="page-title">Create Redemption Transaction</h1>
+            <p className="page-subtitle single-form-subtitle">Deduct points and capture the reason in one step.</p>
           </div>
-          <div>
-            <label htmlFor="remarkInput">Remark: </label>
-            <input
-              id="remarkInput"
-              type="text"
-              value={remarkInput}
-              onChange={(e) => setRemarkInput(e.target.value)}
-            />
-            {badRequest && <p>Any remark regarding this transaction</p>}
+
+          <div className="transaction-feedback">
+            {success && <div className="success-message">Redemption transaction submitted successfully.</div>}
+            {forbidden && <div className="error-message">You must be verified before completing redemptions.</div>}
           </div>
-          <button type="submit">Redeem</button>
-        </form>
+
+          <form className="transaction-form" onSubmit={(e) => handleSubmit(e)}>
+            <div className="form-group">
+              <label htmlFor="amountInput">Amount</label>
+              <input
+                id="amountInput"
+                type="number"
+                value={amountInput}
+                min="1"
+                step="1"
+                onChange={(e) => setAmountInput(e.target.value)}
+                required
+              />
+              {badRequest && (
+                <p className="field-error">Must be a positive integer within your available balance.</p>
+              )}
+            </div>
+            <div className="form-group">
+              <label htmlFor="remarkInput">Remark</label>
+              <input
+                id="remarkInput"
+                type="text"
+                value={remarkInput}
+                onChange={(e) => setRemarkInput(e.target.value)}
+                placeholder="Optional context"
+              />
+              {badRequest && <p className="field-error">Share a short remark for this redemption.</p>}
+            </div>
+            <div className="form-actions">
+              <button className="btn-primary" type="submit">Redeem Points</button>
+            </div>
+          </form>
+        </section>
       )}
     </div>
   )

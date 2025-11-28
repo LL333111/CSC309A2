@@ -138,19 +138,28 @@ function AllUsers() {
     }
   }
 
+  const hasUsers = userList.length > 0;
+
   return (
-    <div className="all-users-container">
+    <div className="page-shell all-users-page">
       {_loading ? (
-        <div className="loading-container">
+        <div className="loading-container" data-surface="flat">
           <h2>Loading...</h2>
-          {/* 可以添加加载动画 */}
+          <p>Collecting directory records.</p>
         </div>
       ) : (
-        <div>
-          <h1>All Users</h1>
-          <button className="filter-toggle-btn" onClick={toggleFilter}>
-            {isFilterOpen ? '✕ Hide Filters' : '☰ Show Filters'}
-          </button>
+        <>
+          <header className="users-header" data-surface="flat">
+            <div className="users-header-left">
+              <p className="eyebrow">Directory · Users</p>
+              <h1 className="page-title">All Users</h1>
+              <p className="page-subtitle">Monitor every member account and adjust access in one place.</p>
+              <button className="filter-toggle-btn" onClick={toggleFilter}>
+                {isFilterOpen ? 'Hide Filters' : 'Show Filters'}
+              </button>
+            </div>
+          </header>
+
           {isFilterOpen && (
             <section className="filter-panel">
               <h2>Filter Users</h2>
@@ -211,60 +220,91 @@ function AllUsers() {
             </section>
           )}
 
-          <div className="users-list">
-            {userList.length === 0 ? ( // 改为userList
-              <div className="no-users">
-                <p>No users found.</p> {/* 改为users */}
+          <section className="table-card users-table-card" data-surface="flat">
+            {!hasUsers ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">👥</div>
+                <h3>No users found</h3>
+                <p>Try another filter or widen your criteria.</p>
               </div>
             ) : (
-              userList.map((user) => ( // 改为userList和user
-                <div key={user.id} className="user-card">
-                  <div className="user-header">
-                    <h3 className="user-name">{user.name}</h3>
-                    <span className={`user-role-badge role-${user.role}`}>
-                      {getRoleDisplayName(user.role)}
-                    </span>
-                  </div>
-
-                  <div className="user-details">
-                    <p><strong>Email: </strong>{user.email}</p>
-                    <p><strong>Role: </strong>{getRoleDisplayName(user.role)}</p>
-                    <p><strong>Verified: </strong>{user.verified ? "Yes" : "No"}</p>
-                    <p><strong>Activated: </strong>{user.activated ? "Yes" : "No"}</p>
-                    <p><strong>Registration Date: </strong>{formatDate(user.registrationDate)}</p>
-                    <p><strong>Last Login: </strong>{formatDate(user.lastLogin)}</p>
-                  </div>
-                  <div className="user-admin-actions">
-                    <button className="user-update-btn" onClick={() => navigate(`/update_user/${user.id}`)}>Update User</button>
-                  </div>
-                </div>
-              ))
+              <div className="table-scroll">
+                <table className="data-table users-table">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Account Timeline</th>
+                      <th>Verification</th>
+                      <th>Access</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {userList.map((user) => (
+                      <tr key={user.id}>
+                        <td>
+                          <div className="table-cell-primary">
+                            <p className="table-title">{user.name || user.email}</p>
+                            <p className="table-meta">{user.email}</p>
+                            <p className="table-meta">User ID: {user.id}</p>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="table-meta-stack">
+                            <span>Registered: {formatDate(user.registrationDate)}</span>
+                            <span className="table-meta">Last login: {formatDate(user.lastLogin)}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="user-status-group">
+                            <span className={`table-chip ${user.verified ? 'status-active' : 'is-muted'}`}>
+                              {user.verified ? 'Verified' : 'Unverified'}
+                            </span>
+                            <span className={`table-chip ${user.activated ? 'status-active' : 'is-muted'}`}>
+                              {user.activated ? 'Activated' : 'Inactive'}
+                            </span>
+                            {user.suspicious && (
+                              <span className="table-chip is-danger">Suspicious</span>
+                            )}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="table-meta-stack">
+                            <span className="role-chip table-chip">{getRoleDisplayName(user.role)}</span>
+                            <span>Points: {user.points ?? 0}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="table-actions">
+                            <button className="btn-secondary" onClick={() => navigate(`/update_user/${user.id}`)}>
+                              Update
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </section>
 
-          {userList.length > 0 && ( // 改为userList
-            <div className="pagination">
-              <button
-                onClick={handlePrevious}
-                disabled={page === 1}
-              >
+          {hasUsers && (
+            <section className="pagination" data-surface="flat">
+              <button onClick={handlePrevious} disabled={page === 1}>
                 Previous Page
               </button>
               <span>
                 Page {page} of {totalPage || 1}
               </span>
-              <button
-                onClick={handleNext}
-                disabled={page === totalPage}
-              >
+              <button onClick={handleNext} disabled={page === totalPage}>
                 Next Page
               </button>
-            </div>
+            </section>
           )}
-        </div>
-      )
-      }
-    </div >
+        </>
+      )}
+    </div>
   )
 }
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { updateLoggedInUser } from "../APIRequest";
+import "./EditProfile.css";
 
 function EditProfile() {
   const [_loading, _setLoading] = useState(true);
