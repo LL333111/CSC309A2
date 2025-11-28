@@ -362,9 +362,11 @@ function VEDPromotion() {
                             </div>
                         )}
 
-                        <button type="submit" className="submit-btn" disabled={editing}>
-                            {editing ? "Updating..." : "Update Promotion"}
-                        </button>
+                        {new Date(copyPromotionData.endTime) < new Date() ?
+                            <strong>The promotion has already ended and cannot be changed.</strong> :
+                            <button type="submit" className="submit-btn" disabled={editing}>
+                                {editing ? "Updating..." : "Update Promotion"}
+                            </button>}
                     </form>
 
                     {new Date(copyPromotionData.startTime) > new Date() && <button onClick={() => handleDeletePromotion(promotionData.id)} className="delete-btn" disabled={deleting}>
