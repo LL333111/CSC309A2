@@ -302,24 +302,23 @@ function AllEvents() {
                               Reward Points
                             </button>
                           </div>
-                        </div>
-                      )}
-                      {status !== "upcoming" && <div>
-                        <button onClick={() => navigate(`/reward_points/${event.id}`)}>Reward Points</button>
-                      </div>}
-                    </div>
-                    <button onClick={() => navigate(`/edit_events_users/${event.id}`)}>Edit Event Users</button>
-                    <button
-                      className="ved-btn"
-                      onClick={() => navigate(`/ved_event/${event.id}`)}
-                    >
-                      View · Edit · Delete
-                    </button>
-                  </div>
-                );
-              })
-            )}
-          </div>
+                        )}
+                        {status !== "upcoming" && <div>
+                          <button onClick={() => navigate(`/reward_points/${event.id}`)}>Reward Points</button>
+                        </div>}
+                      </div>
+                      <button onClick={() => navigate(`/edit_events_users/${event.id}`)}>Edit Event Users</button>
+                      <button
+                        className="ved-btn"
+                        onClick={() => navigate(`/ved_event/${event.id}`)}
+                      >
+                        View · Edit · Delete
+                      </button>
+                    </article>
+                  );
+                })
+              )}
+            </div>
           </section>
 
           {eventList.length > 0 && (

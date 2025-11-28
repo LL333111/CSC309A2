@@ -425,7 +425,7 @@ function VEDPromotion() {
                     {new Date(copyPromotionData.startTime) > new Date() && <button onClick={() => handleDeletePromotion(promotionData.id)} className="delete-btn" disabled={deleting}>
                         {deleting ? "Deleting..." : "Delete Promotion"}
                     </button>}
-                </>
+                </section>
             )}
         </div>
     )
