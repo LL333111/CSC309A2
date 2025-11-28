@@ -525,7 +525,7 @@ async function seedData() {
       pointsRemain: 1000,
       pointsAwarded: 0,
       published: true,
-      capacity: null,
+      capacity: 4,
     },
     {
       name: "Mock Event 10",
@@ -536,7 +536,7 @@ async function seedData() {
       pointsRemain: 1500,
       pointsAwarded: 0,
       published: false,
-      capacity: 150,
+      capacity: 5,
     },
     {
       name: "Mock Event 11",
@@ -588,6 +588,7 @@ async function seedData() {
             { id: 10 },
           ]
         },
+        numGuests: 4,
       }
     });
   }

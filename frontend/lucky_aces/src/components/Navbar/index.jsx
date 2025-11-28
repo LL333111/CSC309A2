@@ -99,11 +99,11 @@ const Navbar = () => {
                     Transactions
                   </p>
                   <ul className={`dropdown-menu ${activeDropdown === 'transactions' ? 'show' : ''}`}>
-                    <li className={matchPath("/your_transactions") ? 'active' : ''} onClick={(e) => handleNavClick("YourTransactions", "/your_transactions", e)}>My Transactions</li>
-                    <li className={matchPath("/qr_init_transaction") ? 'active' : ''} onClick={(e) => handleNavClick("QRInitTransaction", "/qr_init_transaction", e)}>QR Transaction</li>
+                    <li className={matchPath("/your_transactions") ? 'active' : ''} onClick={(e) => handleNavClick("YourTransactions", "/your_transactions", e)}>Recent Transactions</li>
+                    <li className={matchPath("/qr_init_transaction") ? 'active' : ''} onClick={(e) => handleNavClick("QRInitTransaction", "/qr_init_transaction", e)}>QR Init Transaction</li>
                     <li className={matchPath("/transfer_transaction") ? 'active' : ''} onClick={(e) => handleNavClick("TransferTransaction", "/transfer_transaction", e)}>Transfer Points</li>
                     <li className={matchPath("/redemption_transaction") ? 'active' : ''} onClick={(e) => handleNavClick("RedemptionTransaction", "/redemption_transaction", e)}>Redeem Rewards</li>
-                    <li className={matchPath("/all_unprocessed_redemption_transaction") ? 'active' : ''} onClick={(e) => handleNavClick("AllUnprocessedRedemption", "/all_unprocessed_redemption_transaction", e)}>Pending Redemptions</li>
+                    <li className={matchPath("/all_unprocessed_redemption_transaction") ? 'active' : ''} onClick={(e) => handleNavClick("AllUnprocessedRedemption", "/all_unprocessed_redemption_transaction", e)}>Unprocessed Redemptions</li>
                   </ul>
                 </li>
 
@@ -113,8 +113,8 @@ const Navbar = () => {
                     Events
                   </p>
                   <ul className={`dropdown-menu ${activeDropdown === 'events' ? 'show' : ''}`}>
-                    <li className={matchPath("/published_events") ? 'active' : ''} onClick={(e) => handleNavClick("PublishedEvents", "/published_events", e)}>Browse Events</li>
-                    <li className={matchPath("/organizer_events") ? 'active' : ''} onClick={(e) => handleNavClick("OrganizerEvents", "/organizer_events", e)}>My Events</li>
+                    <li className={matchPath("/published_events") ? 'active' : ''} onClick={(e) => handleNavClick("PublishedEvents", "/published_events", e)}>Published Events</li>
+                    <li className={matchPath("/organizer_events") ? 'active' : ''} onClick={(e) => handleNavClick("OrganizerEvents", "/organizer_events", e)}>Organize Events</li>
                   </ul>
                 </li>
 
@@ -150,7 +150,7 @@ const Navbar = () => {
                   <li className={matchPath("/all_users") ? 'active' : ''} onClick={(e) => handleNavClick("AllUsers", "/all_users", e)}>Manage Users</li>
                   <li className={matchPath("/all_promotions") ? 'active' : ''} onClick={(e) => handleNavClick("AllPromotions", "/all_promotions", e)}>Manage Promotions</li>
                   <li className={matchPath("/all_events") ? 'active' : ''} onClick={(e) => handleNavClick("AllEvents", "/all_events", e)}>Manage Events</li>
-                  <li className={matchPath("/all_transactions") ? 'active' : ''} onClick={(e) => handleNavClick("AllTransactions", "/all_transactions", e)}>All Transactions</li>
+                  <li className={matchPath("/all_transactions") ? 'active' : ''} onClick={(e) => handleNavClick("AllTransactions", "/all_transactions", e)}>Manage Transactions</li>
                 </ul>
               </li>
             )}

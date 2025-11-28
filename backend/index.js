@@ -3428,7 +3428,8 @@ app.route("/users/me/transactions")
                         redeemed: true,
                         sender: true,
                         recipient: true,
-                        sent: true
+                        sent: true,
+                        utorid: true,
                     }
                 }
             }
