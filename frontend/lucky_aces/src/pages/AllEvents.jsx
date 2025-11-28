@@ -303,9 +303,6 @@ function AllEvents() {
                             </button>
                           </div>
                         )}
-                        {status !== "upcoming" && <div>
-                          <button onClick={() => navigate(`/reward_points/${event.id}`)}>Reward Points</button>
-                        </div>}
                       </div>
                       <button onClick={() => navigate(`/edit_events_users/${event.id}`)}>Edit Event Users</button>
                       <button

@@ -260,9 +260,6 @@ function AllUsers() {
                             <span className={`table-chip ${user.verified ? 'status-active' : 'is-muted'}`}>
                               {user.verified ? 'Verified' : 'Unverified'}
                             </span>
-                            <span className={`table-chip ${user.activated ? 'status-active' : 'is-muted'}`}>
-                              {user.activated ? 'Activated' : 'Inactive'}
-                            </span>
                             {user.suspicious && (
                               <span className="table-chip is-danger">Suspicious</span>
                             )}

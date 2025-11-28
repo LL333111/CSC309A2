@@ -164,9 +164,6 @@ function UpdateUser() {
                         <span className={`status-pill ${userData.verified ? 'status-verified' : 'status-unverified'}`}>
                             {userData.verified ? 'Verified' : 'Unverified'}
                         </span>
-                        <span className={`status-pill ${userData.activated ? 'status-active' : 'status-inactive'}`}>
-                            {userData.activated ? 'Activated' : 'Inactive'}
-                        </span>
                         {userData.suspicious && (
                             <span className="status-pill status-flagged">Suspicious</span>
                         )}
