@@ -6,7 +6,7 @@ import './EventRSVP.css';
 
 function EventRSVP() {
     const [_loading, _setLoading] = useState(true);
-    const { loading, token, user } = useLoggedInUser();
+    const { loading, token, user, update, setUpdate } = useLoggedInUser();
     const { eventId } = useParams();
     const navigate = useNavigate();
     const [actionLoading, setActionLoading] = useState(false);
@@ -27,6 +27,13 @@ function EventRSVP() {
         }
     }, [_loading, token, eventId]);
 
+    useEffect(() => {
+        if (eventData && user.guestsEvent) {
+            const attending = user.guestsEvent.some(guest => guest.id === eventData.id);
+            setIsAttending(attending);
+        }
+    }, [user, eventData]);
+
     const fetchEvent = async (eventId) => {
         try {
             const data = await getEventById(eventId, token);
@@ -34,14 +41,8 @@ function EventRSVP() {
             setEventData(data);
 
             // Check if current user is in the guests list
-            if (user && data.guests) {
-                const attending = data.guests.some(guest => guest.id === user.id);
-                setIsAttending(attending);
-            } else if (user && data.numGuests !== undefined) {
-                // For non-organizers, we can't see full guest list
-                // Need to track separately or check via another endpoint
-                setIsAttending(false);
-            }
+            const attending = user.guestsEvent.some(guest => guest.id === data.id);
+            setIsAttending(attending);
         } catch (error) {
             console.error("Failed to fetch event:", error);
         }
@@ -58,7 +59,8 @@ function EventRSVP() {
             if (result && result.id) {
                 alert("Successfully RSVP'd to the event!");
                 setIsAttending(true);
-                fetchEvent(eventId); // Refresh event data
+                setUpdate(!update);
+                await fetchEvent(eventId); // Refresh event data
             } else if (result === 400) {
                 alert("Event is full or you're already attending");
             } else if (result === 410) {
@@ -85,7 +87,8 @@ function EventRSVP() {
             if (status === 204) {
                 alert("Successfully cancelled RSVP");
                 setIsAttending(false);
-                fetchEvent(eventId); // Refresh event data
+                setUpdate(!update);
+                await fetchEvent(eventId); // Refresh event data
             } else if (status === 410) {
                 alert("Event has already ended");
             } else {
