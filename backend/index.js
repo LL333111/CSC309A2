@@ -2449,21 +2449,21 @@ app.route("/promotions/:promotionId")
             data.type = type;
         }
         if (startTime) {
-            if (typeof (startTime) !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(startTime)) {
+            if (typeof (startTime) !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/.test(startTime)) {
                 return res.status(400).json({ "Bad Request": "Invalid startTime" });
             }
-            data.startTime = startTime.split('.')[0] + 'Z';
+            data.startTime = startTime;
         }
         if (endTime) {
-            if (typeof (endTime) !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(endTime)) {
+            if (typeof (endTime) !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/.test(endTime)) {
                 return res.status(400).json({ "Bad Request": "Invalid endTime" });
             }
-            const startData = new Date(startTime);
-            const endData = new Date(endTime);
-            if (startTime && endData <= startData) {
+            const startDate = startTime ? new Date(startTime) : null;
+            const endDate = new Date(endTime);
+            if (startDate && endDate <= startDate) {
                 return res.status(400).json({ "Bad Request": "endTime must be after startTime" });
             }
-            data.endTime = endTime.split('.')[0] + 'Z';
+            data.endTime = endTime;
         }
         if (minSpending) {
             if (typeof (minSpending) !== "number" || isNaN(minSpending) || minSpending <= 0) {
