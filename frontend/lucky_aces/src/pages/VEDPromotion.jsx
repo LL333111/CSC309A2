@@ -4,12 +4,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getPromotionById, updatePromotionById, deletePromotionById } from "../APIRequest";
 import './VEDPromotion.css';
 
-
 function VEDPromotion() {
     const [_loading, _setLoading] = useState(true);
     const { loading, token } = useLoggedInUser();
     const { promotionId } = useParams();
-    const navigate = useNavigate(); // ISSUE FIX: Added navigate hook for redirect after delete
+    const navigate = useNavigate();
     const [editing, setEditing] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
@@ -17,11 +16,45 @@ function VEDPromotion() {
     const getCurrentDateTimeLocal = () => {
         return new Date().toISOString().slice(0, 16);
     };
+
+    // Get minimum end time: maximum of current time and start time
+    const getMinEndTime = () => {
+        const now = new Date();
+        const startTime = promotionData.startTime ? new Date(promotionData.startTime) : null;
+
+        // If startTime is not set, use current time
+        if (!startTime) {
+            return now.toISOString().slice(0, 16);
+        }
+
+        // Return the later of current time and startTime
+        return now > startTime ? now.toISOString().slice(0, 16) : startTime.toISOString().slice(0, 16);
+    };
+
+    // Convert local time to backend required format (without timezone information)
+    const localToISOString = (localDateTimeString) => {
+        if (!localDateTimeString) return '';
+
+        // Create a new Date object, parse local time string as local time
+        const localDate = new Date(localDateTimeString);
+
+        // Manually build ISO string to avoid timezone conversion
+        const year = localDate.getFullYear();
+        const month = String(localDate.getMonth() + 1).padStart(2, '0');
+        const day = String(localDate.getDate()).padStart(2, '0');
+        const hours = String(localDate.getHours()).padStart(2, '0');
+        const minutes = String(localDate.getMinutes()).padStart(2, '0');
+        const seconds = String(localDate.getSeconds()).padStart(2, '0');
+
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    };
+
     const [promotionData, setPromotionData] = useState({
         id: '',
         name: '',
         description: '',
         type: '',
+        startTime: '',
         endTime: '',
         minSpending: 0,
         rate: 0,
@@ -33,13 +66,14 @@ function VEDPromotion() {
         name: '',
         description: '',
         type: '',
+        startTime: '',
         endTime: '',
         minSpending: 0,
         rate: 0,
         points: 0
     });
 
-    // page protection
+    // Page protection
     useEffect(() => {
         const timer = setTimeout(() => {
             _setLoading(loading);
@@ -59,15 +93,17 @@ function VEDPromotion() {
             console.log(data);
 
             // Convert backend datetime format (ISO 8601) to datetime-local format (YYYY-MM-DDTHH:mm)
+            const startTimeFormatted = data.startTime ? data.startTime.slice(0, 16) : '';
             const endTimeFormatted = data.endTime ? data.endTime.slice(0, 16) : '';
 
             const formattedData = {
                 ...data,
-                endTime: endTimeFormatted
+                startTime: startTimeFormatted,
+                endTime: endTimeFormatted,
             };
 
-            setPromotionData({ ...formattedData, startime: '' });
-            setCopyPromotionData({ ...formattedData, startime: '' });
+            setPromotionData(formattedData);
+            setCopyPromotionData(formattedData);
         } catch (error) {
             console.error("Failed to fetch promotion:", error);
         }
@@ -81,63 +117,68 @@ function VEDPromotion() {
 
             // Only include fields that are editable per API spec
             if (promotionData.name !== undefined && promotionData.name !== '') {
-                if (new Date() >= new Date(promotionData.startTime)) {
+                if (new Date() >= new Date(copyPromotionData.startTime)) {
                     updateFields.name = null;
                 } else {
                     updateFields.name = promotionData.name;
                 }
             }
             if (promotionData.description !== undefined && promotionData.description !== '') {
-                if (new Date() >= new Date(promotionData.startTime)) {
+                if (new Date() >= new Date(copyPromotionData.startTime)) {
                     updateFields.description = null;
                 } else {
                     updateFields.description = promotionData.description;
                 }
             }
             if (promotionData.type !== undefined && promotionData.type !== '') {
-                if (new Date() >= new Date(promotionData.startTime)) {
+                if (new Date() >= new Date(copyPromotionData.startTime)) {
                     updateFields.type = null;
                 } else {
                     updateFields.type = promotionData.type;
                 }
             }
 
-            // Convert datetime-local to ISO 8601 format with microseconds
+            // Convert datetime-local to ISO 8601 format - use new conversion function to avoid timezone issues
             if (promotionData.startTime) {
-                if (new Date() >= new Date(promotionData.startTime)) {
+                if (new Date() >= new Date(copyPromotionData.startTime)) {
                     updateFields.startTime = null;
                 } else {
-                    const startDate = new Date(promotionData.startTime);
-                    updateFields.startTime = startDate.toISOString();
+                    updateFields.startTime = localToISOString(promotionData.startTime);
                 }
             }
             if (promotionData.endTime) {
-                const endDate = new Date(promotionData.endTime);
-                updateFields.endTime = endDate.toISOString();
+                updateFields.endTime = localToISOString(promotionData.endTime);
             }
 
             // Numeric fields: convert to proper types
             if (promotionData.minSpending !== undefined && promotionData.minSpending !== '') {
-                if (new Date() >= new Date(promotionData.startTime)) {
+                if (new Date() >= new Date(copyPromotionData.startTime)) {
                     updateFields.minSpending = null;
                 } else {
                     updateFields.minSpending = parseFloat(promotionData.minSpending);
                 }
             }
             if (promotionData.rate !== undefined && promotionData.rate !== '') {
-                if (new Date() >= new Date(promotionData.startTime)) {
+                if (new Date() >= new Date(copyPromotionData.startTime)) {
                     updateFields.rate = null;
                 } else {
                     updateFields.rate = parseFloat(promotionData.rate);
                 }
             }
             if (promotionData.points !== undefined && promotionData.points !== '') {
-                if (new Date() >= new Date(promotionData.startTime)) {
+                if (new Date() >= new Date(copyPromotionData.startTime)) {
                     updateFields.points = null;
                 } else {
                     updateFields.points = parseInt(promotionData.points);
                 }
             }
+
+            // Remove all fields with null values
+            Object.keys(updateFields).forEach(key => {
+                if (updateFields[key] === null) {
+                    delete updateFields[key];
+                }
+            });
 
             console.log('Sending update:', updateFields);
             const data = await updatePromotionById(promotionId, updateFields, token);
@@ -284,7 +325,7 @@ function VEDPromotion() {
                                     id="endTimeInput"
                                     type="datetime-local"
                                     value={promotionData.endTime || ''}
-                                    min={promotionData.startTime || getCurrentDateTimeLocal()}
+                                    min={getMinEndTime()}
                                     onChange={(e) => setPromotionData({ ...promotionData, endTime: e.target.value })}
                                 />
                             </div>
