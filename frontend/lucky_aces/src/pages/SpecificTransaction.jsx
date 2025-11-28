@@ -149,17 +149,27 @@ function SpecificTransaction() {
                 </div>
             ) : (
                 <>
-                    {/* Transaction Information Card */}
-                    <div className="transaction-info-card">
-                        <h2>
-                            Transaction Details
+                    <div className="transaction-page-header">
+                        <div>
+                            <p className="eyebrow">Ledger · Transaction Detail</p>
+                            <h1 className="page-title">Transaction #{transactionData.id}</h1>
+                            <p className="page-subtitle">
+                                Full audit trail for {transactionData.utorid ? `UTORid ${transactionData.utorid}` : 'this record'}.
+                            </p>
+                        </div>
+                        <div className="transaction-header-meta">
                             <span className={`type-badge type-${transactionData.type}`}>
-                                {transactionData.type}
+                                {transactionData.type?.toUpperCase()}
                             </span>
                             {transactionData.suspicious && (
                                 <span className="suspicious-badge">⚠ Suspicious</span>
                             )}
-                        </h2>
+                        </div>
+                    </div>
+
+                    {/* Transaction Information Card */}
+                    <div className="transaction-info-card">
+                        <h2>Transaction Details</h2>
 
                         <div className="transaction-details-grid">
                             <p><strong>Transaction ID:</strong> {transactionData.id}</p>

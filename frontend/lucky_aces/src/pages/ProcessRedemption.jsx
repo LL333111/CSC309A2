@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { processRedemption } from "../APIRequest";
 import { useParams } from 'react-router-dom';
+import "./TransactionFormPages.css";
 
 function ProcessRedemption() {
   const { transactionId } = useParams();
@@ -53,31 +54,55 @@ function ProcessRedemption() {
   }
 
   return (
-    <div>
+    <div className="page-shell single-form-page" data-surface="flat">
       {_loading ? (
-        <div>
+        <div className="loading-container" data-surface="flat">
           <h2>Loading...</h2>
-          {/* 可以添加加载动画 */}
+          <p>Preparing the processing console.</p>
         </div>
       ) : (
-        <form onSubmit={(e) => handleSubmit(e)}>
-          <h1>Process Redemption Transaction</h1>
-          {success && <h3>{`Successfully process the redemption transaction with ID ${transactionIdShow}!`}</h3>}
+        <section className="transaction-form-card">
           <div>
-            <label htmlFor="transactionIdInput">Transaction ID: </label>
-            <input
-              id="transactionIdInput"
-              type="number"
-              value={transactionIdInput}
-              onChange={(e) => setTransactionIdInput(e.target.value)}
-              required
-              min="1"
-              step="1"
-            />
-            {badRequest && <p>Please ensure that the ID you entered corresponds to an unprocessed redemption transaction!</p>}
+            <p className="eyebrow">Wallet · Processing</p>
+            <h1 className="page-title">Process Redemption Transaction</h1>
+            <p className="page-subtitle single-form-subtitle">Confirm redemptions from the queue and free up customer points.</p>
           </div>
-          <button type="submit">Process</button>
-        </form>
+
+          <div className="transaction-feedback">
+            {success && (
+              <div className="success-message">
+                {`Redemption ${transactionIdShow} processed successfully.`}
+              </div>
+            )}
+            {noTransaction && (
+              <div className="error-message">No pending redemption matches that transaction ID.</div>
+            )}
+            {badRequest && (
+              <div className="error-message">
+                Provide an ID from the unprocessed list before submitting.
+              </div>
+            )}
+          </div>
+
+          <form className="transaction-form" onSubmit={(e) => handleSubmit(e)}>
+            <div className="form-group">
+              <label htmlFor="transactionIdInput">Transaction ID</label>
+              <input
+                id="transactionIdInput"
+                type="number"
+                value={transactionIdInput}
+                onChange={(e) => setTransactionIdInput(e.target.value)}
+                required
+                min="1"
+                step="1"
+                placeholder="Enter pending redemption ID"
+              />
+            </div>
+            <div className="form-actions">
+              <button className="btn-primary" type="submit">Process Redemption</button>
+            </div>
+          </form>
+        </section>
       )}
     </div>
   )

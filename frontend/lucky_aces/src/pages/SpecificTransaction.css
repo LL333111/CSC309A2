@@ -4,22 +4,22 @@
    =========================== */
 
 :root {
-    --primary-blue: #2b6cb0;
-    --primary-blue-dark: #2c5282;
-    --primary-blue-light: #3182ce;
-    --primary-blue-faded: rgba(49, 130, 206, 0.1);
+    --primary-blue: #0071e3;
+    --primary-blue-dark: #006edb;
+    --primary-blue-light: #0077ed;
+    --primary-blue-faded: rgba(0, 113, 227, 0.1);
 
     --neutral-white: #ffffff;
-    --neutral-bg: #f8fafc;
-    --neutral-border: #e2e8f0;
-    --neutral-text: #2d3748;
-    --neutral-text-light: #4a5568;
-    --neutral-text-lighter: #718096;
+    --neutral-bg: #ffffff;
+    --neutral-border: #d2d2d7;
+    --neutral-text: #1d1d1f;
+    --neutral-text-light: #6e6e73;
+    --neutral-text-lighter: #86868b;
 
-    --success-green: #38a169;
-    --warning-orange: #dd6b20;
-    --info-purple: #805ad5;
-    --error-red: #e53e3e;
+    --success-green: #34c759;
+    --warning-orange: #ff9500;
+    --info-purple: #bf5af2;
+    --error-red: #ff3b30;
 
     --spacing-xs: 8px;
     --spacing-sm: 12px;
@@ -55,6 +55,35 @@
     background-color: var(--neutral-bg);
     min-height: 100vh;
     line-height: 1.5;
+}
+
+.transaction-page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.transaction-page-header .page-subtitle {
+    margin-top: var(--spacing-xs);
+    color: var(--neutral-text-light);
+}
+
+.transaction-header-meta {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.transaction-header-meta .type-badge,
+.transaction-header-meta .suspicious-badge {
+    margin-left: 0;
 }
 
 .loading-container {
@@ -251,12 +280,12 @@
 }
 
 .create-adjustment-btn {
-    background: var(--info-purple);
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
     color: var(--neutral-white);
 }
 
 .create-adjustment-btn:hover:not(:disabled) {
-    background: #6b46c1;
+    filter: brightness(1.05);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }

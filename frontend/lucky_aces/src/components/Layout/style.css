@@ -1,35 +1,94 @@
-header {
-  background-color: darkblue;
-  padding: 12px 24px;
-  font-weight: bold;
+.app-header {
+  width: 100%;
+  padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1.25rem, 4vw, 4rem);
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  align-items: flex-start;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, rgba(31, 111, 235, 0.95), rgba(15, 186, 223, 0.8));
+  color: white;
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
-header .link {
+.brand-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.brand-link {
   color: white;
+  font-size: clamp(1.8rem, 2.5vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
   text-decoration: none;
-  transition: color 0.3s ease;
 }
 
-header .link:hover {
-  color: #ffd700;
+.brand-link::after {
+  content: '';
+  display: block;
+  width: 42px;
+  height: 3px;
+  border-radius: var(--radius-round);
+  background: rgba(255, 255, 255, 0.5);
+  margin-top: 0.65rem;
 }
 
-footer {
-  background-color: #45505e;
-  color: white;
-  padding: 10px;
-  font-size: 14px;
-  text-align: center;
-  margin-top: auto;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+.brand-tagline {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  font-weight: 400;
+}
+
+.term-pill {
+  align-self: center;
+  padding: 0.5rem 1.5rem;
+  border-radius: var(--radius-round);
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+  letter-spacing: 0.08em;
 }
 
 main {
-  max-width: 1280px;
-  min-width: 320px;
-  margin: 0px auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.app-footer {
+  text-align: center;
+  padding: 2rem 1.5rem 3rem;
+  color: var(--neutral-500);
+  font-size: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.app-footer p {
+  margin: 0;
+}
+
+.footer-note {
+  font-size: 0.85rem;
+  color: var(--neutral-400);
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .term-pill {
+    align-self: flex-start;
+  }
+
+  .page-shell {
+    width: calc(100% - 1.5rem);
+  }
 }

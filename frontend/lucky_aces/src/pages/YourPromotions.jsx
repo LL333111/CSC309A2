@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { getAllPromotions } from "../APIRequest"
+import "./AllPromotions.css";
 
 function YourPromotions() {
   const [_loading, _setLoading] = useState(true);
@@ -109,32 +110,41 @@ function YourPromotions() {
   }
 
   return (
-    <div>
+    <div className="page-shell promotions-page">
       {_loading ? (
-        <div>
+        <div className="loading-container" data-surface="flat">
           <h2>Loading...</h2>
-          {/* 可以添加加载动画 */}
         </div>
       ) : (
-        <div>
-          <button onClick={toggleFilter}>
-            Filter {isFilterOpen ? '✕' : '☰'}
-          </button>
+        <>
+          <header className="promotions-header" data-surface="flat">
+            <div>
+              <p className="eyebrow">Engagement · Promotions</p>
+              <h1 className="page-title">Your Promotions</h1>
+              <p className="page-subtitle">Personalized offers you can currently redeem.</p>
+            </div>
+            <div className="promotions-header-actions header-actions">
+              <button type="button" className="filter-toggle-btn" onClick={toggleFilter}>
+                {isFilterOpen ? "Hide Filters" : "Show Filters"}
+              </button>
+            </div>
+          </header>
+
           {isFilterOpen && (
-            <section>
-              <div>
-                <div>
-                  <label htmlFor="name-filter">Name: </label>
+            <section className="filter-panel">
+              <div className="filter-grid">
+                <div className="filter-group">
+                  <label htmlFor="name-filter">Name</label>
                   <input
                     type="text"
                     id="name-filter"
                     value={nameFilter}
                     onChange={(e) => setNameFilter(e.target.value)}
-                    placeholder="Input Promotion Name.."
+                    placeholder="Search promotion name"
                   />
                 </div>
-                <div>
-                  <label htmlFor="type-filter">Type: </label>
+                <div className="filter-group">
+                  <label htmlFor="type-filter">Type</label>
                   <select
                     id="type-filter"
                     value={typeFilter}
@@ -145,65 +155,115 @@ function YourPromotions() {
                     <option value="one-time">One-time</option>
                   </select>
                 </div>
+                <div className="filter-group">
+                  <label htmlFor="status-filter">Status</label>
+                  <select
+                    id="status-filter"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option value="any">Any</option>
+                    <option value="active">Active</option>
+                    <option value="upcoming">Upcoming</option>
+                    <option value="ended">Ended</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <button onClick={handleApply}>Apply</button>
-                <button onClick={handleReset}>Reset</button>
+              <div className="filter-actions">
+                <button type="button" className="apply-btn" onClick={handleApply}>Apply</button>
+                <button type="button" className="reset-btn" onClick={handleReset}>Reset</button>
               </div>
             </section>
           )}
 
-          <div>
+          <section className="table-card" data-surface="flat">
             {promotionList.length === 0 ? (
-              <div>
-                <p>You do not have available promotions.</p>
+              <div className="empty-state">
+                <div className="empty-state-icon">🎁</div>
+                <h3>No personal promotions</h3>
+                <p>Once you earn offers, they will appear here.</p>
               </div>
             ) : (
-              promotionList.map((promotion) => (
-                <div key={promotion.id}>
-                  <div>
-                    <h3>{promotion.name}</h3>
-                    <span>
-                      {getPromotionStatus(promotion)}
-                    </span>
-                  </div>
+              <div className="table-scroll">
+                <table className="data-table promotions-table">
+                  <thead>
+                    <tr>
+                      <th>Promotion</th>
+                      <th>Status</th>
+                      <th>Type</th>
+                      <th>Min Spend</th>
+                      <th>Reward</th>
+                      <th>Window</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {promotionList.map((promotion) => {
+                      const status = getPromotionStatus(promotion).toLowerCase();
+                      const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
 
-                  <div >
-                    <p><strong>Type: </strong>{promotion.type}</p>
-                    <p><strong>Min Spemdomh: </strong>{promotion.minSpending}</p>
-                    <p><strong>Start Date: </strong>{formatDate(promotion.startTime)}</p>
-                    <p><strong>End Date: </strong>{formatDate(promotion.endTime)}</p>
-                    <p><strong>Rate: </strong>{promotion.rate}</p>
-                    <p><strong>Points: </strong>{promotion.points}</p>
-                  </div>
-                </div>
-              ))
+                      return (
+                        <tr key={promotion.id}>
+                          <td>
+                            <div className="table-cell-primary">
+                              <p className="table-title">{promotion.name}</p>
+                              <p className="table-meta">#{promotion.id}</p>
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`table-chip status-${status}`}>
+                              {statusLabel}
+                            </span>
+                          </td>
+                          <td>
+                            <span className="table-chip is-muted">
+                              {promotion.type}
+                            </span>
+                          </td>
+                          <td>
+                            {promotion.minSpending ?? "—"}
+                          </td>
+                          <td>
+                            <div className="table-meta-stack">
+                              <span>Rate: {promotion.rate ?? "—"}</span>
+                              <span>Points: {promotion.points ?? "—"}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="table-meta-stack">
+                              <span>{formatDate(promotion.startTime)}</span>
+                              <span className="table-meta">to {formatDate(promotion.endTime)}</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </section>
 
           {promotionList.length > 0 && (
-            <div >
-              <button
-                onClick={handlePrevious}
-                disabled={page === 1}
-              >
+            <section className="pagination" data-surface="flat">
+              <button type="button" className="pagination-btn" onClick={handlePrevious} disabled={page === 1}>
                 Previous Page
               </button>
-              <span >
+              <span className="pagination-info">
                 Page {page} of {totalPage || 1}
               </span>
               <button
+                type="button"
+                className="pagination-btn"
                 onClick={handleNext}
                 disabled={page === totalPage}
               >
                 Next Page
               </button>
-            </div>
+            </section>
           )}
-        </div>
-      )
-      }
-    </div >
+        </>
+      )}
+    </div>
   )
 }
 

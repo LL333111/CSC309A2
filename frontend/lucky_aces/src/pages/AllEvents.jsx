@@ -137,51 +137,54 @@ function AllEvents() {
   }
 
   return (
-    <div className="all-events-container">
+    <div className="page-shell events-page">
       {_loading ? (
-        <div className="loading-container">
+        <div className="loading-container" data-surface="flat">
           <h2>Loading...</h2>
         </div>
       ) : (
-        <div>
-          <div className="page-header">
-            <div>
+        <>
+          <header className="events-header" data-surface="flat">
+            <div className="events-header-left">
+              <p className="eyebrow">Management · Events</p>
               <h1 className="page-title">All Events</h1>
-              <p className="page-subtitle">Browse all events. Filter by name, location, or status.</p>
+              <p className="page-subtitle">Browse and refine every event in the system.</p>
+              <button type="button" className="filter-toggle-btn" onClick={toggleFilter}>
+                {isFilterOpen ? "Hide Filters" : "Show Filters"}
+              </button>
             </div>
-            <button className="create-event-btn" onClick={() => navigate('/new_event')}>
-              Create New Event
-            </button>
-          </div>
+            <div className="events-header-actions header-actions">
+              <button type="button" className="create-event-btn" onClick={() => navigate('/new_event')}>
+                Create Event
+              </button>
+            </div>
+          </header>
 
-          <button className="filter-toggle-btn" onClick={toggleFilter}>
-            Filter {isFilterOpen ? '✕' : '☰'}
-          </button>
           {isFilterOpen && (
             <section className="filter-panel">
               <div className="filter-grid">
                 <div className="filter-group">
-                  <label htmlFor="name-filter">Name: </label>
+                  <label htmlFor="name-filter">Name</label>
                   <input
                     type="text"
                     id="name-filter"
                     value={nameFilter}
                     onChange={(e) => setNameFilter(e.target.value)}
-                    placeholder="Input Event Name.."
+                    placeholder="Search by event name"
                   />
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="location-filter">Location: </label>
+                  <label htmlFor="location-filter">Location</label>
                   <input
                     type="text"
                     id="location-filter"
                     value={locationFilter}
                     onChange={(e) => setLocationFilter(e.target.value)}
-                    placeholder="Input Event Location.."
+                    placeholder="City, venue, etc."
                   />
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="showFull-filter">Show Full: </label>
+                  <label htmlFor="showFull-filter">Show Full</label>
                   <select
                     id="showFull-filter"
                     value={showFullFilter}
@@ -193,7 +196,7 @@ function AllEvents() {
                   </select>
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="published-filter">Published: </label>
+                  <label htmlFor="published-filter">Published</label>
                   <select
                     id="published-filter"
                     value={publishedFilter}
@@ -206,7 +209,7 @@ function AllEvents() {
                 </div>
                 {role >= 3 && (
                   <div className="filter-group">
-                    <label htmlFor="status-filter">Status: </label>
+                    <label htmlFor="status-filter">Status</label>
                     <select
                       id="status-filter"
                       value={statusFilter}
@@ -221,106 +224,114 @@ function AllEvents() {
                 )}
               </div>
               <div className="filter-actions">
-                <button className="apply-btn" onClick={handleApply}>Apply</button>
-                <button className="reset-btn" onClick={handleReset}>Reset</button>
+                <button type="button" className="apply-btn" onClick={handleApply}>Apply</button>
+                <button type="button" className="reset-btn" onClick={handleReset}>Reset</button>
               </div>
             </section>
           )}
 
-          <div className="events-list">
-            {eventList.length === 0 ? (
-              <div className="no-events">
-                <p>You do not have available events.</p>
-              </div>
-            ) : (
-              eventList.map((event) => {
-                const status = getEventStatus(event);
+          <section className="events-panel" data-surface="flat">
+            <div className="events-list">
+              {eventList.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state-icon">🎟️</div>
+                  <h3>No events found</h3>
+                  <p>Adjust your filters or create a new event to get started.</p>
+                </div>
+              ) : (
+                eventList.map((event) => {
+                  const status = getEventStatus(event);
 
-                return (
-                  <div className={`event-card`} key={event.id}>
-                    <div className="event-header">
-                      <h3 className="event-title">{event.name}</h3>
-                      <span className={`event-status status-${status}`}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </span>
-                    </div>
-
-                    <div className="event-details">
-                      <div className="event-detail-item">
-                        <strong>Location:</strong>
-                        <p>{event.location}</p>
-                      </div>
-                      <div className="event-detail-item">
-                        <strong>Start Date:</strong>
-                        <p>{formatDate(event.startTime)}</p>
-                      </div>
-                      <div className="event-detail-item">
-                        <strong>End Date:</strong>
-                        <p>{formatDate(event.endTime)}</p>
-                      </div>
-                      <div className="event-detail-item">
-                        <strong>Capacity:</strong>
-                        <div className="capacity-info">
-                          <span>{event.numGuests} / {event.capacity || "∞"}</span>
+                  return (
+                    <article className="event-card" key={event.id}>
+                      <div className="event-header">
+                        <div>
+                          <p className="event-code">#{event.id}</p>
+                          <h3 className="event-title">{event.name}</h3>
                         </div>
-                      </div>
-                      <div className="event-detail-item">
-                        <strong>Description:</strong>
-                        <p>{event.description || 'N/A'}</p>
+                        <span className={`event-status status-${status}`}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
                       </div>
 
-                      {role >= 3 && (
-                        <div className="admin-info">
-                          <div className="event-detail-item">
-                            <strong>Published:</strong>
-                            <p>{event.published ? "True" : "False"}</p>
-                          </div>
-                          <div className="event-detail-item">
-                            <strong>Points Remain:</strong>
-                            <p>{event.pointsRemain}</p>
-                          </div>
-                          <div className="event-detail-item">
-                            <strong>Points Awarded:</strong>
-                            <p>{event.pointsAwarded}</p>
-                          </div>
+                      <div className="event-details">
+                        <div className="event-detail-item">
+                          <strong>Location</strong>
+                          <p>{event.location}</p>
                         </div>
-                      )}
-                      {status !== "upcoming" && <div>
-                        <button onClick={() => navigate(`/reward_points/${event.id}`)}>Reward Points</button>
-                      </div>}
-                    </div>
-                    <button
-                      className="ved-btn"
-                      onClick={() => navigate(`/ved_event/${event.id}`)}
-                    >
-                      View/Edit/Delete
-                    </button>
-                  </div>
-                );
-              })
-            )}
-          </div>
+                        <div className="event-detail-item">
+                          <strong>Start</strong>
+                          <p>{formatDate(event.startTime)}</p>
+                        </div>
+                        <div className="event-detail-item">
+                          <strong>End</strong>
+                          <p>{formatDate(event.endTime)}</p>
+                        </div>
+                        <div className="event-detail-item">
+                          <strong>Capacity</strong>
+                          <p>{event.numGuests} / {event.capacity || "∞"}</p>
+                        </div>
+                        <div className="event-detail-item">
+                          <strong>Description</strong>
+                          <p>{event.description || 'N/A'}</p>
+                        </div>
+
+                        {role >= 3 && (
+                          <div className="admin-info">
+                            <div className="event-detail-item">
+                              <strong>Published</strong>
+                              <p>{event.published ? "True" : "False"}</p>
+                            </div>
+                            <div className="event-detail-item">
+                              <strong>Points Remain</strong>
+                              <p>{event.pointsRemain}</p>
+                            </div>
+                            <div className="event-detail-item">
+                              <strong>Points Awarded</strong>
+                              <p>{event.pointsAwarded}</p>
+                            </div>
+                          </div>
+                        )}
+                        {status !== "upcoming" && (
+                          <div className="event-inline-actions">
+                            <button
+                              type="button"
+                              className="btn-secondary"
+                              onClick={() => navigate(`/reward_points/${event.id}`)}
+                            >
+                              Reward Points
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className="ved-btn"
+                        onClick={() => navigate(`/ved_event/${event.id}`)}
+                      >
+                        View · Edit · Delete
+                      </button>
+                    </article>
+                  );
+                })
+              )}
+            </div>
+          </section>
 
           {eventList.length > 0 && (
-            <div className="pagination">
-              <button
-                onClick={handlePrevious}
-                disabled={page === 1}
-              >
+            <section className="pagination" data-surface="flat">
+              <button type="button" onClick={handlePrevious} disabled={page === 1}>
                 Previous Page
               </button>
               <span>
                 Page {page} of {totalPage || 1}
               </span>
-              <button
-                onClick={handleNext}
-                disabled={page === totalPage}
-              >
+              <button type="button" onClick={handleNext} disabled={page === totalPage}>
                 Next Page
               </button>
-            </div>
+            </section>
           )}
-        </div>
+        </>
       )}
     </div>
   )

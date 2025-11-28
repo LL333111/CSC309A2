@@ -1,18 +1,20 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
-import { getAllUnprocessedRedemption } from "../APIRequest"
-import { QRCodeSVG } from 'qrcode.react';
+import { getAllUnprocessedRedemption } from "../APIRequest";
+import { QRCodeSVG } from "qrcode.react";
+import "./AllUnprocessedRedemption.css";
 
 function AllUnprocessedRedemption() {
+  const navigate = useNavigate();
   const [_loading, _setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [totalPage, setTotalPage] = useState(null);
+  const [totalPage, setTotalPage] = useState(1);
   const [redemptionList, setRedemptionList] = useState([]);
-  const [showQRCode, setShowQRCode] = useState(null);
+  const [activeQrId, setActiveQrId] = useState(null);
 
   const { loading, token } = useLoggedInUser();
 
-  // page protection
   useEffect(() => {
     const timer = setTimeout(() => {
       _setLoading(loading);
@@ -20,80 +22,182 @@ function AllUnprocessedRedemption() {
     return () => clearTimeout(timer);
   }, [loading]);
 
-  useEffect(() => {
-    async function getData() {
+  const fetchRedemptions = async () => {
+    try {
       const data = await getAllUnprocessedRedemption(page, token);
-      if (totalPage === null) {
-        setTotalPage(data.count % 5 === 0 ? Math.floor(data.count / 5) : Math.floor(data.count / 5) + 1);
-      }
+      const pages = Math.max(1, Math.ceil(data.count / 5));
+      setTotalPage(pages);
       setRedemptionList(data.results);
+      if (!data.results.find((item) => item.id === activeQrId)) {
+        setActiveQrId(null);
+      }
+    } catch (error) {
+      console.error("Failed to fetch pending redemptions:", error);
     }
+  };
+
+  useEffect(() => {
     if (!_loading) {
-      getData();
+      fetchRedemptions();
     }
   }, [page, _loading]);
 
   const handlePrevious = (e) => {
     e.preventDefault();
-
-    setPage(page === 1 ? 1 : page - 1);
-  }
+    setPage((prev) => Math.max(1, prev - 1));
+  };
 
   const handleNext = (e) => {
     e.preventDefault();
-
-    setPage(page === totalPage ? page : page + 1);
-  }
-
-  const toggleQRCode = (id, e) => {
-    e.preventDefault();
-    setShowQRCode(showQRCode === id ? null : id);
+    setPage((prev) => Math.min(totalPage, prev + 1));
   };
 
+  const toggleQRCode = (id) => {
+    setActiveQrId((current) => (current === id ? null : id));
+  };
+
+  const formatPoints = (value) => {
+    if (value === null || value === undefined) {
+      return "—";
+    }
+    return `${Number(value).toLocaleString()} pts`;
+  };
+
+  const selectedRedemption = redemptionList.find((item) => item.id === activeQrId);
+  const qrLink = selectedRedemption
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/process_redemption/${selectedRedemption.id}`
+    : "";
+
   return (
-    <div>
+    <div className="page-shell redemptions-page">
       {_loading ? (
-        <div>
-          <h2>Loading...</h2>
-          {/* 可以添加加载动画 */}
+        <div className="loading-container" data-surface="flat">
+          <h2>Loading pending redemptions...</h2>
+          <p>Pulling the latest unprocessed requests.</p>
         </div>
       ) : (
-        <div>
-          <div>
+        <>
+          <header className="redemptions-header" data-surface="flat">
+            <div>
+              <p className="eyebrow">Redemptions · Pending</p>
+              <h1 className="page-title">Unprocessed Redemptions</h1>
+              <p className="page-subtitle">Review outstanding redemption requests and process them in seconds.</p>
+            </div>
+            <div className="header-actions">
+              <button
+                type="button"
+                className="create-redemption-btn"
+                onClick={() => navigate("/process_redemption")}
+              >
+                Process Redemption
+              </button>
+            </div>
+          </header>
+
+          <section className="table-card" data-surface="flat">
             {redemptionList.length === 0 ? (
-              <div>
-                <p>You do not have unprocessed redemption transaction.</p>
+              <div className="empty-state">
+                <div className="empty-state-icon">🧾</div>
+                <h3>No pending redemptions</h3>
+                <p>All redemption requests are processed. Check back later.</p>
               </div>
             ) : (
-              redemptionList.map((redemption) => (
-                <div key={redemption.id}>
-                  <p><strong>Transaction ID: </strong>{redemption.id}</p>
-                  <p><strong>Amount: </strong>{redemption.amount}</p>
-                  <p><strong>Remark: </strong>{redemption.remark}</p>
-                  <p><strong>Created By: </strong>{redemption.createdBy}</p>
-                  <button onClick={(e) => toggleQRCode(redemption.id, e)}>
-                    {showQRCode === redemption.id ? "Hide QR Code" : "View QR Code"}
-                  </button>
-                  {showQRCode === redemption.id && (
-                    <div style={{ border: '1px solid #ccc' }}>
-                      <QRCodeSVG value={`http://localhost:3000/process_redemption/${redemption.id}`} size={128} level="M" />
-                      <p>Transaction ID: {redemption.id}</p>
-                    </div>
-                  )}
-                </div>
-              ))
+              <div className="table-scroll">
+                <table className="data-table redemptions-table">
+                  <thead>
+                    <tr>
+                      <th>Transaction</th>
+                      <th>User</th>
+                      <th>Amount</th>
+                      <th>Notes</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {redemptionList.map((redemption) => (
+                      <tr key={redemption.id}>
+                        <td>
+                          <div className="table-cell-primary">
+                            <p className="table-title">Transaction #{redemption.id}</p>
+                            <p className="table-meta">Awaiting confirmation</p>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="table-meta-stack">
+                            <span>{redemption.utorid ? `User: ${redemption.utorid}` : "User: —"}</span>
+                            <span className="table-meta">
+                              {redemption.createdBy ? `Created by ${redemption.createdBy}` : "Created automatically"}
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="table-chip is-muted">{formatPoints(redemption.amount)}</span>
+                        </td>
+                        <td>
+                          <div className="table-meta-stack">
+                            <span>{redemption.remark || "No remarks provided"}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="table-actions">
+                            <button
+                              type="button"
+                              className="btn-secondary"
+                              onClick={() => toggleQRCode(redemption.id)}
+                            >
+                              {activeQrId === redemption.id ? "Hide QR" : "QR Code"}
+                            </button>
+                            <button type="button" onClick={() => navigate(`/process_redemption/${redemption.id}`)}>
+                              Process
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
-          {redemptionList.length > 0 && <div>
-            <button onClick={(e) => handlePrevious(e)} disabled={page === 1}>Previous Page</button>
-            <span >Page {page} of {totalPage || 1}</span>
-            <button onClick={(e) => handleNext(e)} disabled={page === totalPage}>Next Page</button>
-          </div>}
-        </div >
-      )
-      }
-    </div >
-  )
+          </section>
+
+          {selectedRedemption && (
+            <section className="qr-preview-card" data-surface="flat">
+              <div className="qr-preview-header">
+                <div>
+                  <p className="eyebrow">Scan to process</p>
+                  <h3>Transaction #{selectedRedemption.id}</h3>
+                  <p>{selectedRedemption.remark || "No remarks"}</p>
+                </div>
+                <span className="table-chip is-warning">Pending</span>
+              </div>
+              <div className="qr-preview-body">
+                <QRCodeSVG value={qrLink} size={160} level="M" />
+                <div className="qr-preview-meta">
+                  <span>{selectedRedemption.utorid ? `User: ${selectedRedemption.utorid}` : "User unknown"}</span>
+                  <span>{formatPoints(selectedRedemption.amount)}</span>
+                </div>
+                <p className="qr-preview-hint">Share this QR with the staff member processing the redemption.</p>
+              </div>
+            </section>
+          )}
+
+          {redemptionList.length > 0 && (
+            <section className="pagination" data-surface="flat">
+              <button onClick={handlePrevious} disabled={page === 1}>
+                Previous Page
+              </button>
+              <span>
+                Page {page} of {totalPage}
+              </span>
+              <button onClick={handleNext} disabled={page === totalPage}>
+                Next Page
+              </button>
+            </section>
+          )}
+        </>
+      )}
+    </div>
+  );
 }
 
 export default AllUnprocessedRedemption;

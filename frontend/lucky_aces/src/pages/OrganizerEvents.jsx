@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { getOrganizerEvents } from "../APIRequest"
+import "./OrganizerEvents.css";
 
 function OrganizerEvents() {
   const navigate = useNavigate();
@@ -74,109 +75,123 @@ function OrganizerEvents() {
     return 'active';
   }
 
+  const formatSchedule = (event) => {
+    return (
+      <div className="table-meta-stack">
+        <span>{formatDate(event.startTime)}</span>
+        <span className="table-meta">Ends {formatDate(event.endTime)}</span>
+      </div>
+    );
+  };
+
+  const showAdminMetrics = role >= 3;
+
   return (
-    <div className="all-events-container">
+    <div className="page-shell events-page">
       {_loading ? (
-        <div className="loading-container">
+        <div className="loading-container" data-surface="flat">
           <h2>Loading...</h2>
+          <p>Collecting your events.</p>
         </div>
       ) : (
-        <div>
-          <div className="page-header">
+        <>
+          <header className="events-header" data-surface="flat">
             <div>
+              <p className="eyebrow">Events · Organizer</p>
               <h1 className="page-title">Organizer Events</h1>
-              <p className="page-subtitle">The events you are responsible for.</p>
+              <p className="page-subtitle">Review upcoming and active events you manage.</p>
             </div>
-          </div>
+          </header>
 
-          <div className="events-list">
+          <section className="table-card" data-surface="flat">
             {eventList.length === 0 ? (
-              <div className="no-events">
-                <p>You are not responsible for any events.</p>
+              <div className="empty-state">
+                <div className="empty-state-icon">📅</div>
+                <h3>No assigned events</h3>
+                <p>Events you own will appear here once scheduled.</p>
               </div>
             ) : (
-              eventList.map((event) => {
-                const status = getEventStatus(event);
+              <div className="table-scroll">
+                <table className="data-table events-table">
+                  <thead>
+                    <tr>
+                      <th>Event</th>
+                      <th>Schedule</th>
+                      <th>Capacity</th>
+                      {showAdminMetrics && <th>Points</th>}
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {eventList.map((event) => {
+                      const status = getEventStatus(event);
+                      const canReward = status !== "upcoming";
 
-                return (
-                  <div className={`event-card`} key={event.id}>
-                    <div className="event-header">
-                      <h3 className="event-title">{event.name}</h3>
-                      <span className={`event-status status-${status}`}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </span>
-                    </div>
-
-                    <div className="event-details">
-                      <div className="event-detail-item">
-                        <strong>Location:</strong>
-                        <p>{event.location}</p>
-                      </div>
-                      <div className="event-detail-item">
-                        <strong>Start Date:</strong>
-                        <p>{formatDate(event.startTime)}</p>
-                      </div>
-                      <div className="event-detail-item">
-                        <strong>End Date:</strong>
-                        <p>{formatDate(event.endTime)}</p>
-                      </div>
-                      <div className="event-detail-item">
-                        <strong>Capacity:</strong>
-                        <div className="capacity-info">
-                          <span>{event.numGuests} / {event.capacity || "∞"}</span>
-                        </div>
-                      </div>
-                      <div className="event-detail-item">
-                        <strong>Description:</strong>
-                        <p>{event.description || 'N/A'}</p>
-                      </div>
-
-                      {role >= 3 && (
-                        <div className="admin-info">
-                          <div className="event-detail-item">
-                            <strong>Published:</strong>
-                            <p>{event.published ? "True" : "False"}</p>
-                          </div>
-                          <div className="event-detail-item">
-                            <strong>Points Remain:</strong>
-                            <p>{event.pointsRemain}</p>
-                          </div>
-                          <div className="event-detail-item">
-                            <strong>Points Awarded:</strong>
-                            <p>{event.pointsAwarded}</p>
-                          </div>
-                        </div>
-                      )}
-                      {status !== "upcoming" && <div>
-                        <button onClick={() => navigate(`/reward_points/${event.id}`)}>Reward Points</button>
-                      </div>}
-                    </div>
-                  </div>
-                );
-              })
+                      return (
+                        <tr key={event.id}>
+                          <td>
+                            <div className="table-cell-primary">
+                              <p className="table-title">{event.name}</p>
+                              <p className="table-meta">{event.location}</p>
+                              {event.description && <p className="table-meta">{event.description}</p>}
+                            </div>
+                          </td>
+                          <td>{formatSchedule(event)}</td>
+                          <td>
+                            <div className="table-meta-stack">
+                              <span>{event.numGuests} / {event.capacity || "∞"} guests</span>
+                              {event.published ? <span className="table-meta">Published</span> : <span className="table-meta">Draft</span>}
+                            </div>
+                          </td>
+                          {showAdminMetrics && (
+                            <td>
+                              <div className="table-meta-stack">
+                                <span>Remain: {event.pointsRemain ?? "—"}</span>
+                                <span className="table-meta">Awarded: {event.pointsAwarded ?? "—"}</span>
+                              </div>
+                            </td>
+                          )}
+                          <td>
+                            <span className={`table-chip status-${status}`}>
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="table-actions">
+                              <button
+                                type="button"
+                                className="btn-secondary"
+                                disabled={!canReward}
+                                onClick={() => canReward && navigate(`/reward_points/${event.id}`)}
+                              >
+                                Reward Points
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </section>
 
           {eventList.length > 0 && (
-            <div className="pagination">
-              <button
-                onClick={handlePrevious}
-                disabled={page === 1}
-              >
+            <section className="pagination" data-surface="flat">
+              <button onClick={handlePrevious} disabled={page === 1}>
                 Previous Page
               </button>
               <span>
                 Page {page} of {totalPage || 1}
               </span>
-              <button
-                onClick={handleNext}
-                disabled={page === totalPage}
-              >
+              <button onClick={handleNext} disabled={page === totalPage}>
                 Next Page
               </button>
-            </div>
+            </section>
           )}
-        </div>
+        </>
       )}
     </div>
   )

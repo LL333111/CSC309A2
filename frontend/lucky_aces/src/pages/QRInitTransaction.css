@@ -1,0 +1,194 @@
+/* QR Init Transaction Page - Apple-inspired Design */
+
+:root {
+    --primary-blue: #0071e3;
+    --success-green: #34c759;
+    --error-red: #ff3b30;
+    --neutral-text: #1d1d1f;
+    --neutral-text-light: #6e6e73;
+    --neutral-border: #d2d2d7;
+    --neutral-bg: #f5f5f7;
+}
+
+.qr-transaction-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.qr-transaction-card {
+    width: min(720px, 100%);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--neutral-border);
+}
+
+.qr-init-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    align-items: flex-start;
+}
+
+.qr-init-header .page-subtitle {
+    color: var(--neutral-text-light);
+}
+
+.loading {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.loading h2 {
+    color: var(--neutral-text);
+    font-weight: 500;
+}
+
+.qr-section {
+    text-align: center;
+    padding: 30px;
+    background: var(--neutral-bg);
+    border-radius: 12px;
+    margin: 24px 0;
+}
+
+.qr-section svg {
+    border: 8px solid white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    margin: 16px 0;
+}
+
+.qr-section p {
+    color: var(--neutral-text-light);
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 16px;
+}
+
+.transaction-info {
+    background: var(--neutral-bg);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 24px 0;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--neutral-border);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: var(--neutral-text-light);
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.info-value {
+    color: var(--neutral-text);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.success-message {
+    background: #d1f4dd;
+    color: #1d6b3a;
+    padding: 16px 20px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid var(--success-green);
+    margin-bottom: 24px;
+}
+
+.error-message {
+    background: #ffe0de;
+    color: #c62828;
+    padding: 16px 20px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid var(--error-red);
+    margin-bottom: 24px;
+}
+
+.instructions {
+    color: var(--neutral-text-light);
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: center;
+    padding: 20px;
+    background: #f9f9fb;
+    border-radius: 12px;
+    margin: 24px 0;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn-primary {
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+}
+
+.btn-primary:hover {
+    background: #0077ed;
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--primary-blue);
+    border: 2px solid var(--primary-blue);
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+}
+
+.btn-secondary:hover {
+    background: rgba(0, 113, 227, 0.05);
+}
+
+@media screen and (max-width: 768px) {
+    .qr-transaction-container {
+        padding: 24px 16px;
+    }
+
+    .qr-transaction-card {
+        padding: 24px;
+    }
+
+    .qr-transaction-card h1 {
+        font-size: 1.75rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+}

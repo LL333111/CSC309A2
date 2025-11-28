@@ -1,325 +1,262 @@
-/* ===========================
-   Update User Page Styles
-   Matches AllTransactions & AllUsers Design System
-   =========================== */
-
-/* CSS Variables - Consistent Design System */
 :root {
-    --primary-blue-light: #4299e1;
-    --primary-blue: #3182ce;
-    --primary-blue-dark: #2c5282;
-    --primary-blue-faded: rgba(66, 153, 225, 0.1);
-
-    --neutral-bg: #f7fafc;
-    --neutral-white: #ffffff;
-    --neutral-border: #e2e8f0;
-    --neutral-text: #1a202c;
-    --neutral-text-light: #4a5568;
-    --neutral-text-lighter: #718096;
-
-    --success-green: #38a169;
-    --warning-orange: #ed8936;
-    --info-purple: #805ad5;
-    --error-red: #e53e3e;
-
-    --spacing-xs: 0.5rem;
-    --spacing-sm: 0.75rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 1.5rem;
-    --spacing-xl: 2rem;
-    --spacing-xxl: 3rem;
-
-    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-
-    --transition-fast: 0.15s ease;
-    --transition-normal: 0.3s ease;
-
-    --border-radius-sm: 0.375rem;
-    --border-radius-md: 0.5rem;
-    --border-radius-lg: 0.75rem;
-
-    --font-size-sm: 0.875rem;
-    --font-size-base: 1rem;
-    --font-size-md: 1.125rem;
-    --font-size-lg: 1.25rem;
-    --font-size-xl: 1.5rem;
+    --primary-blue: #0071e3;
+    --primary-blue-dark: #006edb;
+    --success-green: #34c759;
+    --warning-orange: #ff9500;
+    --danger-red: #ff3b30;
+    --neutral-bg: #ffffff;
+    --border-color: #d2d2d7;
+    --text-primary: #1d1d1f;
+    --text-secondary: #6e6e73;
+    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+    --shadow-md: 0 10px 25px rgba(15, 23, 42, 0.12);
 }
 
 .update-user-container {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    max-width: 1200px;
+    width: min(960px, calc(100% - clamp(2rem, 6vw, 4rem)));
     margin: 0 auto;
-    padding: var(--spacing-xl);
-    background-color: var(--neutral-bg);
-    min-height: 100vh;
-    line-height: 1.6;
-}
-
-.update-user-container h2 {
-    font-size: var(--font-size-xl);
-    color: var(--neutral-text);
-    margin-bottom: var(--spacing-xl);
-    font-weight: 700;
-    text-align: center;
-}
-
-.loading-container {
-    text-align: center;
-    padding: var(--spacing-xxl);
-    color: var(--neutral-text-lighter);
-    font-size: var(--font-size-md);
-}
-
-.user-info-card {
-    background: var(--neutral-white);
-    padding: var(--spacing-xl);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-md);
-    margin-bottom: var(--spacing-xl);
-    border: 1px solid var(--neutral-border);
-    animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-15px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.user-info-card h3 {
-    margin-top: 0;
-    margin-bottom: var(--spacing-lg);
-    color: var(--neutral-text);
-    font-size: var(--font-size-lg);
-    font-weight: 700;
-}
-
-.user-info-card p {
-    margin: var(--spacing-sm) 0;
-    color: var(--neutral-text-light);
-    font-size: var(--font-size-base);
-}
-
-.user-info-card p strong {
-    color: var(--neutral-text);
-    font-weight: 600;
-}
-
-.update-user-form {
+    padding: clamp(1.75rem, 3vw, 3rem) 0 clamp(2.5rem, 4vw, 3.5rem);
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
+    gap: clamp(1.5rem, 3vw, 2.5rem);
 }
 
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
+.update-user-container>* {
+    width: 100%;
 }
 
-.form-group label {
-    font-weight: 600;
-    color: var(--neutral-text-light);
-    font-size: var(--font-size-base);
-}
-
-.form-group input,
-.form-group select {
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: 2px solid var(--neutral-border);
-    border-radius: var(--border-radius-sm);
-    font-size: var(--font-size-base);
-    transition: all var(--transition-fast);
-    background: var(--neutral-white);
-    color: var(--neutral-text);
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: var(--primary-blue-light);
-    box-shadow: 0 0 0 3px var(--primary-blue-faded);
-}
-
-.button-group {
-    display: flex;
-    gap: var(--spacing-md);
-    margin-top: var(--spacing-lg);
-    flex-wrap: wrap;
-}
-
-.submit-button,
-.cancel-button,
-.action-button {
-    padding: var(--spacing-sm) var(--spacing-xl);
-    border: none;
-    border-radius: var(--border-radius-sm);
-    font-weight: 600;
-    font-size: var(--font-size-base);
-    cursor: pointer;
-    transition: all var(--transition-normal);
-    min-width: 140px;
+.loading-container,
+.error-container {
+    text-align: center;
+    padding: 2.5rem;
+    background: white;
+    border-radius: 1.25rem;
     box-shadow: var(--shadow-sm);
 }
 
-.submit-button,
-.action-button {
-    background: var(--primary-blue-light);
-    color: var(--neutral-white);
-}
-
-.submit-button:hover,
-.action-button:hover {
-    background: var(--primary-blue);
-    transform: translateY(-2px);
+.user-detail-card {
+    background: white;
+    border-radius: 1.25rem;
+    padding: clamp(1.75rem, 3vw, 2.75rem);
     box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
-.submit-button:active,
-.action-button:active {
-    transform: translateY(0);
+.user-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
-.submit-button:disabled,
-.action-button:disabled {
-    background: var(--neutral-text-lighter);
+
+.user-subtitle {
+    margin: 0.35rem 0 0;
+    color: var(--text-secondary);
+}
+
+.user-header-meta {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.status-badge {
+    padding: 0.4rem 0.95rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.role-regular {
+    background: #f5f5f7;
+    color: var(--text-secondary);
+}
+
+.role-cashier {
+    background: rgba(0, 113, 227, 0.1);
+    color: var(--primary-blue-dark);
+}
+
+.role-manager {
+    background: rgba(255, 149, 0, 0.15);
+    color: var(--warning-orange);
+}
+
+.role-superuser {
+    background: rgba(255, 59, 48, 0.15);
+    color: var(--danger-red);
+}
+
+.status-flagged {
+    background: rgba(255, 59, 48, 0.12);
+    color: var(--danger-red);
+}
+
+.user-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.info-item strong {
+    color: var(--text-primary);
+}
+
+.info-item p {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.status-pill-row {
+    display: flex;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.status-pill {
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-verified {
+    background: rgba(52, 199, 89, 0.15);
+    color: var(--success-green);
+}
+
+.status-unverified {
+    background: #f5f5f7;
+    color: var(--text-secondary);
+}
+
+.status-active {
+    background: rgba(0, 113, 227, 0.12);
+    color: var(--primary-blue-dark);
+}
+
+.status-inactive {
+    background: rgba(134, 134, 139, 0.15);
+    color: #86868b;
+}
+
+.action-section {
+    background: #f8fafc;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.action-section h3 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.action-btn {
+    border: none;
+    border-radius: 0.9rem;
+    padding: 0.85rem 1.25rem;
+    font-weight: 600;
+    font-size: 1rem;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+}
+
+.action-btn:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
-    transform: none;
     box-shadow: none;
 }
 
-.cancel-button {
-    background: var(--neutral-border);
-    color: var(--neutral-text-light);
-}
-
-.cancel-button:hover {
-    background: var(--neutral-text-lighter);
-    color: var(--neutral-white);
+.action-btn:not(:disabled):hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
 }
 
-.error-message {
-    color: var(--error-red);
-    font-size: var(--font-size-sm);
-    background: rgba(229, 62, 62, 0.1);
-    padding: var(--spacing-md);
-    border-radius: var(--border-radius-sm);
-    margin-top: var(--spacing-md);
-    text-align: center;
-    border-left: 4px solid var(--error-red);
+.action-success {
+    background: linear-gradient(135deg, var(--success-green), #1faa5f);
 }
 
-.success-message {
-    color: var(--success-green);
-    font-size: var(--font-size-sm);
-    background: rgba(56, 161, 105, 0.1);
-    padding: var(--spacing-md);
-    border-radius: var(--border-radius-sm);
-    margin-top: var(--spacing-md);
-    text-align: center;
-    border-left: 4px solid var(--success-green);
+.action-primary {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
 }
 
-/* Action Buttons Section */
-.actions-section {
-    background: var(--neutral-white);
-    padding: var(--spacing-xl);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-md);
-    border: 1px solid var(--neutral-border);
+.action-warning {
+    background: linear-gradient(135deg, var(--warning-orange), #f97316);
 }
 
-.actions-section h3 {
-    margin-top: 0;
-    margin-bottom: var(--spacing-lg);
-    color: var(--neutral-text);
-    font-size: var(--font-size-lg);
-    font-weight: 700;
+.action-danger {
+    background: linear-gradient(135deg, var(--danger-red), #d70015);
 }
 
-/* Verify Button - Green */
-.verify-button {
-    background: var(--success-green);
-    color: var(--neutral-white);
+.notice {
+    border-radius: 0.85rem;
+    padding: 1rem 1.25rem;
+    font-weight: 500;
 }
 
-.verify-button:hover:not(:disabled) {
-    background: #2f855a;
-}
-
-/* Promote Button - Blue */
-.promote-button {
-    background: var(--primary-blue-light);
-    color: var(--neutral-white);
-}
-
-.promote-button:hover:not(:disabled) {
-    background: var(--primary-blue);
-}
-
-/* Clear Suspicious Button - Orange */
-.suspicious-button {
-    background: var(--warning-orange);
-    color: var(--neutral-white);
-}
-
-.suspicious-button:hover:not(:disabled) {
-    background: #dd6b20;
-}
-
-/* Revoke Button - Red */
-.revoke-button {
-    background: var(--error-red);
-    color: var(--neutral-white);
-}
-
-.revoke-button:hover:not(:disabled) {
-    background: #c53030;
-}
-
-/* Warning Notice */
 .warning-notice {
-    background: rgba(237, 137, 54, 0.1);
-    padding: var(--spacing-md);
-    border-radius: var(--border-radius-sm);
-    border-left: 4px solid var(--warning-orange);
-    color: var(--neutral-text-light);
-    margin: var(--spacing-md) 0;
+    background: rgba(255, 149, 0, 0.12);
+    color: #92400e;
 }
 
 .info-notice {
-    background: var(--primary-blue-faded);
-    padding: var(--spacing-md);
-    border-radius: var(--border-radius-sm);
-    border-left: 4px solid var(--primary-blue-light);
-    color: var(--neutral-text-light);
-    margin: var(--spacing-md) 0;
+    background: rgba(0, 113, 227, 0.12);
+    color: var(--primary-blue-dark);
 }
 
-/* Responsive Design */
+.back-btn {
+    align-self: flex-start;
+    border: 1px solid var(--border-color);
+    background: var(--neutral-bg);
+    color: var(--text-primary);
+    padding: 0.75rem 2rem;
+    border-radius: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.back-btn:hover {
+    background: #f2f2f7;
+}
+
 @media (max-width: 768px) {
     .update-user-container {
-        padding: var(--spacing-md);
+        padding: 1.5rem;
     }
 
-    .button-group {
-        flex-direction: column;
+    .user-detail-card {
+        padding: 1.5rem;
     }
 
-    .submit-button,
-    .cancel-button,
-    .action-button {
+    .action-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .back-btn {
         width: 100%;
-        min-width: auto;
+        text-align: center;
     }
 }

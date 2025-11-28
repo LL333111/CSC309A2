@@ -1,6 +1,7 @@
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { useState, useEffect } from "react";
 import { changePassword } from "../APIRequest";
+import "./ChangePassword.css";
 
 function Register() {
   const [_loading, _setLoading] = useState(true);

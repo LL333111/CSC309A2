@@ -46,10 +46,8 @@ function App() {
             <Route path="login" element={<Login />} />
 
             {/* need log in routes */}
-            <Route path="profile" element={<NeedLogin min_role={0}><Profile /></NeedLogin>} />
+            <Route path="profile" element={<NeedLogin min_role={1}><Profile /></NeedLogin>} />
             <Route path="register" element={<NeedLogin min_role={2}><Register /></NeedLogin>} />
-            <Route path="edit_profile" element={<NeedLogin min_role={1}><EditProfile /></NeedLogin>} />
-            <Route path="change_password" element={<NeedLogin min_role={1}><ChangePassword /></NeedLogin>} />
             <Route path="qr_init_transaction" element={<NeedLogin min_role={1}><QRInitTransaction /></NeedLogin>} />
             <Route path="qr_init_detail/:utorid" element={<NeedLogin min_role={1}><QRInitDetail /></NeedLogin>} />
             <Route path="transfer_transaction" element={<NeedLogin min_role={1}><CreateTransferTransaction /></NeedLogin>} />
