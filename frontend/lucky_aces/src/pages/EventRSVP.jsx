@@ -12,6 +12,7 @@ function EventRSVP() {
     const [actionLoading, setActionLoading] = useState(false);
     const [eventData, setEventData] = useState(null);
     const [isAttending, setIsAttending] = useState(false);
+    const [isOrganizer, setIsOrganizer] = useState(false);
 
     // page protection
     useEffect(() => {
@@ -29,8 +30,10 @@ function EventRSVP() {
 
     useEffect(() => {
         if (eventData && user.guestsEvent) {
-            const attending = user.guestsEvent.some(guest => guest.id === eventData.id);
+            const attending = user.guestsEvent.some(event => event.id === eventData.id);
             setIsAttending(attending);
+            const organizer = user.organizersEvent.some(event => event.id === eventData.id);
+            setIsOrganizer(organizer);
         }
     }, [user, eventData]);
 
@@ -41,8 +44,10 @@ function EventRSVP() {
             setEventData(data);
 
             // Check if current user is in the guests list
-            const attending = user.guestsEvent.some(guest => guest.id === data.id);
+            const attending = user.guestsEvent.some(event => event.id === data.id) || user.organizersEvent.some(event => event.id === data.id);
             setIsAttending(attending);
+            const organizer = user.organizersEvent.some(event => event.id === eventData.id);
+            setIsOrganizer(organizer);
         } catch (error) {
             console.error("Failed to fetch event:", error);
         }
@@ -132,12 +137,12 @@ function EventRSVP() {
 
     const canRSVP = () => {
         const status = getEventStatus();
-        return status !== 'ended' && !isEventFull() && !isAttending;
+        return status !== 'ended' && !isEventFull() && !isAttending && !isOrganizer;
     };
 
     const canCancelRSVP = () => {
         const status = getEventStatus();
-        return status !== 'ended' && isAttending;
+        return status !== 'ended' && isAttending && !isOrganizer;
     };
 
     return (
@@ -246,6 +251,12 @@ function EventRSVP() {
                             {isEventFull() && !isAttending && getEventStatus() !== 'ended' && (
                                 <div className="full-notice">
                                     This event is full
+                                </div>
+                            )}
+
+                            {isOrganizer && (
+                                <div className="full-notice">
+                                    You are an organizer of this event
                                 </div>
                             )}
                         </div>

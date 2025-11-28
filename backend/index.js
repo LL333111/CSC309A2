@@ -431,6 +431,7 @@ app.route("/users/me")
                 avatarUrl: true,
                 promotions: true,
                 guestsEvent: true,
+                organizersEvent: true,
             }
         });
         // error handling - 404 Not Found
