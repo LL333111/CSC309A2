@@ -241,11 +241,6 @@ function VEDEvent() {
                             <h1 className="page-title">{eventData.name || 'Manage Event'}</h1>
                             <p className="page-subtitle">Adjust timing, capacity, and publishing state for this event.</p>
                         </div>
-                        <div className="hero-meta">
-                            <span className={`status-chip ${eventData.published ? 'status-live' : 'status-draft'}`}>
-                                {eventData.published ? 'Published' : 'Draft'}
-                            </span>
-                        </div>
                     </div>
 
                     <form onSubmit={handleUpdateEvent} className="event-form">
