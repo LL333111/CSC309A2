@@ -86,7 +86,7 @@ function Notification() {
                         </div>
                         <div className="event-detail-item">
                           <strong>Created At</strong>
-                          <p>{notification.createdAt}</p>
+                          <p>{new Date(notification.createdAt).toLocaleString()}</p>
                         </div>
                       </div>
                     </article>
