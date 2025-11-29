@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+
 const port = (() => {
     const args = process.argv;
 
@@ -49,7 +51,7 @@ const server = http.createServer(app);
 // init socket.io
 const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:3000', // React dev server
+        origin: FRONTEND_URL, // React dev server
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true
@@ -58,7 +60,7 @@ const io = new Server(server, {
 
 // Set up cors to allow requests from React frontend
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: FRONTEND_URL,
     methods: ['GET', 'POST', 'PUT', 'DELETE', "PATCH"],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true

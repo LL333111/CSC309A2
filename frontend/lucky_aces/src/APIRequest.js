@@ -1,10 +1,10 @@
-const API = "http://localhost:3001";
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
 
 // /auth/tokens
 export async function login(utorid, password) {
   try {
     // request
-    const response = await fetch(`${API}/auth/tokens`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/auth/tokens`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -30,7 +30,7 @@ export async function login(utorid, password) {
 // /users
 export async function registerUser(utorid, name, email, token) {
   try {
-    const response = await fetch(`${API}/users`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/users`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -53,7 +53,7 @@ export async function registerUser(utorid, name, email, token) {
 // /users/me
 export async function getLoggedInUser(token) {
   try {
-    const response = await fetch(`${API}/users/me`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/users/me`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -74,7 +74,7 @@ export async function getLoggedInUser(token) {
 
 export async function updateLoggedInUser(name, email, birthday, avatar, token) {
   try {
-    const response = await fetch(`${API}/users/me`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/users/me`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -98,7 +98,7 @@ export async function updateLoggedInUser(name, email, birthday, avatar, token) {
 // /users/me/password
 export async function changePassword(oldPassword, newPassword, token) {
   try {
-    const response = await fetch(`${API}/users/me/password`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/users/me/password`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -120,7 +120,7 @@ export async function changePassword(oldPassword, newPassword, token) {
 // /users/:userId/transactions
 export async function transferTransaction(recipientId, amount, remark, token) {
   try {
-    const response = await fetch(`${API}/users/${recipientId}/transactions`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/users/${recipientId}/transactions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -143,7 +143,7 @@ export async function transferTransaction(recipientId, amount, remark, token) {
 // /users/me/transactions
 export async function redemptionTransaction(amount, remark, token) {
   try {
-    const response = await fetch(`${API}/users/me/transactions`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/users/me/transactions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -165,7 +165,7 @@ export async function redemptionTransaction(amount, remark, token) {
 
 export async function yourTransactions(type, page, promotionId, relatedId, amount, operator, token,) {
   try {
-    const response = await fetch(`${API}/users/me/transactions?page=${page}&limit=5${type === null ? "" : `&type=${type}`}${promotionId === null ? "" : `&promotionId=${promotionId}`}${relatedId === null ? "" : `&relatedId=${relatedId}`}${amount === null ? "" : `&amount=${amount}`}${operator === null ? "" : `&operator=${operator}`}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/users/me/transactions?page=${page}&limit=5${type === null ? "" : `&type=${type}`}${promotionId === null ? "" : `&promotionId=${promotionId}`}${relatedId === null ? "" : `&relatedId=${relatedId}`}${amount === null ? "" : `&amount=${amount}`}${operator === null ? "" : `&operator=${operator}`}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -187,7 +187,7 @@ export async function yourTransactions(type, page, promotionId, relatedId, amoun
 // function for all unprocessed redemption
 export async function getAllUnprocessedRedemption(page, token) {
   try {
-    const response = await fetch(`${API}/users/me/transactions?type=redemption&processedBy=true&page=${page}&limit=5`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/users/me/transactions?type=redemption&processedBy=true&page=${page}&limit=5`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -209,7 +209,7 @@ export async function getAllUnprocessedRedemption(page, token) {
 // /promotions
 export async function getAllPromotions(name, type, page, started, ended, token, regular) {
   try {
-    const response = await fetch(`${API}/promotions?page=${page}&limit=5${name === null ? "" : `&name=${name}`}${type === null ? "" : `&type=${type}`}${started === null ? "" : `&started=${started}`}${ended === null ? "" : `&ended=${ended}`}${regular === "true" ? `&regular=true` : ""}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/promotions?page=${page}&limit=5${name === null ? "" : `&name=${name}`}${type === null ? "" : `&type=${type}`}${started === null ? "" : `&started=${started}`}${ended === null ? "" : `&ended=${ended}`}${regular === "true" ? `&regular=true` : ""}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -231,7 +231,7 @@ export async function getAllPromotions(name, type, page, started, ended, token, 
 // /events
 export async function getAllEvents(name, page, started, ended, location, showFull, published, token) {
   try {
-    const response = await fetch(`${API}/events?page=${page}&limit=5${name === null ? "" : `&name=${name}`}${location === null ? "" : `&location=${location}`}${showFull === null ? "" : `&showFull=${showFull}`}${published === null ? "" : `&published=${published}`}${started === null ? "" : `&started=${started}`}${ended === null ? "" : `&ended=${ended}`}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/events?page=${page}&limit=5${name === null ? "" : `&name=${name}`}${location === null ? "" : `&location=${location}`}${showFull === null ? "" : `&showFull=${showFull}`}${published === null ? "" : `&published=${published}`}${started === null ? "" : `&started=${started}`}${ended === null ? "" : `&ended=${ended}`}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -266,7 +266,7 @@ export async function createEvent(name, description, location, startTime, endTim
       body.capacity = capacity;
     }
 
-    const response = await fetch(`${API}/events`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/events`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -285,7 +285,7 @@ export async function createEvent(name, description, location, startTime, endTim
 // /events/:eventId
 export async function getEventById(eventId, token) {
   try {
-    const response = await fetch(`${API}/events/${eventId}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/events/${eventId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -305,7 +305,7 @@ export async function getEventById(eventId, token) {
 
 export async function updateEventById(eventId, updateFields, token) {
   try {
-    const response = await fetch(`${API}/events/${eventId}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/events/${eventId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -327,7 +327,7 @@ export async function updateEventById(eventId, updateFields, token) {
 
 export async function deleteEventById(eventId, token) {
   try {
-    const response = await fetch(`${API}/events/${eventId}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/events/${eventId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -345,7 +345,7 @@ export async function deleteEventById(eventId, token) {
 // /events/:eventId/guests/me - RSVP to event
 export async function rsvpToEvent(eventId, token) {
   try {
-    const response = await fetch(`${API}/events/${eventId}/guests/me`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/events/${eventId}/guests/me`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -367,7 +367,7 @@ export async function rsvpToEvent(eventId, token) {
 // /events/:eventId/guests/me - Cancel RSVP
 export async function cancelRsvpToEvent(eventId, token) {
   try {
-    const response = await fetch(`${API}/events/${eventId}/guests/me`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/events/${eventId}/guests/me`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -385,7 +385,7 @@ export async function cancelRsvpToEvent(eventId, token) {
 // /users
 export async function getAllUsers(name, page, role, verified, activated, token) {
   try {
-    const response = await fetch(`${API}/users?page=${page}&limit=5${name === null ? "" : `&name=${name}`}${role === null ? "" : `&role=${role}`}${verified === null ? "" : `&verified=${verified}`}${activated === null ? "" : `&activated=${activated}`}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/users?page=${page}&limit=5${name === null ? "" : `&name=${name}`}${role === null ? "" : `&role=${role}`}${verified === null ? "" : `&verified=${verified}`}${activated === null ? "" : `&activated=${activated}`}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -407,7 +407,7 @@ export async function getAllUsers(name, page, role, verified, activated, token) 
 // /users/:userId
 export async function getUserById(userId, token) {
   try {
-    const response = await fetch(`${API}/users/${userId}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/users/${userId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -428,7 +428,7 @@ export async function getUserById(userId, token) {
 
 export async function updateUserById(userId, updateFields, token) {
   try {
-    const response = await fetch(`${API}/users/${userId}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/users/${userId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -451,7 +451,7 @@ export async function updateUserById(userId, updateFields, token) {
 // /transactions
 export async function getAllTransactions(name, type, page, createdBy, suspicious, promotionId, relatedId, amount, operator, token,) {
   try {
-    const response = await fetch(`${API}/transactions?page=${page}&limit=5${name === null ? "" : `&name=${name}`}${type === null ? "" : `&type=${type}`}${createdBy === null ? "" : `&createdBy=${createdBy}`}${suspicious === null ? "" : `&suspicious=${suspicious}`}${promotionId === null ? "" : `&promotionId=${promotionId}`}${relatedId === null ? "" : `&relatedId=${relatedId}`}${amount === null ? "" : `&amount=${amount}`}${operator === null ? "" : `&operator=${operator}`}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/transactions?page=${page}&limit=5${name === null ? "" : `&name=${name}`}${type === null ? "" : `&type=${type}`}${createdBy === null ? "" : `&createdBy=${createdBy}`}${suspicious === null ? "" : `&suspicious=${suspicious}`}${promotionId === null ? "" : `&promotionId=${promotionId}`}${relatedId === null ? "" : `&relatedId=${relatedId}`}${amount === null ? "" : `&amount=${amount}`}${operator === null ? "" : `&operator=${operator}`}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -472,7 +472,7 @@ export async function getAllTransactions(name, type, page, createdBy, suspicious
 
 export async function createPurchase(utorid, spent, promotionIds, remark, token) {
   try {
-    const response = await fetch(`${API}/transactions`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/transactions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -496,7 +496,7 @@ export async function createPurchase(utorid, spent, promotionIds, remark, token)
 
 export async function createAdjustment(utorid, amount, relatedId, promotionIds, remark, token) {
   try {
-    const response = await fetch(`${API}/transactions`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/transactions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -522,7 +522,7 @@ export async function createAdjustment(utorid, amount, relatedId, promotionIds, 
 // /transactions/:transactionId
 export async function getTransactionById(transactionId, token) {
   try {
-    const response = await fetch(`${API}/transactions/${transactionId}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/transactions/${transactionId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -545,7 +545,7 @@ export async function getTransactionById(transactionId, token) {
 // /transactions/:transactionId/suspicious
 export async function markTransactionSuspicious(transactionId, suspicious, token) {
   try {
-    const response = await fetch(`${API}/transactions/${transactionId}/suspicious`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/transactions/${transactionId}/suspicious`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -566,7 +566,7 @@ export async function markTransactionSuspicious(transactionId, suspicious, token
 // /transactions/:transactionId/processed
 export async function processRedemption(transactionId, token) {
   try {
-    const response = await fetch(`${API}/transactions/${transactionId}/processed`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/transactions/${transactionId}/processed`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -606,7 +606,7 @@ export async function createPromotion(name, description, type, startTime, endTim
       body.points = points;
     }
 
-    const response = await fetch(`${API}/promotions`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/promotions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -625,7 +625,7 @@ export async function createPromotion(name, description, type, startTime, endTim
 // / promotions/:promotionId
 export async function getPromotionById(promotionId, token) {
   try {
-    const response = await fetch(`${API}/promotions/${promotionId}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/promotions/${promotionId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -646,7 +646,7 @@ export async function getPromotionById(promotionId, token) {
 
 export async function updatePromotionById(promotionId, updateFields, token) {
   try {
-    const response = await fetch(`${API}/promotions/${promotionId}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/promotions/${promotionId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -668,7 +668,7 @@ export async function updatePromotionById(promotionId, updateFields, token) {
 
 export async function deletePromotionById(promotionId, token) {
   try {
-    const response = await fetch(`${API}/promotions/${promotionId}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/promotions/${promotionId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -686,7 +686,7 @@ export async function deletePromotionById(promotionId, token) {
 // /users/me/organizers
 export async function getOrganizerEvents(page, token) {
   try {
-    const response = await fetch(`${API}/users/me/organizers?page=${page}&limit=5`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/users/me/organizers?page=${page}&limit=5`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -708,7 +708,7 @@ export async function getOrganizerEvents(page, token) {
 // /events/:eventId/transactions
 export async function createRewardTransaction(amount, utorid, remark, token, eventId) {
   try {
-    const response = await fetch(`${API}/events/${eventId}/transactions`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/events/${eventId}/transactions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -732,7 +732,7 @@ export async function createRewardTransaction(amount, utorid, remark, token, eve
 // /events/:eventId/organizers
 export async function addOrganizer(utorid, eventId, token) {
   try {
-    const response = await fetch(`${API}/events/${eventId}/organizers`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/events/${eventId}/organizers`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -753,7 +753,7 @@ export async function addOrganizer(utorid, eventId, token) {
 // /events/:eventId/organizers/:userId
 export async function removeOrganizer(eventId, userId, token) {
   try {
-    const response = await fetch(`${API}/events/${eventId}/organizers/${userId}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/events/${eventId}/organizers/${userId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -771,7 +771,7 @@ export async function removeOrganizer(eventId, userId, token) {
 // /events/:eventId/guests
 export async function addGuest(utorid, eventId, token) {
   try {
-    const response = await fetch(`${API}/events/${eventId}/guests`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/events/${eventId}/guests`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -792,7 +792,7 @@ export async function addGuest(utorid, eventId, token) {
 // /events/:eventId/organizers/:userId
 export async function removeGuest(eventId, userId, token) {
   try {
-    const response = await fetch(`${API}/events/${eventId}/guests/${userId}`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/events/${eventId}/guests/${userId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -810,7 +810,7 @@ export async function removeGuest(eventId, userId, token) {
 // /notifications
 export async function getNotifications(page, token) {
   try {
-    const response = await fetch(`${API}/notifications?page=${page}&limit=5`, {
+    const response = await fetch(`${VITE_BACKEND_URL}/notifications?page=${page}&limit=5`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
