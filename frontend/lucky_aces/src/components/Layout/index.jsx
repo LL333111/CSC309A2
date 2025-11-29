@@ -26,7 +26,7 @@ const Layout = () => {
     <header className="app-header">
       <div className="brand-block">
         <Link to="/" className="brand-link">Lucky Aces</Link>
-        <p className="brand-tagline">Premium loyalty for curated student events</p>
+        <p className="brand-tagline">Tools for your team</p>
       </div>
       <span className="term-pill">{academicTerm}</span>
     </header>

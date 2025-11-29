@@ -105,41 +105,100 @@
     gap: 1.25rem;
 }
 
-.stats-section {
+.spotlight-section {
     background: rgba(255, 255, 255, 0.92);
     border-radius: var(--radius-lg);
-    padding: 2.5rem 1.5rem;
+    padding: clamp(2rem, 3vw, 3rem);
     border: 1px solid rgba(31, 111, 235, 0.08);
     text-align: center;
     box-shadow: var(--shadow-sm);
 }
 
-.stats-grid {
+.spotlight-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.75rem;
     margin-top: 2rem;
 }
 
-.stat-card {
-    padding: 1.25rem;
+.spotlight-card {
+    padding: 1.5rem;
     border-radius: var(--radius-md);
-    background: rgba(31, 111, 235, 0.06);
+    background: rgba(247, 250, 255, 0.8);
     border: 1px solid rgba(31, 111, 235, 0.12);
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
 }
 
-.stat-number {
-    font-size: 2.4rem;
-    font-weight: 700;
-    color: var(--brand-primary-600);
+.spotlight-card h3 {
     margin: 0;
+    color: var(--neutral-900);
 }
 
-.stat-label {
+.spotlight-card p {
+    margin: 0;
     color: var(--neutral-500);
-    margin: 0.35rem 0 0;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+}
+
+.portrait-frame {
+    width: 160px;
+    height: 160px;
+    border-radius: 1.25rem;
+    border: 3px solid rgba(31, 111, 235, 0.6);
+    padding: 0.4rem;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.portrait-frame::before,
+.portrait-frame::after {
+    content: '';
+    position: absolute;
+    width: 35%;
+    height: 35%;
+    border: 2px solid var(--brand-primary-600);
+}
+
+.portrait-frame::before {
+    top: 0.4rem;
+    left: 0.4rem;
+    border-right: 0;
+    border-bottom: 0;
+}
+
+.portrait-frame::after {
+    bottom: 0.4rem;
+    right: 0.4rem;
+    border-left: 0;
+    border-top: 0;
+}
+
+.portrait-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 1rem;
+}
+
+.portrait-frame-round {
+    border-radius: 50%;
+    padding: 0.35rem;
+}
+
+.portrait-frame-round::before,
+.portrait-frame-round::after {
+    display: none;
+}
+
+.portrait-frame-round .portrait-image {
+    border-radius: 50%;
 }
 
 @media (max-width: 768px) {
@@ -148,7 +207,7 @@
     }
 
     .features-grid,
-    .stats-grid {
+    .spotlight-grid {
         grid-template-columns: 1fr;
     }
 }

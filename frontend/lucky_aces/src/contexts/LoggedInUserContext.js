@@ -38,6 +38,14 @@ export const LoggedInUserContextProvider = ({ children }) => {
         setUser(null);
         setRole(0);
       } else {
+        if (localStorage.getItem("tokenExpiresAt") < new Date().getTime()) {
+          // token expired
+          localStorage.removeItem('token');
+          localStorage.removeItem('tokenExpiresAt');
+          setUser(null);
+          setRole(0);
+          setToken(null);
+        }
         // local storage has token
         getUser(localStorage.getItem("token"));
         setToken(localStorage.getItem("token"));
