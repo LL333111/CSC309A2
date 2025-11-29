@@ -359,6 +359,12 @@ app.route("/users/me")
             if (typeof (email) !== "string" || !/^[^@]+@mail.utoronto.ca$/.test(email)) {
                 return res.status(400).json({ "Bad Request": "Invalid email" });
             }
+            let allUsers = await prisma.user.findMany();
+            const hasDuplicate = allUsers.some(user => user.email === email);
+            if (hasDuplicate) {
+                console.log(11);
+                return res.status(400).json({ "Bad Request": "Need Unique email" });
+            }
             data.email = email;
         }
         if (birthday !== undefined && birthday !== null) {
@@ -368,7 +374,7 @@ app.route("/users/me")
             data.birthday = birthday;
         }
         if (avatar !== undefined && avatar !== null) {
-            if (typeof (avatar) !== "string" || !/\/uploads\/avatars\/[a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg)$/i.test(avatar)) {
+            if (typeof (avatar) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid avatar" });
             }
             data.avatarUrl = avatar;
@@ -425,6 +431,7 @@ app.route("/users/me")
                 avatarUrl: true,
                 promotions: true,
                 guestsEvent: true,
+                organizersEvent: true,
             }
         });
         // error handling - 404 Not Found
@@ -2329,7 +2336,11 @@ app.route("/promotions")
             // Regular user only see the active promotions
             const userData = await prisma.user.findUnique({
                 where: { id: req.user.id },
-                include: { promotions: true },
+                include: {
+                    promotions: {
+                        where: where
+                    }
+                },
             });
 
             const now = new Date();
@@ -3428,7 +3439,8 @@ app.route("/users/me/transactions")
                         redeemed: true,
                         sender: true,
                         recipient: true,
-                        sent: true
+                        sent: true,
+                        utorid: true,
                     }
                 }
             }

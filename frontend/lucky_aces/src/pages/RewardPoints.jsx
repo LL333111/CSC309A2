@@ -98,7 +98,6 @@ function RewardPoints() {
                 value={utoridInput}
                 onChange={(e) => setUtoridInput(e.target.value)}
                 placeholder="Enter attendee UTORid"
-                required
               />
               {badRequest && (
                 <p className="field-error">UTORid must be alphanumeric, 7-8 characters, and part of this event.</p>

@@ -6,8 +6,6 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Profile from './pages/Profile'
 import Register from './pages/Register';
-import EditProfile from './pages/EditProfile';
-import ChangePassword from './pages/ChangePassword'
 import QRInitTransaction from './pages/QRInitTransaction'
 import CreateTransferTransaction from './pages/CreateTransferTransaction'
 import CreateRedemptionTransaction from './pages/CreateRedemptionTransaction';
@@ -25,7 +23,6 @@ import OrganizerEvents from './pages/OrganizerEvents';
 import RewardPoints from './pages/RewardPoints';
 import QRInitDetail from './pages/QRInitDetail';
 import EditEventsUsers from './pages/EditEventsUsers';
-import Auth from './components/auth';
 import NotFound from './pages/NotFound';
 
 import NeedLogin from './NeedLogin';

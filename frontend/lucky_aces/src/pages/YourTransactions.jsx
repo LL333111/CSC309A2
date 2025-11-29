@@ -118,13 +118,13 @@ function YourTransactions() {
       case "purchase":
         return `${formatNumber(transaction.amount ?? transaction.spent)} pts`;
       case "redemption":
-        return `-${formatNumber(transaction.redeemed)} pts`;
+        return `${-formatNumber(transaction.redeemed)} pts${transaction.relatedId ? "" : `(${transaction.amount} pts)`}`;
       case "adjustment":
         return `${formatNumber(transaction.amount)} pts`;
       case "transfer":
-        return `${formatNumber(transaction.sent)} pts`;
+        return `${transaction.sender === user.utorid ? "-" : ""}${formatNumber(transaction.sent)} pts`;
       case "event":
-        return `${formatNumber(transaction.awarded)} pts`;
+        return `${formatNumber(transaction.amount)} pts`;
       default:
         return `${formatNumber(transaction.amount)} pts`;
     }

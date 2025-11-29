@@ -82,6 +82,7 @@ async function seedData() {
       createdAt: "2012-05-06T00:00:00.000Z",
       lastLogin: "2013-08-01T00:00:00.000Z",
       verified: true,
+      password: "123456cC!",
       suspicious: true,
     },
     {
@@ -120,6 +121,7 @@ async function seedData() {
       createdAt: "2012-05-06T00:00:00.000Z",
       lastLogin: "2013-08-01T00:00:00.000Z",
       verified: false,
+      password: "123456cC!",
       suspicious: false,
     },
     {
@@ -131,6 +133,7 @@ async function seedData() {
       points: 250,
       createdAt: "2012-05-06T00:00:00.000Z",
       verified: false,
+      password: "123456cC!",
       suspicious: false,
     },
   ];
@@ -194,7 +197,45 @@ async function seedData() {
       "minSpending": 100,
       "rate": 0.9,
       "points": 100,
-    }
+    },
+    {
+      "name": "Mock Promotion Automatic 7",
+      "description": "A Mock Promotion - active",
+      "type": "automatic",
+      "startTime": "2025-11-15T00:00:00.000+08:00",
+      "endTime": "2025-12-30T00:00:00.000+08:00",
+      "minSpending": 10,
+      "rate": 0.15,
+      "points": 100,
+    },
+    {
+      "name": "Mock Promotion Automatic 8",
+      "description": "A Mock Promotion - active",
+      "type": "automatic",
+      "startTime": "2025-11-15T00:00:00.000+08:00",
+      "endTime": "2025-12-30T00:00:00.000+08:00",
+      "minSpending": null,
+      "rate": 0.15,
+    },
+    {
+      "name": "Mock Promotion Automatic 8",
+      "description": "A Mock Promotion - active",
+      "type": "one-time",
+      "startTime": "2025-11-15T00:00:00.000+08:00",
+      "endTime": "2025-12-30T00:00:00.000+08:00",
+      "minSpending": null,
+      "rate": 0.15,
+    },
+    {
+      "name": "Mock Promotion Automatic 9",
+      "description": "A Mock Promotion - active",
+      "type": "one-time",
+      "startTime": "2025-11-15T00:00:00.000+08:00",
+      "endTime": "2025-12-30T00:00:00.000+08:00",
+      "minSpending": 10,
+      "rate": 0.15,
+      "points": 100,
+    },
   ];
   // user
   for (const user of mockUsers) {
@@ -236,6 +277,17 @@ async function seedData() {
       relatedId: 2,
       sender: "super001",
       recipient: "mana001",
+      sent: 10,
+      utorid: "super001",
+    },
+    {
+      type: "transfer",
+      remark: "regul001 -> super001",
+      createdBy: "regul001",
+      amount: 10,
+      relatedId: 7,
+      sender: "regul001",
+      recipient: "super001",
       sent: 10,
       utorid: "super001",
     },
@@ -375,7 +427,18 @@ async function seedData() {
       sender: "super001",
       recipient: "regul001",
       sent: 10,
-      utorid: "mana001",
+      utorid: "regul001",
+    },
+    {
+      type: "transfer",
+      remark: "regul001 -> super001",
+      createdBy: "regul001",
+      amount: 10,
+      relatedId: 7,
+      sender: "regul001",
+      recipient: "super001",
+      sent: 10,
+      utorid: "regul001",
     },
   ];
   // transactions
@@ -443,7 +506,7 @@ async function seedData() {
       location: "BA1060",
       startTime: "2025-09-01T00:00:00Z",
       endTime: "2025-10-01T00:00:00Z",
-      pointsRemain: 0,
+      pointsRemain: 100,
       pointsAwarded: 0,
       published: false,
       capacity: 150,
@@ -500,8 +563,8 @@ async function seedData() {
       location: "BA1060",
       startTime: "2025-09-01T00:00:00Z",
       endTime: "2025-10-01T00:00:00Z",
-      pointsRemain: 0,
-      pointsAwarded: 0,
+      pointsRemain: 100,
+      pointsAwarded: 50,
       published: true,
       capacity: null,
     },
@@ -511,7 +574,7 @@ async function seedData() {
       location: "BA1060",
       startTime: "2025-09-01T00:00:00Z",
       endTime: "2025-10-01T00:00:00Z",
-      pointsRemain: 0,
+      pointsRemain: 100,
       pointsAwarded: 0,
       published: false,
       capacity: 150,
@@ -523,9 +586,9 @@ async function seedData() {
       startTime: "2025-09-01T00:00:00Z",
       endTime: "2026-10-01T00:00:00Z",
       pointsRemain: 1000,
-      pointsAwarded: 0,
+      pointsAwarded: 150,
       published: true,
-      capacity: null,
+      capacity: 5,
     },
     {
       name: "Mock Event 10",
@@ -536,7 +599,7 @@ async function seedData() {
       pointsRemain: 1500,
       pointsAwarded: 0,
       published: false,
-      capacity: 150,
+      capacity: 6,
     },
     {
       name: "Mock Event 11",
@@ -574,7 +637,6 @@ async function seedData() {
       data: {
         organizers: {
           connect: [
-            { id: 1 },
             { id: 2 },
             { id: 4 },
             { id: 7 },
@@ -582,12 +644,157 @@ async function seedData() {
         },
         guests: {
           connect: [
+            { id: 1 },
             { id: 3 },
             { id: 5 },
             { id: 9 },
             { id: 10 },
           ]
         },
+        numGuests: 5,
+      }
+    });
+  }
+  const eventTransactions_1 = [
+    {
+      utorid: "super001",
+      type: "event",
+      createdBy: "mana001",
+      amount: 10,
+      relatedId: 7,
+      recipient: "super001",
+    },
+    {
+      utorid: "super001",
+      type: "event",
+      createdBy: "mana001",
+      amount: 10,
+      relatedId: 9,
+      recipient: "super001",
+    },
+    {
+      utorid: "super001",
+      type: "event",
+      createdBy: "mana001",
+      amount: 100,
+      relatedId: 9,
+      recipient: "super001",
+    },
+  ]
+  const eventTransactions_3 = [
+    {
+      utorid: "mana002",
+      type: "event",
+      createdBy: "mana001",
+      amount: 10,
+      relatedId: 7,
+      recipient: "mana002",
+    },
+    {
+      utorid: "mana002",
+      type: "event",
+      createdBy: "mana001",
+      amount: 10,
+      relatedId: 9,
+      recipient: "mana002",
+    },
+  ]
+  const eventTransactions_5 = [
+    {
+      utorid: "cash002",
+      type: "event",
+      createdBy: "mana001",
+      amount: 10,
+      relatedId: 7,
+      recipient: "cash002",
+    },
+    {
+      utorid: "cash002",
+      type: "event",
+      createdBy: "mana001",
+      amount: 10,
+      relatedId: 9,
+      recipient: "cash002",
+    },
+  ]
+  const eventTransactions_9 = [
+    {
+      utorid: "regul003",
+      type: "event",
+      createdBy: "mana001",
+      amount: 10,
+      relatedId: 7,
+      recipient: "regul003",
+    },
+    {
+      utorid: "regul003",
+      type: "event",
+      createdBy: "mana001",
+      amount: 10,
+      relatedId: 9,
+      recipient: "regul003",
+    },
+  ]
+  const eventTransactions_10 = [
+    {
+      utorid: "regul004",
+      type: "event",
+      createdBy: "mana001",
+      amount: 10,
+      relatedId: 7,
+      recipient: "regul004",
+    },
+    {
+      utorid: "regul004",
+      type: "event",
+      createdBy: "mana001",
+      amount: 10,
+      relatedId: 9,
+      recipient: "regul004",
+    },
+  ]
+  for (const transaction of eventTransactions_1) {
+    let created = await prisma.transaction.create({ data: transaction });
+    await prisma.user.update({
+      where: { id: 1 },
+      data: {
+        pastTransactions: { connect: { id: created.id } }
+      }
+    });
+  }
+  for (const transaction of eventTransactions_3) {
+    let created = await prisma.transaction.create({ data: transaction });
+    await prisma.user.update({
+      where: { id: 3 },
+      data: {
+        pastTransactions: { connect: { id: created.id } }
+      }
+    });
+  }
+  for (const transaction of eventTransactions_5) {
+    let created = await prisma.transaction.create({ data: transaction });
+    await prisma.user.update({
+      where: { id: 5 },
+      data: {
+        pastTransactions: { connect: { id: created.id } }
+      }
+    });
+  }
+  for (const transaction of eventTransactions_9) {
+    let created = await prisma.transaction.create({ data: transaction });
+    await prisma.user.update({
+      where: { id: 9 },
+      data: {
+        pastTransactions: { connect: { id: created.id } }
+      }
+    });
+  }
+  for (const transaction of eventTransactions_10) {
+    let created = await prisma.transaction.create({ data: transaction });
+    await prisma.user.update({
+      where: { id: 10 },
+      data: {
+        pastTransactions: { connect: { id: created.id } }
       }
     });
   }

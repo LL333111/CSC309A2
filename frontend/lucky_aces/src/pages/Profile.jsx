@@ -49,7 +49,9 @@ function Profile() {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    const response = await updateLoggedInUser(nameInput, emailInput, birthdayInput, avatarInput, token);
+    let email = emailInput === user.email ? null : emailInput;
+
+    const response = await updateLoggedInUser(nameInput, email, birthdayInput, avatarInput, token);
     switch (response) {
       case 400:
         setEditBadRequest(true);
@@ -115,21 +117,21 @@ function Profile() {
       ) : (
         <div className="profile-content">
           <h1>My Account</h1>
-          
+
           <div className="tab-navigation">
-            <button 
+            <button
               className={`tab-button ${activeTab === 'view' ? 'active' : ''}`}
               onClick={() => setActiveTab('view')}
             >
               View Profile
             </button>
-            <button 
+            <button
               className={`tab-button ${activeTab === 'edit' ? 'active' : ''}`}
               onClick={() => setActiveTab('edit')}
             >
               Edit Profile
             </button>
-            <button 
+            <button
               className={`tab-button ${activeTab === 'password' ? 'active' : ''}`}
               onClick={() => setActiveTab('password')}
             >
@@ -192,7 +194,7 @@ function Profile() {
             <div className="tab-content">
               <form onSubmit={handleEditSubmit} className="profile-form">
                 {editSuccess && <div className="success-message">Successfully updated your profile!</div>}
-                
+
                 <div className="form-group">
                   <label htmlFor="nameInput">Name</label>
                   <input
@@ -247,7 +249,7 @@ function Profile() {
             <div className="tab-content">
               <form onSubmit={handlePasswordSubmit} className="profile-form">
                 {passwordSuccess && <div className="success-message">Successfully changed your password!</div>}
-                
+
                 <div className="form-group">
                   <label htmlFor="oldPasswordInput">Current Password</label>
                   <input

@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { getAllUnprocessedRedemption } from "../APIRequest";
 import { QRCodeSVG } from "qrcode.react";
 import "./AllUnprocessedRedemption.css";
 
 function AllUnprocessedRedemption() {
-  const navigate = useNavigate();
   const [_loading, _setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
@@ -65,7 +63,7 @@ function AllUnprocessedRedemption() {
 
   const selectedRedemption = redemptionList.find((item) => item.id === activeQrId);
   const qrLink = selectedRedemption
-    ? `${typeof window !== "undefined" ? window.location.origin : ""}/process_redemption/${selectedRedemption.id}`
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}`
     : "";
 
   return (
@@ -82,15 +80,6 @@ function AllUnprocessedRedemption() {
               <p className="eyebrow">Redemptions · Pending</p>
               <h1 className="page-title">Unprocessed Redemptions</h1>
               <p className="page-subtitle">Review outstanding redemption requests and process them in seconds.</p>
-            </div>
-            <div className="header-actions">
-              <button
-                type="button"
-                className="create-redemption-btn"
-                onClick={() => navigate("/process_redemption")}
-              >
-                Process Redemption
-              </button>
             </div>
           </header>
 
@@ -146,9 +135,6 @@ function AllUnprocessedRedemption() {
                               onClick={() => toggleQRCode(redemption.id)}
                             >
                               {activeQrId === redemption.id ? "Hide QR" : "QR Code"}
-                            </button>
-                            <button type="button" onClick={() => navigate(`/process_redemption/${redemption.id}`)}>
-                              Process
                             </button>
                           </div>
                         </td>
