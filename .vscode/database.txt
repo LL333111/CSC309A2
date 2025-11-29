@@ -1,0 +1,58 @@
+Pre-populated Database  Description
+
+1. User Accounts
+
+There are 10 pre-configured users in the database, divided into 4 roles. The initial password for all users is: 123456cC!
+
+- Superuser: super001 (1 user) - Recommended for experiencing the website, as most data is created around this user.
+- Managers: mana001, mana002 (2 users)
+- Cashiers: cash001, cash002, cash003 (3 users) - Note: cash003 is marked as suspicious.
+- Regular Users: regul001, regul002, regul003, regul004 (4 users)
+
+Key Tip: It is recommended to use the super001 account to log in for the most complete website experience.
+
+---
+
+2. Promotions
+
+Each user initially has the following promotions for testing:
+
+- Automatic Promotions: 5
+- One-time Promotions: 5
+- Status Distribution (for each type above):
+  - Ended: 1
+  - Upcoming: 1
+  - Active: 3
+
+---
+
+3. Events
+
+The database is pre-loaded with 12 events with the following statuses and attributes:
+
+- Ended Events: 4
+  - 2 Published: 1 without organizers/guests, 1 with organizers/guests.
+  - 2 Unpublished.
+- Active Events: 4
+  - 2 Published: 1 without organizers/guests, 1 with organizers/guests.
+  - 2 Unpublished.
+- Upcoming Events: 4
+  - 2 Published: 1 without organizers/guests, 1 with organizers/guests.
+  - 2 Unpublished.
+
+---
+
+4. Transactions
+
+There are 40 initial transaction records in the database, covering all transaction types.
+
+- Distribution by Type:
+  - Transfer: 6
+  - Purchase: 4
+  - Redemption: 7
+  - Adjustment: 2
+  - Event-related: 11
+- User Association:
+  - 19 of these transactions were created for the superuser super001.
+
+---

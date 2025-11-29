@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { getOrganizerEvents } from "../APIRequest"
+import "./OrganizerEvents.css";
 
 function OrganizerEvents() {
   const navigate = useNavigate();
@@ -74,25 +75,40 @@ function OrganizerEvents() {
     return 'active';
   }
 
+  const formatSchedule = (event) => {
+    return (
+      <div className="table-meta-stack">
+        <span>{formatDate(event.startTime)}</span>
+        <span className="table-meta">Ends {formatDate(event.endTime)}</span>
+      </div>
+    );
+  };
+
+  const showAdminMetrics = role >= 3;
+
   return (
-    <div className="all-events-container">
+    <div className="page-shell events-page">
       {_loading ? (
-        <div className="loading-container">
+        <div className="loading-container" data-surface="flat">
           <h2>Loading...</h2>
+          <p>Collecting your events.</p>
         </div>
       ) : (
-        <div>
-          <div className="page-header">
+        <>
+          <header className="events-header" data-surface="flat">
             <div>
+              <p className="eyebrow">Events · Organizer</p>
               <h1 className="page-title">Organizer Events</h1>
-              <p className="page-subtitle">The events you are responsible for.</p>
+              <p className="page-subtitle">Review upcoming and active events you manage.</p>
             </div>
-          </div>
+          </header>
 
-          <div className="events-list">
+          <section className="table-card" data-surface="flat">
             {eventList.length === 0 ? (
-              <div className="no-events">
-                <p>You are not responsible for any events.</p>
+              <div className="empty-state">
+                <div className="empty-state-icon">📅</div>
+                <h3>No assigned events</h3>
+                <p>Events you own will appear here once scheduled.</p>
               </div>
             ) : (
               eventList.map((event) => {
@@ -147,36 +163,31 @@ function OrganizerEvents() {
                           </div>
                         </div>
                       )}
-                      {status !== "upcoming" && <div>
+                      {status !== "upcoming" &&
                         <button onClick={() => navigate(`/reward_points/${event.id}`)}>Reward Points</button>
-                      </div>}
+                      }
+                      <button onClick={() => navigate(`/edit_events_users/${event.id}`)}>Edit Event Users</button>
                     </div>
                   </div>
                 );
               })
             )}
-          </div>
+          </section>
 
           {eventList.length > 0 && (
-            <div className="pagination">
-              <button
-                onClick={handlePrevious}
-                disabled={page === 1}
-              >
+            <section className="pagination" data-surface="flat">
+              <button onClick={handlePrevious} disabled={page === 1}>
                 Previous Page
               </button>
               <span>
                 Page {page} of {totalPage || 1}
               </span>
-              <button
-                onClick={handleNext}
-                disabled={page === totalPage}
-              >
+              <button onClick={handleNext} disabled={page === totalPage}>
                 Next Page
               </button>
-            </div>
+            </section>
           )}
-        </div>
+        </>
       )}
     </div>
   )

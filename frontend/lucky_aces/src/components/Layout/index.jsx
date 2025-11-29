@@ -20,16 +20,25 @@ const Layout = () => {
     return `${season} ${year}`;
   };
 
+  const academicTerm = get_academic_term();
+
   return <>
-    <header>
-      <Link to="/" className="link">CSC309: Lucky Aces</Link>
+    <header className="app-header">
+      <div className="brand-block">
+        <Link to="/" className="brand-link">Lucky Aces</Link>
+        <p className="brand-tagline">Tools for your team</p>
+      </div>
+      <span className="term-pill">{academicTerm}</span>
     </header>
     <main>
       <Navbar />
-      <Outlet />
+      <div className="page-shell">
+        <Outlet />
+      </div>
     </main>
-    <footer>
-      &copy; CSC309, {get_academic_term()}, University of Toronto.
+    <footer className="app-footer">
+      <p>&copy; CSC309, {academicTerm}, University of Toronto.</p>
+      <p className="footer-note">Role-aware access ensured across every dashboard view.</p>
     </footer>
   </>;
 };

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
+import { useNavigate } from "react-router-dom";
 import { getAllEvents } from "../APIRequest"
 import "./PublishedEvents.css"
 
@@ -16,6 +17,7 @@ function PublishedEvents() {
   const [statusFilter, setStatusFilter] = useState("any");
 
   const { loading, token, role } = useLoggedInUser();
+  const navigate = useNavigate();
 
   // page protection
   useEffect(() => {
@@ -137,13 +139,13 @@ function PublishedEvents() {
       ) : (
         <div>
           <div className="page-header">
+            <p className="eyebrow">Events · Published</p>
             <h1 className="page-title">Published Events</h1>
             <p className="page-subtitle">Browse all published events. Filter by name, location, or status to find events that interest you.</p>
+            <button className="filter-toggle-btn" onClick={toggleFilter}>
+              {isFilterOpen ? 'Hide Filters' : 'Show Filters'}
+            </button>
           </div>
-
-          <button className="filter-toggle-btn" onClick={toggleFilter}>
-            Filter {isFilterOpen ? '✕' : '☰'}
-          </button>
           {isFilterOpen && (
             <section className="filter-panel">
               <div className="filter-grid">
@@ -244,6 +246,13 @@ function PublishedEvents() {
                         <p>{event.description || 'No description available'}</p>
                       </div>
                     </div>
+
+                    <button
+                      className="rsvp-btn"
+                      onClick={() => navigate(`/event_rsvp/${event.id}`)}
+                    >
+                      View Details & RSVP
+                    </button>
                   </div>
                 );
               })

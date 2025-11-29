@@ -112,41 +112,48 @@ function AllPromotions() {
   }
 
   return (
-    <div className="all-promotions-container">
+    <div className="page-shell promotions-page">
       {_loading ? (
-        <div className="loading-container">
+        <div className="loading-container" data-surface="flat">
           <h2>Loading...</h2>
         </div>
       ) : (
-        <div>
-          <div className="page-header">
-            <div>
+        <>
+          <header className="promotions-header" data-surface="flat">
+            <div className="promotions-header-left">
+              <p className="eyebrow">Engagement · Promotions</p>
               <h1 className="page-title">All Promotions</h1>
-              <p className="page-subtitle">Browse all promotions. Filter by name, type, or status.</p>
+              <p className="page-subtitle">Track every reward incentive across the platform.</p>
+              <button type="button" className="filter-toggle-btn" onClick={toggleFilter}>
+                {isFilterOpen ? "Hide Filters" : "Show Filters"}
+              </button>
             </div>
-            <button className="create-promotion-btn" onClick={() => navigate('/new_promotion')}>
-              Create New Promotion
-            </button>
-          </div>
+            <div className="promotions-header-actions header-actions">
+              <button
+                type="button"
+                className="create-promotion-btn"
+                onClick={() => navigate('/new_promotion')}
+              >
+                Create Promotion
+              </button>
+            </div>
+          </header>
 
-          <button className="filter-toggle-btn" onClick={toggleFilter}>
-            Filter {isFilterOpen ? '✕' : '☰'}
-          </button>
           {isFilterOpen && (
             <section className="filter-panel">
-              <div>
-                <div>
-                  <label htmlFor="name-filter">Name: </label>
+              <div className="filter-grid">
+                <div className="filter-group">
+                  <label htmlFor="name-filter">Name</label>
                   <input
                     type="text"
                     id="name-filter"
                     value={nameFilter}
                     onChange={(e) => setNameFilter(e.target.value)}
-                    placeholder="Input Promotion Name.."
+                    placeholder="Search promotion name"
                   />
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="type-filter">Type: </label>
+                  <label htmlFor="type-filter">Type</label>
                   <select
                     id="type-filter"
                     value={typeFilter}
@@ -158,7 +165,7 @@ function AllPromotions() {
                   </select>
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="status-filter">Status: </label>
+                  <label htmlFor="status-filter">Status</label>
                   <select
                     id="status-filter"
                     value={statusFilter}
@@ -172,69 +179,112 @@ function AllPromotions() {
                 </div>
               </div>
               <div className="filter-actions">
-                <button className="apply-btn" onClick={handleApply}>Apply</button>
-                <button className="reset-btn" onClick={handleReset}>Reset</button>
+                <button type="button" className="apply-btn" onClick={handleApply}>Apply</button>
+                <button type="button" className="reset-btn" onClick={handleReset}>Reset</button>
               </div>
             </section>
           )}
 
-          <div className="promotions-list">
+          <section className="table-card" data-surface="flat">
             {promotionList.length === 0 ? (
               <div className="empty-state">
-                <p>You do not have available promotions.</p>
+                <div className="empty-state-icon">🎁</div>
+                <h3>No promotions yet</h3>
+                <p>Try adjusting filters or create a new promotion.</p>
               </div>
             ) : (
-              promotionList.map((promotion) => {
-                const status = getPromotionStatus(promotion);
-                const statusClass = `status-badge status-${status.toLowerCase()}`;
-                return (
-                  <div key={promotion.id} className="promotion-card">
-                    <div className="promotion-header">
-                      <h3>{promotion.name}</h3>
-                      <span className={statusClass}>
-                        {status}
-                      </span>
-                    </div>
+              <div className="table-scroll">
+                <table className="data-table promotions-table">
+                  <thead>
+                    <tr>
+                      <th>Promotion</th>
+                      <th>Status</th>
+                      <th>Type</th>
+                      <th>Min Spend</th>
+                      <th>Rate / Points</th>
+                      <th>Window</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {promotionList.map((promotion) => {
+                      const status = getPromotionStatus(promotion).toLowerCase();
+                      const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
 
-                    <div className="promotion-details">
-                      <p><strong>Type: </strong>{promotion.type}</p>
-                      <p><strong>Min Spending: </strong>{promotion.minSpending}</p>
-                      <p><strong>Start Date: </strong>{formatDate(promotion.startTime)}</p>
-                      <p><strong>End Date: </strong>{formatDate(promotion.endTime)}</p>
-                      <p><strong>Rate: </strong>{promotion.rate}</p>
-                      <p><strong>Points: </strong>{promotion.points}</p>
-                    </div>
-                  </div>
-                );
-              })
+                      return (
+                        <tr key={promotion.id}>
+                          <td>
+                            <div className="table-cell-primary">
+                              <p className="table-title">{promotion.name}</p>
+                              <p className="table-meta">#{promotion.id}</p>
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`table-chip status-${status}`}>
+                              {statusLabel}
+                            </span>
+                          </td>
+                          <td>
+                            <span className="table-chip is-muted">
+                              {promotion.type}
+                            </span>
+                          </td>
+                          <td>
+                            {promotion.minSpending ?? "—"}
+                          </td>
+                          <td>
+                            <div className="table-meta-stack">
+                              <span>Rate: {promotion.rate ?? "—"}</span>
+                              <span>Points: {promotion.points ?? "—"}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="table-meta-stack">
+                              <span>{formatDate(promotion.startTime)}</span>
+                              <span className="table-meta">to {formatDate(promotion.endTime)}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="table-actions">
+                              <button
+                                type="button"
+                                className="btn-secondary"
+                                onClick={() => navigate(`/ved_promotion/${promotion.id}`)}
+                              >
+                                Open
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </section>
 
           {promotionList.length > 0 && (
-            <div className="pagination">
-              <button
-                className="pagination-btn"
-                onClick={handlePrevious}
-                disabled={page === 1}
-              >
+            <section className="pagination" data-surface="flat">
+              <button type="button" className="pagination-btn" onClick={handlePrevious} disabled={page === 1}>
                 Previous Page
               </button>
               <span className="pagination-info">
                 Page {page} of {totalPage || 1}
               </span>
               <button
+                type="button"
                 className="pagination-btn"
                 onClick={handleNext}
                 disabled={page === totalPage}
               >
                 Next Page
               </button>
-            </div>
+            </section>
           )}
-        </div>
-      )
-      }
-    </div >
+        </>
+      )}
+    </div>
   )
 }
 

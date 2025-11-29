@@ -1,0 +1,213 @@
+/* Home Page - Premium Experience */
+
+.home-container {
+    width: min(1200px, 100%);
+    margin: 0 auto;
+    padding: clamp(2rem, 4vw, 4rem) clamp(1.25rem, 4vw, 3rem);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2rem, 3vw, 3.5rem);
+}
+
+.hero-section {
+    background: linear-gradient(135deg, rgba(31, 111, 235, 0.97), rgba(15, 186, 223, 0.9));
+    border-radius: clamp(1.8rem, 4vw, 3rem);
+    padding: clamp(3rem, 5vw, 5rem);
+    color: white;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.3), transparent 45%);
+    pointer-events: none;
+}
+
+.hero-section h1 {
+    font-size: clamp(2.5rem, 5vw, 3.8rem);
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.hero-section p {
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    margin: 0 auto 2rem;
+    max-width: 720px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.cta-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.cta-button {
+    border-radius: var(--radius-round);
+    padding: 0.95rem 2.2rem;
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.cta-button-primary {
+    background: white;
+    color: var(--brand-primary-600);
+    box-shadow: 0 15px 35px rgba(15, 23, 42, 0.2);
+}
+
+.cta-button-secondary {
+    background: transparent;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+}
+
+.features-section {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.feature-card {
+    padding: 1.75rem;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.feature-card h3 {
+    margin: 0;
+    color: var(--neutral-900);
+}
+
+.feature-card p {
+    margin: 0;
+    color: var(--neutral-500);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+}
+
+.spotlight-section {
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: var(--radius-lg);
+    padding: clamp(2rem, 3vw, 3rem);
+    border: 1px solid rgba(31, 111, 235, 0.08);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.spotlight-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.75rem;
+    margin-top: 2rem;
+}
+
+.spotlight-card {
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    background: rgba(247, 250, 255, 0.8);
+    border: 1px solid rgba(31, 111, 235, 0.12);
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.spotlight-card h3 {
+    margin: 0;
+    color: var(--neutral-900);
+}
+
+.spotlight-card p {
+    margin: 0;
+    color: var(--neutral-500);
+}
+
+.portrait-frame {
+    width: 160px;
+    height: 160px;
+    border-radius: 1.25rem;
+    border: 3px solid rgba(31, 111, 235, 0.6);
+    padding: 0.4rem;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.portrait-frame::before,
+.portrait-frame::after {
+    content: '';
+    position: absolute;
+    width: 35%;
+    height: 35%;
+    border: 2px solid var(--brand-primary-600);
+}
+
+.portrait-frame::before {
+    top: 0.4rem;
+    left: 0.4rem;
+    border-right: 0;
+    border-bottom: 0;
+}
+
+.portrait-frame::after {
+    bottom: 0.4rem;
+    right: 0.4rem;
+    border-left: 0;
+    border-top: 0;
+}
+
+.portrait-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 1rem;
+}
+
+.portrait-frame-round {
+    border-radius: 50%;
+    padding: 0.35rem;
+}
+
+.portrait-frame-round::before,
+.portrait-frame-round::after {
+    display: none;
+}
+
+.portrait-frame-round .portrait-image {
+    border-radius: 50%;
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 2.75rem 1.5rem;
+    }
+
+    .features-grid,
+    .spotlight-grid {
+        grid-template-columns: 1fr;
+    }
+}

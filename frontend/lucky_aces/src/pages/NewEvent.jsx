@@ -14,7 +14,6 @@ const NewEvent = () => {
         name: '',
         description: '',
         location: '',
-        date: '',
         startTime: '',
         endTime: '',
         capacity: '',
@@ -49,22 +48,32 @@ const NewEvent = () => {
             return;
         }
 
-        // Validate that start time is before end time
-        if (formData.startTime >= formData.endTime) {
-            alert("End time must be after start time");
+        if (!formData.startTime || !formData.endTime) {
+            alert("Start time and end time are required");
             return;
         }
 
         // Capacity is optional - null means unlimited
         const capacityNum = formData.capacity ? parseInt(formData.capacity) : null;
 
-        // Combine date and time into the format backend expects: YYYY-MM-DDTHH:MM:SS.microseconds+TZ:TZ
-        const startDateTime = `${formData.date}T${formData.startTime}:00.000000+00:00`;
-        const endDateTime = `${formData.date}T${formData.endTime}:00.000000+00:00`;
+        const startISO = `${formData.startTime}:00.000000+00:00`;
+        const endISO = `${formData.endTime}:00.000000+00:00`;
+
+        const startDate = new Date(formData.startTime);
+        const endDate = new Date(formData.endTime);
+
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            alert("Please provide valid start and end timestamps");
+            return;
+        }
+
+        if (startDate >= endDate) {
+            alert("End time must be after start time");
+            return;
+        }
 
         // Validate that start time is in the future
         const now = new Date();
-        const startDate = new Date(startDateTime);
         if (startDate <= now) {
             alert("Event start time must be in the future");
             return;
@@ -74,8 +83,8 @@ const NewEvent = () => {
             name: formData.name,
             description: formData.description,
             location: formData.location,
-            startTime: startDateTime,
-            endTime: endDateTime,
+            startTime: startISO,
+            endTime: endISO,
             capacity: capacityNum,
             points: pointsNum
         });
@@ -87,9 +96,8 @@ const NewEvent = () => {
                 formData.name,
                 formData.description,
                 formData.location,
-                null, // date is not needed separately
-                startDateTime,
-                endDateTime,
+                startISO,
+                endISO,
                 capacityNum,
                 pointsNum,
                 token
@@ -111,17 +119,20 @@ const NewEvent = () => {
 
     if (_loading) {
         return (
-            <div className="new-event-container">
-                <h2>Loading...</h2>
+            <div className="page-shell new-event-page">
+                <div className="loading-container" data-surface="flat">
+                    <h2>Loading...</h2>
+                    <p>Preparing the event planner.</p>
+                </div>
             </div>
         );
     }
 
     if (role < 3) {
         return (
-            <div className="new-event-container">
-                <div className="error-message">
-                    <h2>Access Denied</h2>
+            <div className="page-shell new-event-page">
+                <div className="access-block" data-surface="flat">
+                    <h2>Access denied</h2>
                     <p>You must be a Manager or higher to create events.</p>
                 </div>
             </div>
@@ -129,122 +140,119 @@ const NewEvent = () => {
     }
 
     return (
-        <div className="new-event-container">
-            <h1>Create New Event</h1>
-            <form onSubmit={handleSubmit} className="event-form">
-                <div className="form-group">
-                    <label htmlFor="name">Event Name</label>
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        placeholder='Enter event name here...'
-                        required
-                    />
+        <div className="page-shell new-event-page">
+            <header className="new-event-header" data-surface="flat">
+                <div>
+                    <p className="eyebrow">Logistics · Events</p>
+                    <h1 className="page-title">Create Event</h1>
+                    <p className="page-subtitle">Publish the basics, timing, and optional capacity in one place.</p>
                 </div>
-                <div className="form-group">
-                    <label htmlFor="description">Description</label>
-                    <textarea
-                        id="description"
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        placeholder='Enter event description here...'
-                        rows="4"
-                        required
-                    />
-                </div>
+            </header>
 
-                <div className="form-group">
-                    <label htmlFor="location">Location</label>
-                    <input
-                        type="text"
-                        id="location"
-                        name="location"
-                        value={formData.location}
-                        placeholder='Enter event location here...'
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="date">Event Date</label>
-                    <input
-                        type="date"
-                        id="date"
-                        name="date"
-                        value={formData.date}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="form-row">
+            <section className="creation-card" data-surface="flat">
+                <form onSubmit={handleSubmit} className="event-form">
                     <div className="form-group">
-                        <label htmlFor="startTime">Start Time</label>
+                        <label htmlFor="name">Event Name</label>
                         <input
-                            type="time"
-                            id="startTime"
-                            name="startTime"
-                            value={formData.startTime}
+                            type="text"
+                            id="name"
+                            name="name"
+                            value={formData.name}
                             onChange={handleChange}
+                            placeholder='Enter event name here...'
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="description">Description</label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            value={formData.description}
+                            onChange={handleChange}
+                            placeholder='Enter event description here...'
+                            rows="4"
                             required
                         />
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="endTime">End Time</label>
+                        <label htmlFor="location">Location</label>
                         <input
-                            type="time"
-                            id="endTime"
-                            name="endTime"
-                            value={formData.endTime}
+                            type="text"
+                            id="location"
+                            name="location"
+                            value={formData.location}
+                            placeholder='Enter event location here...'
                             onChange={handleChange}
                             required
                         />
                     </div>
-                </div>
 
-                <div className="form-row">
-                    <div className="form-group">
-                        <label htmlFor="capacity">Capacity (optional)</label>
-                        <input
-                            type="number"
-                            id="capacity"
-                            name="capacity"
-                            value={formData.capacity}
-                            onChange={handleChange}
-                            placeholder="Enter capacity here... If no input, assumed unlimited."
-                        />
+                    <div className="form-grid">
+                        <div className="form-group">
+                            <label htmlFor="startTime">Start Time</label>
+                            <input
+                                type="datetime-local"
+                                id="startTime"
+                                name="startTime"
+                                value={formData.startTime}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="endTime">End Time</label>
+                            <input
+                                type="datetime-local"
+                                id="endTime"
+                                name="endTime"
+                                value={formData.endTime}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="points">Points Reward </label>
-                        <input
-                            type="number"
-                            id="points"
-                            name="points"
-                            value={formData.points}
-                            onChange={handleChange}
-                            min="1"
-                            placeholder="Enter points here..."
-                            required
-                        />
-                    </div>
-                </div>
+                    <div className="form-grid">
+                        <div className="form-group">
+                            <label htmlFor="capacity">Capacity (optional)</label>
+                            <input
+                                type="number"
+                                id="capacity"
+                                name="capacity"
+                                value={formData.capacity}
+                                onChange={handleChange}
+                                placeholder="Leave blank for unlimited"
+                            />
+                        </div>
 
-                <div className="form-actions">
-                    <button type="submit" className="submit-btn" disabled={submitting}>
-                        {submitting ? 'Creating...' : 'Create Event'}
-                    </button>
-                    <button type="button" className="cancel-btn" onClick={() => navigate('/all_events')} disabled={submitting}>
-                        Cancel
-                    </button>
-                </div>
-            </form>
+                        <div className="form-group">
+                            <label htmlFor="points">Points Reward </label>
+                            <input
+                                type="number"
+                                id="points"
+                                name="points"
+                                value={formData.points}
+                                onChange={handleChange}
+                                min="1"
+                                placeholder="Enter points here..."
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-actions">
+                        <button type="submit" className="submit-btn" disabled={submitting}>
+                            {submitting ? 'Creating...' : 'Create Event'}
+                        </button>
+                        <button type="button" className="cancel-btn" onClick={() => navigate('/all_events')} disabled={submitting}>
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </section>
         </div>
     );
 };

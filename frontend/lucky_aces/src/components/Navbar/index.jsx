@@ -1,129 +1,223 @@
 import "./style.css"
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useLoggedInUser } from "../../contexts/LoggedInUserContext";
+import { useSocket } from "../../contexts/SocketContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('Home');
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [notificationToasts, setNotificationToasts] = useState([]);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { role } = useLoggedInUser();
+  const { unreadNotification, setUnreadNotification, newNotification } = useSocket();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const toggleDropdown = (dropdownName) => {
+    setActiveDropdown(activeDropdown === dropdownName ? null : dropdownName);
+  };
+
   const handleNavClick = (sectionId, path, e) => {
     e.preventDefault();
-    setActiveSection(sectionId);
     setIsMenuOpen(false);
+    setActiveDropdown(null);
     navigate(path);
   };
 
+  const matchPath = (targetPath) => {
+    if (targetPath === "/") {
+      return location.pathname === "/";
+    }
+    return location.pathname === targetPath || location.pathname.startsWith(`${targetPath}/`);
+  };
+
+  const handleNotification = (sectionId, path, e) => {
+    e.preventDefault();
+    setIsMenuOpen(false);
+    setActiveDropdown(null);
+    setUnreadNotification(false);
+    navigate(path);
+  };
+
+  const removeToast = (id) => {
+    setNotificationToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  const accountActive = matchPath("/profile");
+  const transactionsActive = [
+    "/your_transactions",
+    "/qr_init_transaction",
+    "/transfer_transaction",
+    "/redemption_transaction",
+    "/all_unprocessed_redemption_transaction"
+  ].some(matchPath);
+  const eventsActive = [
+    "/published_events",
+    "/organizer_events"
+  ].some(matchPath);
+  const cashierActive = [
+    "/register",
+    "/process_redemption",
+    "/purchase_transaction"
+  ].some(matchPath);
+  const adminActive = [
+    "/all_users",
+    "/all_promotions",
+    "/all_events",
+    "/all_transactions"
+  ].some(matchPath);
+  const notificationsActive = matchPath("/notifications");
+
+  useEffect(() => {
+    if (newNotification !== null) {
+      const toastId = Date.now();
+      const newToast = {
+        id: toastId,
+        message: newNotification.message,
+        timestamp: new Date().toLocaleTimeString()
+      };
+
+      setNotificationToasts(prev => [...prev, newToast]);
+    }
+  }, [newNotification]);
+
   return (
     <div>
+      <div className="notifications-container">
+        {notificationToasts.map((toast, index) => (
+          <div
+            key={toast.id}
+            className="notification-toast"
+          >
+            <div className="toast-content">
+              <div>
+                <span>New Notification: {toast.message}</span>
+                <div style={{ fontSize: '0.8em', opacity: 0.8 }}>
+                  {new Date(newNotification.createdAt).toLocaleTimeString()}
+                </div>
+              </div>
+              <button
+                className="toast-close"
+                onClick={() => removeToast(toast.id)}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <nav className="navbar">
         <div className="nav-container">
           <ul className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
             <li className="nav-item">
-              <p className={`nav-link ${activeSection === "Home" ? 'active' : ''}`}
+              <p className={`nav-link ${matchPath("/") ? 'active' : ''}`}
                 onClick={(e) => { handleNavClick("Home", "/", e); }}>Home</p>
             </li>
-            {/* Menu when not login*/}
-            {role === 0 && <>
+
+            {/* Not logged in */}
+            {role === 0 && (
               <li className="nav-item">
-                <p className={`nav-link ${activeSection === "Login" ? 'active' : ''}`}
+                <p className={`nav-link ${matchPath("/login") ? 'active' : ''}`}
                   onClick={(e) => { handleNavClick("Login", "/login", e); }}>Login</p>
               </li>
-            </>}
-            {/* Menu when regular or higher*/}
-            {role >= 1 && <>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "Profile" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("Profile", "/profile", e); }}>Profile</p>
+            )}
+
+            {/* Logged in users (role >= 1) */}
+            {role >= 1 && (
+              <>
+                {/* Account Dropdown */}
+                <li className="nav-item dropdown">
+                  <p className={`nav-link dropdown-toggle ${accountActive ? 'active' : ''}`} onClick={() => toggleDropdown('account')}>
+                    Account
+                  </p>
+                  <ul className={`dropdown-menu ${activeDropdown === 'account' ? 'show' : ''}`}>
+                    <li
+                      className={matchPath("/profile") ? 'active' : ''}
+                      onClick={(e) => handleNavClick("Profile", "/profile", e)}
+                    >
+                      Profile
+                    </li>
+                  </ul>
+                </li>
+
+                {/* Transactions Dropdown */}
+                <li className="nav-item dropdown">
+                  <p className={`nav-link dropdown-toggle ${transactionsActive ? 'active' : ''}`} onClick={() => toggleDropdown('transactions')}>
+                    Transactions
+                  </p>
+                  <ul className={`dropdown-menu ${activeDropdown === 'transactions' ? 'show' : ''}`}>
+                    <li className={matchPath("/your_transactions") ? 'active' : ''} onClick={(e) => handleNavClick("YourTransactions", "/your_transactions", e)}>Recent Transactions</li>
+                    <li className={matchPath("/qr_init_transaction") ? 'active' : ''} onClick={(e) => handleNavClick("QRInitTransaction", "/qr_init_transaction", e)}>QR Init Transaction</li>
+                    <li className={matchPath("/transfer_transaction") ? 'active' : ''} onClick={(e) => handleNavClick("TransferTransaction", "/transfer_transaction", e)}>Transfer Points</li>
+                    <li className={matchPath("/redemption_transaction") ? 'active' : ''} onClick={(e) => handleNavClick("RedemptionTransaction", "/redemption_transaction", e)}>Redeem Rewards</li>
+                    <li className={matchPath("/all_unprocessed_redemption_transaction") ? 'active' : ''} onClick={(e) => handleNavClick("AllUnprocessedRedemption", "/all_unprocessed_redemption_transaction", e)}>Unprocessed Redemptions</li>
+                  </ul>
+                </li>
+
+                {/* Events Dropdown */}
+                <li className="nav-item dropdown">
+                  <p className={`nav-link dropdown-toggle ${eventsActive ? 'active' : ''}`} onClick={() => toggleDropdown('events')}>
+                    Events
+                  </p>
+                  <ul className={`dropdown-menu ${activeDropdown === 'events' ? 'show' : ''}`}>
+                    <li className={matchPath("/published_events") ? 'active' : ''} onClick={(e) => handleNavClick("PublishedEvents", "/published_events", e)}>Published Events</li>
+                    <li className={matchPath("/organizer_events") ? 'active' : ''} onClick={(e) => handleNavClick("OrganizerEvents", "/organizer_events", e)}>Organize Events</li>
+                  </ul>
+                </li>
+
+                {/* Promotions */}
+                <li className="nav-item">
+                  <p className={`nav-link ${matchPath("/your_promotions") ? 'active' : ''}`}
+                    onClick={(e) => { handleNavClick("YourPromotions", "/your_promotions", e); }}>Promotions</p>
+                </li>
+
+                {/* Notifications */}
+                <li className="nav-item">
+                  <p className={`nav-link ${notificationsActive ? 'active' : ''} ${unreadNotification ? 'has-notification' : ''}`}
+                    onClick={(e) => { handleNotification("Notifications", "/notifications", e); }}>
+                    Notifications
+                    {unreadNotification && <span className="notification-badge"></span>}
+                  </p>
+                </li>
+              </>
+            )}
+
+            {/* Cashier or higher (role >= 2) */}
+            {role >= 2 && (
+              <li className="nav-item dropdown">
+                <p className={`nav-link dropdown-toggle ${cashierActive ? 'active' : ''}`} onClick={() => toggleDropdown('cashier')}>
+                  Cashier
+                </p>
+                <ul className={`dropdown-menu ${activeDropdown === 'cashier' ? 'show' : ''}`}>
+                  <li className={matchPath("/register") ? 'active' : ''} onClick={(e) => handleNavClick("Register", "/register", e)}>Register User</li>
+                  <li className={matchPath("/process_redemption") ? 'active' : ''} onClick={(e) => handleNavClick("ProcessRedemption", "/process_redemption", e)}>Process Redemption</li>
+                  <li className={matchPath("/purchase_transaction") ? 'active' : ''} onClick={(e) => handleNavClick("CreatePurchaseTransaction", "/purchase_transaction", e)}>Create Purchase</li>
+                </ul>
               </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "EditProfile" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("EditProfile", "/edit_profile", e); }}>Edit Profile</p>
+            )}
+
+            {/* Manager or higher (role >= 3) */}
+            {role >= 3 && (
+              <li className="nav-item dropdown">
+                <p className={`nav-link dropdown-toggle ${adminActive ? 'active' : ''}`} onClick={() => toggleDropdown('admin')}>
+                  Admin
+                </p>
+                <ul className={`dropdown-menu ${activeDropdown === 'admin' ? 'show' : ''}`}>
+                  <li className={matchPath("/all_users") ? 'active' : ''} onClick={(e) => handleNavClick("AllUsers", "/all_users", e)}>Manage Users</li>
+                  <li className={matchPath("/all_promotions") ? 'active' : ''} onClick={(e) => handleNavClick("AllPromotions", "/all_promotions", e)}>Manage Promotions</li>
+                  <li className={matchPath("/all_events") ? 'active' : ''} onClick={(e) => handleNavClick("AllEvents", "/all_events", e)}>Manage Events</li>
+                  <li className={matchPath("/all_transactions") ? 'active' : ''} onClick={(e) => handleNavClick("AllTransactions", "/all_transactions", e)}>Manage Transactions</li>
+                </ul>
               </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "ChangePassword" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("ChangePassword", "/change_password", e); }}>Chang Password</p>
-              </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "QRInitTransaction" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("QRInitTransaction", "/qr_init_transaction", e); }}>QR init Transaction</p>
-              </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "TransferTransaction" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("TransferTransaction", "/transfer_transaction", e); }}>Transfer Transaction</p>
-              </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "RedemptionTransaction" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("RedemptionTransaction", "/redemption_transaction", e); }}>Redemption Transaction</p>
-              </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "AllUnprocessedRedemption" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("AllUnprocessedRedemption", "/all_unprocessed_redemption_transaction", e); }}>All Unprocessed Redemption</p>
-              </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "YourPromotions" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("YourPromotions", "/your_promotions", e); }}>Your Promotions</p>
-              </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "PublishedEvents" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("PublishedEvents", "/published_events", e); }}>Published Events</p>
-              </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "YourTransactions" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("YourTransactions", "/your_transactions", e); }}>Your Transactions</p>
-              </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "OrganizerEvents" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("OrganizerEvents", "/organizer_events", e); }}>Organizer Events</p>
-              </li>
-            </>}
-            {/* Menu when cashier or higher */}
-            {role >= 2 && <>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "Register" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("Register", "/register", e); }}>Register</p>
-              </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "ProcessRedemption" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("ProcessRedemption", "/process_redemption", e); }}>Process Redemption</p>
-              </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "CreatePurchaseTransaction" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("CreatePurchaseTransaction", "/purchase_transaction", e); }}>Purchase Transaction</p>
-              </li>
-            </>}
-            {/* Menu when Manager or higher */}
-            {role >= 3 && <>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "AllUsers" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("AllUsers", "/all_users", e); }}>All Users</p>
-              </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "AllPromotions" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("AllPromotions", "/all_promotions", e); }}>All Promotions</p>
-              </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "AllEvents" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("AllEvents", "/all_events", e); }}>All Events</p>
-              </li>
-              <li className="nav-item">
-                <p className={`nav-link ${activeSection === "AllTransactions" ? 'active' : ''}`}
-                  onClick={(e) => { handleNavClick("AllTransactions", "/all_transactions", e); }}>All Transactions</p>
-              </li>
-            </>}
-            {/* 404 page*/}
-            <li className="nav-item">
-              <p className={`nav-link ${activeSection === "bad" ? 'active' : ''}`}
-                onClick={(e) => { handleNavClick("bad", "*", e); }}>bad</p>
-            </li>
+            )}
           </ul>
+
           <button className="hamburger" onClick={toggleMenu}>
             {isMenuOpen ? '✕' : '☰'}
           </button>

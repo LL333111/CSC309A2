@@ -1,0 +1,43 @@
+.events-page {
+    gap: clamp(1.5rem, 3vw, 2.75rem);
+}
+
+.events-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+
+.events-table .btn-secondary {
+    min-width: 160px;
+}
+
+.events-table td {
+    vertical-align: middle;
+}
+
+.events-table .table-cell-primary {
+    max-width: 320px;
+}
+
+.events-table .table-meta-stack span:first-child {
+    color: var(--neutral-900);
+    font-weight: 600;
+}
+
+.events-table button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .events-header {
+        flex-direction: column;
+    }
+
+    .events-table .btn-secondary {
+        width: 100%;
+    }
+}

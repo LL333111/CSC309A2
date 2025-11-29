@@ -250,7 +250,7 @@ export async function getAllEvents(name, page, started, ended, location, showFul
   }
 }
 
-export async function createEvent(name, description, location, date, startTime, endTime, capacity, points, token) {
+export async function createEvent(name, description, location, startTime, endTime, capacity, points, token) {
   try {
     const body = {
       name,
@@ -339,6 +339,46 @@ export async function deleteEventById(eventId, token) {
   } catch (error) {
     console.error("delete event by ID API request error: ", error);
     alert("delete event by ID API request error");
+  }
+}
+
+// /events/:eventId/guests/me - RSVP to event
+export async function rsvpToEvent(eventId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}/guests/me`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      return response.status;
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("RSVP to event API request error: ", error);
+    alert("RSVP to event API request error");
+  }
+}
+
+// /events/:eventId/guests/me - Cancel RSVP
+export async function cancelRsvpToEvent(eventId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}/guests/me`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("cancel RSVP to event API request error: ", error);
+    alert("cancel RSVP to event API request error");
   }
 }
 
@@ -686,5 +726,104 @@ export async function createRewardTransaction(amount, utorid, remark, token, eve
   } catch (error) {
     console.error("create adjustment transactions API request error: ", error);
     alert("create adjustment transactions API request error");
+  }
+}
+
+// /events/:eventId/organizers
+export async function addOrganizer(utorid, eventId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}/organizers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        utorid,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("add organizer API request error: ", error);
+    alert("add organizer API request error");
+  }
+}
+
+// /events/:eventId/organizers/:userId
+export async function removeOrganizer(eventId, userId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}/organizers/${userId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("remove organizer API request error: ", error);
+    alert("remove organizer API request error");
+  }
+}
+
+// /events/:eventId/guests
+export async function addGuest(utorid, eventId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}/guests`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        utorid,
+      }),
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("add guests API request error: ", error);
+    alert("add guests API request error");
+  }
+}
+
+// /events/:eventId/organizers/:userId
+export async function removeGuest(eventId, userId, token) {
+  try {
+    const response = await fetch(`${API}/events/${eventId}/guests/${userId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    return response.status;
+  } catch (error) {
+    console.error("remove guests API request error: ", error);
+    alert("remove guests API request error");
+  }
+}
+
+// /notifications
+export async function getNotifications(page, token) {
+  try {
+    const response = await fetch(`${API}/notifications?page=${page}&limit=5`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to get notifications ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get notifications API request error: ", error);
+    alert("get notifications API request error");
   }
 }

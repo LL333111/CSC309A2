@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login as APIlogin } from "../APIRequest";
-import { useLoggedInUser } from "../contexts/LoggedInUserContext"
+import { useLoggedInUser } from "../contexts/LoggedInUserContext";
+import "./Login.css";
 
 function Login() {
   const [utoridInput, setUtoridInput] = useState("");
@@ -43,38 +44,52 @@ function Login() {
   }
 
   return (
-    <div>
-      <form onSubmit={(e) => handleSubmit(e)}>
-        <div>
-          <label htmlFor="utoridInput">UTORID: </label>
-          <input
-            id="utoridInput"
-            type="text"
-            value={utoridInput}
-            onChange={(e) => setUtoridInput(e.target.value)}
-            required
-          />
-          {badRequest && <p>Unique, Alphanumeric, 7-8 characters</p>}
-          {noUser && <p>No user with given utorid</p>}
+    <div className="login-container" data-surface="flat">
+      <div className="login-card">
+        <h1>Sign in to Lucky Aces</h1>
+        <p className="login-subtitle">Secure, role-aware access for every permission tier.</p>
+
+        <form className="login-form" onSubmit={(e) => handleSubmit(e)}>
+          <div className="form-group">
+            <label htmlFor="utoridInput">UTORID</label>
+            <input
+              id="utoridInput"
+              type="text"
+              value={utoridInput}
+              onChange={(e) => setUtoridInput(e.target.value)}
+              placeholder="e.g. luckyace"
+              required
+            />
+            {badRequest && <p className="field-error">Unique, alphanumeric, 7-8 characters.</p>}
+            {noUser && <p className="field-error">We could not find an account with that UTORID.</p>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="passwordInput">Password</label>
+            <input
+              id="passwordInput"
+              type="password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              placeholder="Enter your password"
+              required
+            />
+            {badRequest && <p className="field-error">8-20 characters with uppercase, lowercase, number, and symbol.</p>}
+            {incorretPassword && <p className="field-error">Incorrect password.</p>}
+          </div>
+
+          <button type="submit" className="login-button">Login</button>
+        </form>
+
+        <div className="register-link">
+          <p>Need a cashier or manager account? Ask an authenticated manager inside the dashboard.</p>
+          <p>
+            <Link to="/">Return to homepage</Link>
+          </p>
         </div>
-        <div>
-          <label htmlFor="passwordInput">Password: </label>
-          <input
-            id="passwordInput"
-            type="text"
-            value={passwordInput}
-            onChange={(e) => setPasswordInput(e.target.value)}
-            required
-          />
-          {badRequest && <p>8-20 characters, at least one uppercase, one lowercase, one number, one special character</p>}
-          {incorretPassword && <p>Incorrect password</p>}
-        </div>
-        <button type="submit">Login</button>
-      </form>
-      <Link to="/">Reset Password</Link>
-      {/* reset not finish*/}
+      </div>
     </div>
-  )
+  );
 
 }
 

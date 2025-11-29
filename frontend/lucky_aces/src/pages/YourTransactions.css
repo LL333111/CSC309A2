@@ -1,26 +1,147 @@
+.your-transactions-page {
+  gap: clamp(1.5rem, 3vw, 2.75rem);
+}
+
+.your-transactions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.filter-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.filter-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--neutral-600);
+}
+
+.filter-group input,
+.filter-group select {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.85rem;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  border-color: var(--brand-primary-400);
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.15);
+}
+
+.filter-group small {
+  color: var(--danger-500);
+  font-size: 0.8rem;
+}
+
+.your-transactions-table td {
+  vertical-align: middle;
+}
+
+.your-transactions-table .table-meta-stack span:first-child {
+  color: var(--neutral-900);
+  font-weight: 600;
+}
+
+.table-chip.transaction-type {
+  border: 1px solid transparent;
+  font-weight: 600;
+}
+
+.table-chip.transaction-type-purchase {
+  background: rgba(18, 185, 129, 0.15);
+  color: var(--success-500);
+  border-color: rgba(18, 185, 129, 0.35);
+}
+
+.table-chip.transaction-type-redemption {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning-500);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.table-chip.transaction-type-adjustment {
+  background: rgba(31, 111, 235, 0.12);
+  color: var(--brand-primary-600);
+  border-color: rgba(31, 111, 235, 0.3);
+}
+
+.table-chip.transaction-type-event {
+  background: rgba(15, 186, 223, 0.15);
+  color: var(--brand-accent-600);
+  border-color: rgba(15, 186, 223, 0.35);
+}
+
+.table-chip.transaction-type-transfer {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger-500);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.table-chip.transaction-type-other {
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--neutral-600);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+@media (max-width: 768px) {
+  .your-transactions-header {
+    flex-direction: column;
+  }
+
+  .filter-actions {
+    justify-content: stretch;
+  }
+
+  .apply-btn,
+  .reset-btn {
+    flex: 1;
+  }
+}
+
 :root {
-  --primary-blue: #2b6cb0;
-  --primary-blue-dark: #2c5282;
-  --primary-blue-light: #3182ce;
-  --primary-blue-faded: rgba(49, 130, 206, 0.1);
+  --primary-blue: #0071e3;
+  --primary-blue-dark: #006edb;
+  --primary-blue-light: #0077ed;
+  --primary-blue-faded: rgba(0, 113, 227, 0.1);
 
   --neutral-white: #ffffff;
-  --neutral-bg: #f8fafc;
-  --neutral-border: #e2e8f0;
-  --neutral-text: #2d3748;
-  --neutral-text-light: #4a5568;
-  --neutral-text-lighter: #718096;
+  --neutral-bg: #ffffff;
+  --neutral-border: #d2d2d7;
+  --neutral-text: #1d1d1f;
+  --neutral-text-light: #6e6e73;
+  --neutral-text-lighter: #86868b;
 
-  --success-green: #38a169;
-  --warning-orange: #dd6b20;
-  --info-purple: #805ad5;
-  --error-red: #e53e3e;
+  --success-green: #34c759;
+  --warning-orange: #ff9500;
+  --info-purple: #bf5af2;
+  --error-red: #ff3b30;
 
   --type-purchase: var(--success-green);
   --type-redemption: var(--warning-orange);
   --type-adjustment: var(--info-purple);
   --type-event: var(--primary-blue-light);
   --type-transfer: var(--error-red);
+  --type-other: var(--neutral-border);
 
   --border-radius-sm: 6px;
   --border-radius-md: 8px;

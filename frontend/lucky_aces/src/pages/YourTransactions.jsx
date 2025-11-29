@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
-import { yourTransactions } from "../APIRequest"
-import "./YourTransactions.css"
+import { yourTransactions } from "../APIRequest";
+import "./YourTransactions.css";
 
 function YourTransactions() {
   const [_loading, _setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [totalPage, setTotalPage] = useState(null);
+  const [totalPage, setTotalPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [transactionList, setTransactionList] = useState([]);
 
@@ -18,7 +18,6 @@ function YourTransactions() {
 
   const { loading, token, user } = useLoggedInUser();
 
-  // page protection
   useEffect(() => {
     const timer = setTimeout(() => {
       _setLoading(loading);
@@ -26,25 +25,30 @@ function YourTransactions() {
     return () => clearTimeout(timer);
   }, [loading]);
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (targetPage = page) => {
     try {
-      let type = typeFilter !== "any" ? typeFilter : null;
-      let promotionId = promotionIdFilter ? parseInt(promotionIdFilter) : null;
-      let relatedId = relatedIdFilter ? parseInt(relatedIdFilter) : null;
-      let amount = amountFilter ? parseFloat(amountFilter) : null;
-      let operator = operatorFilter !== "any" ? operatorFilter : null;
+      const type = typeFilter !== "any" ? typeFilter : null;
+      const promotionId = promotionIdFilter ? parseInt(promotionIdFilter, 10) : null;
+      const relatedId = relatedIdFilter ? parseInt(relatedIdFilter, 10) : null;
+      const amount = amountFilter ? parseFloat(amountFilter) : null;
+      const operator = operatorFilter !== "any" ? operatorFilter : null;
 
       const data = await yourTransactions(
         type,
-        page,
+        targetPage,
         promotionId,
         relatedId,
         amount,
         operator,
         token
       );
-      if (totalPage === null) {
-        setTotalPage(data.count % 5 === 0 ? Math.floor(data.count / 5) : Math.floor(data.count / 5) + 1);
+
+      const pages = Math.max(1, Math.ceil(data.count / 5));
+      setTotalPage(pages);
+
+      if (targetPage > pages) {
+        setPage(pages);
+        return;
       }
 
       setTransactionList(data.results);
@@ -55,25 +59,25 @@ function YourTransactions() {
 
   useEffect(() => {
     if (!_loading) {
-      fetchTransactions();
+      fetchTransactions(page);
     }
-  }, [page, _loading, totalPage]);
+  }, [page, _loading]);
 
   const handlePrevious = (e) => {
     e.preventDefault();
-    setPage(page === 1 ? 1 : page - 1);
-  }
+    setPage((prev) => Math.max(1, prev - 1));
+  };
 
   const handleNext = (e) => {
     e.preventDefault();
-    setPage(page === totalPage ? page : page + 1);
-  }
+    setPage((prev) => Math.min(totalPage, prev + 1));
+  };
 
   const toggleFilter = () => {
-    setIsFilterOpen(!isFilterOpen);
-  }
+    setIsFilterOpen((open) => !open);
+  };
 
-  const handleApply = async (e) => {
+  const handleApply = (e) => {
     e.preventDefault();
 
     if (relatedIdFilter && typeFilter === "any") {
@@ -86,10 +90,12 @@ function YourTransactions() {
       return;
     }
 
-    setPage(1);
-    setTotalPage(null);
-    fetchTransactions();
-  }
+    if (page !== 1) {
+      setPage(1);
+    } else {
+      fetchTransactions(1);
+    }
+  };
 
   const handleReset = (e) => {
     e.preventDefault();
@@ -98,32 +104,94 @@ function YourTransactions() {
     setRelatedIdFilter("");
     setAmountFilter("");
     setOperatorFilter("any");
-    setPage(1);
-    setTotalPage(null);
-    fetchTransactions();
-  }
+    if (page !== 1) {
+      setPage(1);
+    } else {
+      fetchTransactions(1);
+    }
+  };
+
+  const formatNumber = (value) => (value === null || value === undefined ? "—" : Number(value).toLocaleString());
+
+  const formatAmount = (transaction) => {
+    switch (transaction.type) {
+      case "purchase":
+        return `${formatNumber(transaction.amount ?? transaction.spent)} pts`;
+      case "redemption":
+        return `${-formatNumber(transaction.redeemed)} pts${transaction.relatedId ? "" : `(${transaction.amount} pts)`}`;
+      case "adjustment":
+        return `${formatNumber(transaction.amount)} pts`;
+      case "transfer":
+        return `${transaction.sender === user.utorid ? "-" : ""}${formatNumber(transaction.sent)} pts`;
+      case "event":
+        return `${formatNumber(transaction.amount)} pts`;
+      default:
+        return `${formatNumber(transaction.amount)} pts`;
+    }
+  };
+
+  const getPrimaryParty = (transaction) => {
+    switch (transaction.type) {
+      case "transfer":
+        return transaction.sender ? `Sender: ${transaction.sender}` : "Sender: —";
+      case "event":
+        return transaction.recipient ? `Recipient: ${transaction.recipient}` : "Recipient: —";
+      default:
+        return transaction.utorid ? `User: ${transaction.utorid}` : "User: —";
+    }
+  };
+
+  const getSecondaryParty = (transaction) => {
+    switch (transaction.type) {
+      case "transfer":
+        return transaction.recipient ? `Recipient: ${transaction.recipient}` : null;
+      case "event":
+        return transaction.relatedId ? `Event ID: ${transaction.relatedId}` : null;
+      case "adjustment":
+        return transaction.relatedId ? `Related Tx: ${transaction.relatedId}` : null;
+      case "redemption":
+        return transaction.relatedId ? `Processed by #${transaction.relatedId}` : "Unprocessed";
+      default:
+        return null;
+    }
+  };
+
+  const getPromotionSummary = (transaction) => {
+    if (!transaction.promotionIds || transaction.promotionIds.length === 0) {
+      return "No promotion";
+    }
+    return `Promo ${transaction.promotionIds.map((promo) => `#${promo.id}`).join(", ")}`;
+  };
+
+  const capitalize = (value) => (value ? value.charAt(0).toUpperCase() + value.slice(1) : "—");
 
   return (
-    <div className="all-transactions-container">
+    <div className="page-shell your-transactions-page">
       {_loading ? (
-        <div className="loading-container">
+        <div className="loading-container" data-surface="flat">
           <h2>Loading...</h2>
+          <p>Fetching your most recent ledger entries.</p>
         </div>
       ) : (
-        <div>
-          <div className="page-header">
-            <h1 className="page-title">Your Transactions</h1>
-            <p className="page-subtitle">Browse all your past transaction. Filter by type, ID, or status.</p>
-          </div>
+        <>
+          <header className="your-transactions-header" data-surface="flat">
+            <div>
+              <p className="eyebrow">Wallet · History</p>
+              <h1 className="page-title">My Transactions</h1>
+              <p className="page-subtitle">{user ? `Signed in as ${user.utorid}` : "Review every transaction tied to your account."}</p>
+            </div>
+            <div className="header-actions">
+              <button className="filter-toggle-btn" onClick={toggleFilter}>
+                {isFilterOpen ? "Hide Filters" : "Show Filters"}
+              </button>
+            </div>
+          </header>
 
-          <button className="filter-toggle-btn" onClick={toggleFilter}>
-            Filter {isFilterOpen ? '✕' : '☰'}
-          </button>
           {isFilterOpen && (
             <section className="filter-panel">
               <div className="filter-grid">
                 <div className="filter-group">
-                  <label htmlFor="type-filter">Type: </label>
+                  <label htmlFor="type-filter">Type</label>
                   <select
                     id="type-filter"
                     value={typeFilter}
@@ -138,7 +206,7 @@ function YourTransactions() {
                   </select>
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="promotionId-filter">Promotion ID: </label>
+                  <label htmlFor="promotionId-filter">Promotion ID</label>
                   <input
                     type="number"
                     id="promotionId-filter"
@@ -150,7 +218,7 @@ function YourTransactions() {
                   />
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="relatedId-filter">Related ID: </label>
+                  <label htmlFor="relatedId-filter">Related ID</label>
                   <input
                     type="number"
                     id="relatedId-filter"
@@ -161,13 +229,11 @@ function YourTransactions() {
                     step="1"
                   />
                   {relatedIdFilter && typeFilter === "any" && (
-                    <small>
-                      When using the Related ID filter, the type must be selected.
-                    </small>
+                    <small>When using the Related ID filter, the type must be selected.</small>
                   )}
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="operator-filter">Amount Operator: </label>
+                  <label htmlFor="operator-filter">Amount Operator</label>
                   <select
                     id="operator-filter"
                     value={operatorFilter}
@@ -179,7 +245,7 @@ function YourTransactions() {
                   </select>
                 </div>
                 <div className="filter-group">
-                  <label htmlFor="amount-filter">Amount: </label>
+                  <label htmlFor="amount-filter">Amount</label>
                   <input
                     type="number"
                     id="amount-filter"
@@ -189,9 +255,7 @@ function YourTransactions() {
                     step="0.01"
                   />
                   {amountFilter && operatorFilter === "any" && (
-                    <small>
-                      When using the amount filter, you must select the operator.
-                    </small>
+                    <small>When using the amount filter, you must select the operator.</small>
                   )}
                 </div>
               </div>
@@ -202,106 +266,84 @@ function YourTransactions() {
             </section>
           )}
 
-          <div className="transactions-list">
+          <section className="table-card" data-surface="flat">
             {transactionList.length === 0 ? (
-              <div className="no-transactions">
-                <p>No transactions found.</p>
+              <div className="empty-state">
+                <div className="empty-state-icon">📄</div>
+                <h3>No transactions found</h3>
+                <p>Try adjusting your filters or refresh to load the latest data.</p>
               </div>
             ) : (
-              transactionList.map((transaction) => (
-                <div
-                  className="transaction-card"
-                  data-type={transaction.type}
-                  key={transaction.id}
-                >
-                  <div className="transaction-header">
-                    <h3>Transaction ID: {transaction.id}</h3>
-                  </div>
-                  <div className="transaction-details">
-                    {transaction.type === "purchase" && (
-                      <>
-                        <p><strong>Type: </strong>{transaction.type}</p>
-                        <p><strong>User: </strong>{transaction.utorid}</p>
-                        <p><strong>Spent: </strong>{transaction.spent}</p>
-                        <p><strong>Amount: </strong>{transaction.amount}</p>
-                        <p><strong>Used Promotion: </strong>{transaction.promotionIds.length === 0 ? "No Promotion" : transaction.promotionIds.map(object => object.id).join(', ')}</p>
-                        <p><strong>Remark: </strong>{transaction.remark}</p>
-                        <p><strong>Created By: </strong>{transaction.createdBy}</p>
-                      </>
-                    )}
+              <div className="table-scroll">
+                <table className="data-table your-transactions-table">
+                  <thead>
+                    <tr>
+                      <th>Transaction</th>
+                      <th>Type</th>
+                      <th>Details</th>
+                      <th>Amount</th>
+                      <th>Promotions / Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactionList.map((transaction) => {
+                      const primaryParty = getPrimaryParty(transaction);
+                      const secondaryParty = getSecondaryParty(transaction);
+                      const promotionSummary = getPromotionSummary(transaction);
+                      const typeLabel = capitalize(transaction.type);
+                      const typeKey = transaction.type || "other";
+                      const chipClass = `table-chip transaction-type transaction-type-${typeKey}`;
 
-                    {transaction.type === "adjustment" && (
-                      <>
-                        <p><strong>Type: </strong>{transaction.type}</p>
-                        <p><strong>User: </strong>{transaction.utorid}</p>
-                        <p><strong>Amount: </strong>{transaction.amount}</p>
-                        <p><strong>Used Promotion: </strong>{transaction.promotionIds.length === 0 ? "No Promotion" : transaction.promotionIds.map(object => object.id).join(', ')}</p>
-                        <p><strong>Related Transaction: </strong>{transaction.relatedId}</p>
-                        <p><strong>Remark: </strong>{transaction.remark}</p>
-                        <p><strong>Created By: </strong>{transaction.createdBy}</p>
-                      </>
-                    )}
-
-                    {transaction.type === "transfer" && (
-                      <>
-                        <p><strong>Type: </strong>{transaction.type}</p>
-                        <p><strong>Amount: </strong>{transaction.sent}</p>
-                        <p><strong>Sender: </strong>{transaction.sender}</p>
-                        <p><strong>Recipient: </strong>{transaction.recipient}</p>
-                        <p><strong>Remark: </strong>{transaction.remark}</p>
-                      </>
-                    )}
-
-                    {transaction.type === "redemption" && (
-                      <>
-                        <p><strong>Type: </strong>{transaction.type}</p>
-                        <p><strong>User: </strong>{transaction.utorid}</p>
-                        <p><strong>Redeemed: </strong>{transaction.redeemed}</p>
-                        <p><strong>Remark: </strong>{transaction.remark}</p>
-                        <p><strong>Created By: </strong>{transaction.createdBy}</p>
-                        <p><strong>Processed By: </strong>{transaction.relatedId === null ? "Unprocessed" : transaction.relatedId}</p>
-                      </>
-                    )}
-
-                    {transaction.type === "event" && (
-                      <>
-                        <p><strong>Type: </strong>{transaction.type}</p>
-                        <p><strong>Amount: </strong>{transaction.awarded}</p>
-                        <p><strong>Recipient: </strong>{transaction.recipient}</p>
-                        <p><strong>Sender Event: </strong>{transaction.relatedId}</p>
-                        <p><strong>Remark: </strong>{transaction.remark}</p>
-                        <p><strong>Created By: </strong>{transaction.createdBy}</p>
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))
+                      return (
+                        <tr key={transaction.id}>
+                          <td>
+                            <div className="table-cell-primary">
+                              <p className="table-title">Transaction #{transaction.id}</p>
+                              {transaction.remark && <p className="table-meta">{transaction.remark}</p>}
+                            </div>
+                          </td>
+                          <td>
+                            <span className={chipClass}>{typeLabel}</span>
+                          </td>
+                          <td>
+                            <div className="table-meta-stack">
+                              <span>{primaryParty}</span>
+                              {secondaryParty && <span className="table-meta">{secondaryParty}</span>}
+                            </div>
+                          </td>
+                          <td>{formatAmount(transaction)}</td>
+                          <td>
+                            <div className="table-meta-stack">
+                              <span>{promotionSummary}</span>
+                              {transaction.suspicious && <span className="table-chip is-danger">Flagged</span>}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </section>
 
           {transactionList.length > 0 && (
-            <div className="pagination">
-              <button
-                onClick={handlePrevious}
-                disabled={page === 1}
-              >
+            <section className="pagination" data-surface="flat">
+              <button onClick={handlePrevious} disabled={page === 1}>
                 Previous Page
               </button>
               <span>
-                Page {page} of {totalPage || 1}
+                Page {page} of {totalPage}
               </span>
-              <button
-                onClick={handleNext}
-                disabled={page === totalPage}
-              >
+              <button onClick={handleNext} disabled={page === totalPage}>
                 Next Page
               </button>
-            </div>
+            </section>
           )}
-        </div>
+        </>
       )}
     </div>
-  )
+  );
 }
 
 export default YourTransactions;

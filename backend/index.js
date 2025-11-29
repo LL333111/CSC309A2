@@ -33,11 +33,28 @@ require('dotenv').config();
 
 const jwt = require('jsonwebtoken');
 const { v1: uuidv4 } = require('uuid');
-const { tr, no, ca, id } = require("zod/v4/locales");
+const { tr, no, ca, id, be } = require("zod/v4/locales");
 const { promise, number } = require("zod/v4");
+
+// add websocket package
+const http = require("http");
+const { Server } = require("socket.io");
 
 // add cors package
 const cors = require('cors');
+
+// add websocker here
+const server = http.createServer(app);
+
+// init socket.io
+const io = new Server(server, {
+    cors: {
+        origin: 'http://localhost:3000', // React dev server
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true
+    }
+});
 
 // Set up cors to allow requests from React frontend
 app.use(cors({
@@ -75,6 +92,47 @@ function isValidBirthday(dateString) {
     let start = new Date(1900, 0, 1);
     let end = new Date(2025, 11, 31);
     return date >= start && date <= end;
+}
+
+async function sendNotification(userId, type, message) {
+    if (!io) return;
+
+    const notification = await prisma.notification.create({
+        data: {
+            userId,
+            type,
+            message,
+        },
+    });
+
+    const room = `user_${userId}`;
+    console.log("send notification to", room);
+
+    io.to(room).emit("notification", {
+        id: notification.id,
+        type: notification.type,
+        message: notification.message,
+        createdAt: notification.createdAt,
+    });
+
+    return notification;
+}
+
+async function sendNotificationToMany(userIds, type, message) {
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+        return [];
+    }
+
+    // Make sure that each ID appears only once.
+    const uniqueIds = [...new Set(userIds)];
+
+    const results = [];
+    for (const id of uniqueIds) {
+        const n = await sendNotification(id, type, message);
+        results.push(n);
+    }
+
+    return results;
 }
 
 // Middleware
@@ -197,6 +255,8 @@ app.route("/users")
             console.log(error);
             return res.status(499).json({ message: "Failed to create new user" });
         }
+        await sendNotification(req.user.id, "success", `Successfully registered an account for ${newUser.utorid}!`);
+        await sendNotification(newUser.id, "info", `Welcome to Lucky Aces, ${newUser.utorid}!`);
         return res.status(201).json({
             id: newUser.id,
             utorid: newUser.utorid,
@@ -359,6 +419,12 @@ app.route("/users/me")
             if (typeof (email) !== "string" || !/^[^@]+@mail.utoronto.ca$/.test(email)) {
                 return res.status(400).json({ "Bad Request": "Invalid email" });
             }
+            let allUsers = await prisma.user.findMany();
+            const hasDuplicate = allUsers.some(user => user.email === email);
+            if (hasDuplicate) {
+                console.log(11);
+                return res.status(400).json({ "Bad Request": "Need Unique email" });
+            }
             data.email = email;
         }
         if (birthday !== undefined && birthday !== null) {
@@ -368,7 +434,7 @@ app.route("/users/me")
             data.birthday = birthday;
         }
         if (avatar !== undefined && avatar !== null) {
-            if (typeof (avatar) !== "string" || !/\/uploads\/avatars\/[a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg)$/i.test(avatar)) {
+            if (typeof (avatar) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid avatar" });
             }
             data.avatarUrl = avatar;
@@ -390,9 +456,10 @@ app.route("/users/me")
                 createdAt: true,
                 lastLogin: true,
                 verified: true,
-                avatarUrl: true
+                avatarUrl: true,
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, your profile has been updated!`);
         res.status(200).json(result);
     })
     .get(bearerToken, async (req, res) => {
@@ -423,7 +490,9 @@ app.route("/users/me")
                 lastLogin: true,
                 verified: true,
                 avatarUrl: true,
-                promotions: true
+                promotions: true,
+                guestsEvent: true,
+                organizersEvent: true,
             }
         });
         // error handling - 404 Not Found
@@ -493,6 +562,7 @@ app.route("/users/me/password")
                 password: newPassword
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, your password has been updated!`);
         res.status(200).json();
     })
     .all((req, res) => {
@@ -551,7 +621,8 @@ app.route("/users/:userId")
                         createdAt: true,
                         verified: true,
                         avatarUrl: true,
-                        promotions: true
+                        promotions: true,
+                        suspicious: true
                     }
                 })
             }
@@ -671,6 +742,8 @@ app.route("/users/:userId")
             console.log(error);
             return res.status(499).json({ message: "Failed to update user" });
         }
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully updated to user with ID ${userId}!`);
+        await sendNotification(userId, "info", `Your statuses has ben updated!`);
         res.status(200).json(result);
     })
     .all((req, res) => {
@@ -953,6 +1026,7 @@ app.route("/events")
                 guests: true
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, successfully created an event with the ID ${result.id}!`);
         res.status(201).json(result);
     })
     .get(bearerToken, async (req, res) => {
@@ -1139,20 +1213,20 @@ app.route("/events/:eventId")
             location: true,
             startTime: true,
             endTime: true,
-            capacity: true
+            capacity: true,
+            numGuests: true
         }
         if (organizerIds.includes(req.user.id) || req.role === "manager" || req.role === "superuser") {
             select.pointsRemain = true;
             select.pointsAwarded = true;
             select.published = true;
-            select.organizers = true,
-                select.guests = true;
+            select.organizers = true;
+            select.guests = true;
         } else {
             if (event.published === false) {
                 return res.status(404).json({ "Not Found": "Event not visible" });
             }
-            select.organizers = true,
-                select.numGuests = true
+            select.organizers = true;
         }
         let result = await prisma.event.findUnique({
             where: {
@@ -1244,7 +1318,8 @@ app.route("/events/:eventId")
             if (typeof (startTime) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid startTime" });
             }
-            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}\+\d{2}:\d{2}$/.test(startTime) || (new Date(startTime)).toISOString() <= (new Date()).toISOString()) {
+            // Fix: Update regex to allow timezone offset or no timezone
+            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/.test(startTime) || (new Date(startTime)).toISOString() <= (new Date()).toISOString()) {
                 return res.status(400).json({ "Bad Request": "Invalid startTime" });
             }
             if ((new Date(event.startTime)).toISOString() <= (new Date()).toISOString()) {
@@ -1256,14 +1331,16 @@ app.route("/events/:eventId")
                     return res.status(400).json({ "Bad Request": "Invalid startTime" });
                 }
             }
-            data.startTime = startTime.split('.')[0] + 'Z';
+            // Fix: Don't force add 'Z', keep the original timezone
+            data.startTime = startTime;
             select.startTime = true;
         }
         if (endTime !== undefined && endTime !== null) {
             if (typeof (endTime) !== "string") {
                 return res.status(400).json({ "Bad Request": "Invalid endTime" });
             }
-            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}\+\d{2}:\d{2}$/.test(endTime) || (new Date(endTime)).toISOString() <= (new Date()).toISOString()) {
+            // Fix: Update regex to allow timezone offset or no timezone
+            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/.test(endTime) || (new Date(endTime)).toISOString() <= (new Date()).toISOString()) {
                 return res.status(400).json({ "Bad Request": "Invalid endTime" });
             }
             if ((new Date(event.endTime)).toISOString() <= (new Date()).toISOString()) {
@@ -1281,7 +1358,8 @@ app.route("/events/:eventId")
                     return res.status(400).json({ "Bad Request": "Invalid startTime and endTime" });
                 }
             }
-            data.endTime = endTime.split('.')[0] + 'Z';
+            // Fix: Don't force add 'Z', keep the original timezone
+            data.endTime = endTime;
             select.endTime = true;
         }
         if (capacity !== undefined && capacity !== null) {
@@ -1330,6 +1408,8 @@ app.route("/events/:eventId")
             data.published = published;
             select.published = true;
         }
+        select.organizers = true;
+        select.guests = true;
         // update
         let result = await prisma.event.update({
             where: {
@@ -1338,6 +1418,11 @@ app.route("/events/:eventId")
             data: data,
             select: select
         });
+        let organizerIdList = result.organizers.map(obj => obj.id)
+        let guestIdList = result.guests.map(obj => obj.id)
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, successfully updated the event with ID ${eventId}!`);
+        organizerIdList.length !== 0 && await sendNotificationToMany(organizerIdList, "info", `The event with ID ${eventId} that you were responsible for has been updated!`);
+        guestIdList.length !== 0 && await sendNotificationToMany(guestIdList, "info", `The event with ID ${eventId} that you RSVPed for has been updated!`);
         res.status(200).json(result);
     })
     .delete(bearerToken, async (req, res) => {
@@ -1409,6 +1494,9 @@ app.route("/events/:eventId")
                 id: eventId
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, successfully updated the event with ID ${eventId}!`);
+        organizerIds.length !== 0 && await sendNotificationToMany(organizerIds, "info", `The event with ID ${eventId} that you were responsible for has been deleted!`);
+        guestsIds.length !== 0 && await sendNotificationToMany(guestsIds, "info", `The event with ID ${eventId} that you RSVPed for has been deleted!`);
         res.status(204).json();
     })
     .all((req, res) => {
@@ -1492,7 +1580,7 @@ app.route("/events/:eventId/organizers")
             }
         });
         if (guests.length > 0) {
-            return res.status(400).json({ "Bad Request": "User is already an guests" });
+            return res.status(400).json({ "Bad Request": "User is already an organizer" });
         }
         // add organizer
         let result = await prisma.event.update({
@@ -1511,6 +1599,8 @@ app.route("/events/:eventId/organizers")
                 organizers: true
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully added the organizer!`);
+        await sendNotification(user.id, "info", `You have become the organizer of event ${result.id}!`);
         res.status(201).json(result);
     })
     .all((req, res) => {
@@ -1587,6 +1677,8 @@ app.route("/events/:eventId/organizers/:userId")
                 }
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully removed the organizer!`);
+        await sendNotification(user.id, "info", `You have been removed the organizer of event ${result.id}!`);
         res.status(204).json();
     })
     .all((req, res) => {
@@ -1716,6 +1808,8 @@ app.route("/events/:eventId/guests")
             guestAdded: user,
             numGuests: newEvent.numGuests
         };
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully added the guest!`);
+        await sendNotification(user.id, "info", `You have become the guest of event ${result.id}!`);
         res.status(201).json(result);
     })
     .all((req, res) => {
@@ -1731,7 +1825,7 @@ app.route("/events/:eventId/guests/me")
         }
         // error handling - 403 Forbidden
         // Regular
-        if (req.role !== "regular") {
+        if (req.role !== "regular" && req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
             return res.status(403).json({ "Forbidden": "Regular" });
         }
         // get organizers of the event
@@ -1816,6 +1910,7 @@ app.route("/events/:eventId/guests/me")
             guestAdded: user,
             numGuests: newEvent.numGuests
         };
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully RSVPed to event with ID ${eventId}!`);
         res.status(201).json(result);
     })
     .delete(bearerToken, async (req, res) => {
@@ -1826,7 +1921,7 @@ app.route("/events/:eventId/guests/me")
         }
         // error handling - 403 Forbidden
         // if not "Regular"
-        if (req.role !== "regular") {
+        if (req.role !== "regular" && req.role !== "cashier" && req.role !== "manager" && req.role !== "superuser") {
             return res.status(403).json({ "Forbidden": "Regular" });
         }
         // process eventId
@@ -1882,6 +1977,7 @@ app.route("/events/:eventId/guests/me")
                 numGuests: { decrement: 1 }
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully cancel RSVPed to event with ID ${eventId}!`);
         res.status(204).json();
     })
     .all((req, res) => {
@@ -1959,6 +2055,8 @@ app.route("/events/:eventId/guests/:userId")
                 numGuests: { decrement: 1 }
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully removed the guest!`);
+        await sendNotification(user.id, "info", `You have been removed the guest of event ${result.id}!`);
         res.status(204).json();
     })
     .all((req, res) => {
@@ -2066,7 +2164,7 @@ app.route("/events/:eventId/transactions")
                     createdBy: true
                 }
             });
-            await prisma.user.update({
+            let updateUser = await prisma.user.update({
                 where: {
                     utorid: utorid
                 },
@@ -2084,6 +2182,8 @@ app.route("/events/:eventId/transactions")
                     pointsAwarded: { increment: amount }
                 }
             });
+            await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully reward points!`);
+            await sendNotification(updateUser.id, "info", `You have received the points awarded by Event ${eventId}!`);
             return res.status(201).json({
                 id: transaction.id,
                 recipient: transaction.recipient,
@@ -2162,6 +2262,8 @@ app.route("/events/:eventId/transactions")
                     createdBy: transaction.createdBy
                 });
             }
+            await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully reward points!`);
+            await sendNotificationToMany(guestsIds, "info", `You have received the points awarded by Event ${eventId}!`);
             return res.status(201).json(result);
         }
     })
@@ -2266,6 +2368,7 @@ app.route("/promotions")
                 }
             });
         }
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully created promotion!`);
         return res.status(201).json(result);
     })
     .get(bearerToken, async (req, res) => {
@@ -2323,7 +2426,11 @@ app.route("/promotions")
             // Regular user only see the active promotions
             const userData = await prisma.user.findUnique({
                 where: { id: req.user.id },
-                include: { promotions: true },
+                include: {
+                    promotions: {
+                        where: where
+                    }
+                },
             });
 
             const now = new Date();
@@ -2447,21 +2554,21 @@ app.route("/promotions/:promotionId")
             data.type = type;
         }
         if (startTime) {
-            if (typeof (startTime) !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(startTime)) {
+            if (typeof (startTime) !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/.test(startTime)) {
                 return res.status(400).json({ "Bad Request": "Invalid startTime" });
             }
-            data.startTime = startTime.split('.')[0] + 'Z';
+            data.startTime = startTime;
         }
         if (endTime) {
-            if (typeof (endTime) !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(endTime)) {
+            if (typeof (endTime) !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/.test(endTime)) {
                 return res.status(400).json({ "Bad Request": "Invalid endTime" });
             }
-            const startData = new Date(startTime);
-            const endData = new Date(endTime);
-            if (startTime && endData <= startData) {
+            const startDate = startTime ? new Date(startTime) : null;
+            const endDate = new Date(endTime);
+            if (startDate && endDate <= startDate) {
                 return res.status(400).json({ "Bad Request": "endTime must be after startTime" });
             }
-            data.endTime = endTime.split('.')[0] + 'Z';
+            data.endTime = endTime;
         }
         if (minSpending) {
             if (typeof (minSpending) !== "number" || isNaN(minSpending) || minSpending <= 0) {
@@ -2476,7 +2583,7 @@ app.route("/promotions/:promotionId")
             data.rate = rate;
         }
         if (points) {
-            if (typeof (points) !== "number" || !Number.isInteger(points) || !isNaN(points) || points <= 0) {
+            if (typeof (points) !== "number" || !Number.isInteger(points) || isNaN(points) || points <= 0) {
                 return res.status(400).json({ "Bad Request": "Invalid points" });
             }
             data.points = points;
@@ -2554,6 +2661,7 @@ app.route("/promotions/:promotionId")
         always.name = result.name;
         always.type = result.type;
         const merged = { ...always, ...data };
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully updated promotion!`);
         return res.status(200).json(merged);
     })
     .delete(bearerToken, async (req, res) => {
@@ -2596,6 +2704,7 @@ app.route("/promotions/:promotionId")
             console.log(error);
             return res.status(404).json({ message: "Failed to delete promotion becuae not Found the promotion" });
         }
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully delete promotion!`);
         return res.status(204).json({ "Success": "No Content" });
     })
     .all((req, res) => {
@@ -2827,7 +2936,7 @@ app.route("/transactions")
                     return res.status(499).json({ message: "Failed to update user points" });
                 }
             }
-            await prisma.user.update({
+            let updateuser = await prisma.user.update({
                 where: { utorid: utorid },
                 data: {
                     pastTransactions: {
@@ -2836,6 +2945,8 @@ app.route("/transactions")
                 }
             });
             created.promotionIds = created.promotionIds.map((promotion) => promotion.id);
+            await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully created a purchase transaction for ${utorid}!`);
+            await sendNotification(updateuser.id, "info", `A purchase transaction has been created for you!`);
             return res.status(201).json(created);
         } else if (type === "adjustment") {
             if (!amount || typeof amount !== "number" || !Number.isInteger(amount) || Number.isNaN(amount)) {
@@ -2881,8 +2992,9 @@ app.route("/transactions")
                 return res.status(499).json({ message: "Failed to create adjustment transaction" });
             }
             // adjust points to user
+            let updateuser;
             try {
-                await prisma.user.update({
+                updateuser = await prisma.user.update({
                     where: { utorid: utorid },
                     data: {
                         points: { increment: amount },
@@ -2894,6 +3006,8 @@ app.route("/transactions")
                 return res.status(499).json({ message: "Failed to update user points" });
             }
             created.promotionIds = created.promotionIds.map((promotion) => promotion.id);
+            await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully created an adjustment transaction for ${utorid}!`);
+            await sendNotification(updateuser.id, "info", `A adjustment transaction has been created for you!`);
             return res.status(201).json(created);
         }
     })
@@ -3159,13 +3273,13 @@ app.route("/transactions/:transactionId/suspicious")
             if (deduction === null || deduction === undefined) {
                 return res.status(400).json({ "Bad Request": "Transaction amount is zero, cannot set to suspicious" });
             }
-            // set user to suspicious
             await prisma.user.update({
                 where: { id: req.user.id },
                 data: {
                     points: { decrement: deduction }
                 }
             });
+            await sendNotification(req.user.id, "success", `${req.user.utorid}, The transaction ${updateTransaction.id} has been successfully changed from a suspicious state!`);
             return res.status(200).json(updateTransaction);
         } else {
             // set suspicious to false
@@ -3192,6 +3306,7 @@ app.route("/transactions/:transactionId/suspicious")
                     points: { increment: increment }
                 }
             });
+            await sendNotification(req.user.id, "success", `${req.user.utorid}, The transaction ${updateTransaction.id} has been successfully changed from a suspicious state!`);
             return res.status(200).json(updateTransaction);
         }
     })
@@ -3246,10 +3361,12 @@ app.route("/transactions/:transactionId/processed")
             }
         });
         // update user's points
-        await prisma.user.update({
+        let updateUser = await prisma.user.update({
             where: { utorid: transaction.utorid },
             data: { points: { decrement: transaction.amount } }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully processed the redemption transaction with ID ${updatedTransaction.id}!`);
+        await sendNotification(updateUser.id, "info", `Your Redemption transaction with ID ${updatedTransaction.id} has been processed!`);
         return res.status(200).json(updatedTransaction);
     })
     .all((req, res) => {
@@ -3318,6 +3435,7 @@ app.route("/users/me/transactions")
                 }
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully created the transaction for redem ${transaction.amount} points!`);
         // redemption transaction must be processed by cashier later though path
         return res.status(201).json(transaction);
     })
@@ -3422,7 +3540,8 @@ app.route("/users/me/transactions")
                         redeemed: true,
                         sender: true,
                         recipient: true,
-                        sent: true
+                        sent: true,
+                        utorid: true,
                     }
                 }
             }
@@ -3589,25 +3708,106 @@ app.route("/users/:userId/transactions")
             return res.status(499).json({ message: "Failed to create new user" });
         }
         // add points to receiver
-        await prisma.user.update({
+        let receiver = await prisma.user.update({
             where: { id: userId },
             data: {
                 points: { increment: amount },
                 pastTransactions: { connect: { id: receiverTransaction.id } }
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, successfully transfered ${senderTransaction.sent} points to ${senderTransaction.recipient}!`);
+        await sendNotification(receiver.id, "info", `${receiver.utorid}, You received ${receiverTransaction.sent} points from ${receiverTransaction.sender} transfer!`);
         return res.status(201).json(senderTransaction);
     })
     .all((req, res) => {
         res.status(405).json({ "Method Not Allowed": "Try Post" });
     });
 
+app.route("/notifications")
+    .get(bearerToken, async (req, res) => {
+        // check authorization first
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // check role
+        if (req.role != "manager" && req.role !== "superuser" && req.role !== "cashier" && req.role !== "regular") {
+            return res.status(403).json({ "Forbidden": "Not permitted to create transactions" });
+        }
+        let { page, limit } = req.query;
+        if (page !== undefined) {
+            page = parseInt(page);
+            if (Number.isNaN(page) || page <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid page" });
+            }
+        } else { // no input page
+            page = 1;
+        }
+        if (limit !== undefined) {
+            limit = parseInt(limit);
+            if (Number.isNaN(limit) || limit <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid limit" });
+            }
+        } else { // no input limit
+            limit = 10;
+        }
+        // retrieve notifications from database
+        let user = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            include: {
+                notifications: { orderBy: { createdAt: 'desc' } }
+            }
+        });
+        let notifications = user.notifications;
+        return res.status(200).json({
+            count: notifications.length,
+            results: notifications.slice((page - 1) * limit, ((page - 1) * limit) + limit)
+        });
+    })
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Get" });
+    });
 
-const server = app.listen(port, () => {
+io.on("connection", (socket) => {
+    const token = socket.handshake.auth?.token;
+
+    try {
+        // user = { id, utorid, role }
+        const user = jwt.verify(token, process.env.JWT_SECRET);
+        socket.user = user;
+
+        // join a room named after the user ID
+        const room = `user_${socket.user.id}`;
+        socket.join(room);
+
+        console.log(`Socket ${socket.id} joined room ${room}`);
+
+        socket.on("disconnect", () => {
+            console.log("Socket disconnected:", socket.id);
+        });
+
+    } catch (err) {
+        console.error("Invalid token:", err.message);
+        socket.disconnect(true);
+    }
+});
+
+app.set("io", io);
+
+
+server.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
 
-server.on('error', (err) => {
+server.on("error", (err) => {
     console.error(`cannot start server: ${err.message}`);
     process.exit(1);
 });
+
+// const server = app.listen(port, () => {
+//     console.log(`Server running on port ${port}`);
+// });
+
+// server.on('error', (err) => {
+//     console.error(`cannot start server: ${err.message}`);
+//     process.exit(1);
+// });

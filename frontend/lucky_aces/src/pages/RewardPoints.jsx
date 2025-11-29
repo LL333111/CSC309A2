@@ -2,6 +2,7 @@ import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
 import { createRewardTransaction } from "../APIRequest";
+import "./TransactionFormPages.css";
 
 function RewardPoints() {
   const navigate = useNavigate();
@@ -61,58 +62,83 @@ function RewardPoints() {
   }
 
   return (
-    <div>
+    <div className="page-shell single-form-page" data-surface="flat">
       {_loading ? (
-        <div>
+        <div className="loading-container" data-surface="flat">
           <h2>Loading...</h2>
-          {/* 可以添加加载动画 */}
+          <p>Preparing the reward console.</p>
         </div>
       ) : (
-        <form onSubmit={(e) => handleSubmit(e)}>
-          <h1>Reward Points</h1>
-          {success && <h3>{`Successfully reward points`}</h3>}
-          {forbidden && <h3>{`Only a manager, higher authority, or the event organizer can reward points.`}</h3>}
+        <section className="transaction-form-card">
           <div>
-            <label htmlFor="utoridInput">UTORID: </label>
-            <input
-              id="utoridInput"
-              type="text"
-              value={utoridInput}
-              onChange={(e) => setUtoridInput(e.target.value)}
-            />
-            {badRequest && <p>Unique, Alphanumeric, 7-8 characters</p>}
-            {badRequest && <p>Please confirm that the user with this utorid is a guest of this event.</p>}
-            {notFound && <p>User with that UTORID not exists</p>}
+            <p className="eyebrow">Events · Rewards</p>
+            <h1 className="page-title">Reward Points</h1>
+            <p className="page-subtitle single-form-subtitle">Grant points directly to attendees of this event.</p>
           </div>
-          <div>
-            <label htmlFor="amountInput">Amount: </label>
-            <input
-              id="amountInput"
-              type="number"
-              value={amountInput}
-              onChange={(e) => setAmountInput(e.target.value)}
-              required
-              min={1}
-              step={1}
-            />
-            {badRequest && <p>Must be a positive integer value.</p>}
-            {badRequest && <p>Please confirm that the event has sufficient points.</p>}
+
+          <div className="transaction-feedback">
+            {success && <div className="success-message">Successfully rewarded points.</div>}
+            {forbidden && (
+              <div className="error-message">
+                Only a manager, higher authority, or the event organizer can reward points.
+              </div>
+            )}
+            {notFound && <div className="error-message">No user exists with the provided UTORid.</div>}
+            {badRequest && (
+              <div className="error-message">Review the UTORid, available points, and remark before submitting.</div>
+            )}
           </div>
-          <div>
-            <label htmlFor="remarkInput">Remark: </label>
-            <input
-              id="remarkInput"
-              type="text"
-              value={remarkInput}
-              onChange={(e) => setRemarkInput(e.target.value)}
-            />
-            {badRequest && <p>Any remark regarding this transaction</p>}
-          </div>
-          <button type="submit">Reward</button>
-        </form>
-      )
-      }
-    </div >
+
+          <form className="transaction-form" onSubmit={(e) => handleSubmit(e)}>
+            <div className="form-group">
+              <label htmlFor="utoridInput">UTORid</label>
+              <input
+                id="utoridInput"
+                type="text"
+                value={utoridInput}
+                onChange={(e) => setUtoridInput(e.target.value)}
+                placeholder="Enter attendee UTORid"
+              />
+              {badRequest && (
+                <p className="field-error">UTORid must be alphanumeric, 7-8 characters, and part of this event.</p>
+              )}
+            </div>
+            <div className="form-group">
+              <label htmlFor="amountInput">Amount</label>
+              <input
+                id="amountInput"
+                type="number"
+                value={amountInput}
+                onChange={(e) => setAmountInput(e.target.value)}
+                required
+                min={1}
+                step={1}
+              />
+              {badRequest && (
+                <p className="field-error">Must be a positive integer within the event&apos;s remaining balance.</p>
+              )}
+            </div>
+            <div className="form-group">
+              <label htmlFor="remarkInput">Remark</label>
+              <input
+                id="remarkInput"
+                type="text"
+                value={remarkInput}
+                onChange={(e) => setRemarkInput(e.target.value)}
+                placeholder="Optional context"
+              />
+              {badRequest && <p className="field-error">Add a short note describing this reward.</p>}
+            </div>
+            <div className="form-actions">
+              <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>
+                Back
+              </button>
+              <button className="btn-primary" type="submit">Reward Points</button>
+            </div>
+          </form>
+        </section>
+      )}
+    </div>
   )
 }
 

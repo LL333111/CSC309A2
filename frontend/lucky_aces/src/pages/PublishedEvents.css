@@ -1,19 +1,19 @@
 :root {
-  --primary-blue: #2b6cb0;
-  --primary-blue-dark: #2c5282;
-  --primary-blue-light: #3182ce;
-  --primary-blue-faded: rgba(49, 130, 206, 0.1);
+  --primary-blue: #0071e3;
+  --primary-blue-dark: #006edb;
+  --primary-blue-light: #0077ed;
+  --primary-blue-faded: rgba(0, 113, 227, 0.1);
 
   --neutral-white: #ffffff;
-  --neutral-bg: #f8fafc;
-  --neutral-border: #e2e8f0;
-  --neutral-text: #2d3748;
-  --neutral-text-light: #4a5568;
-  --neutral-text-lighter: #718096;
+  --neutral-bg: #ffffff;
+  --neutral-border: #d2d2d7;
+  --neutral-text: #1d1d1f;
+  --neutral-text-light: #6e6e73;
+  --neutral-text-lighter: #86868b;
 
-  --status-active: #38a169;
-  --status-upcoming: #dd6b20;
-  --status-ended: #718096;
+  --status-active: #34c759;
+  --status-upcoming: #ff9500;
+  --status-ended: #86868b;
 
   --border-radius-sm: 6px;
   --border-radius-md: 8px;
@@ -67,26 +67,22 @@
 }
 
 .page-header {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
   margin-bottom: var(--spacing-xl);
   color: var(--neutral-text);
+  text-align: left;
+  align-items: flex-start;
 }
 
-.page-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: var(--spacing-sm);
-  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-light));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.page-subtitle {
-  font-size: var(--font-size-md);
+.page-header .page-subtitle {
   color: var(--neutral-text-light);
   max-width: 600px;
-  margin: 0 auto;
+}
+
+.page-header .filter-toggle-btn {
+  margin-top: var(--spacing-sm);
 }
 
 .filter-toggle-btn {
@@ -341,6 +337,24 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
+}
+
+.rsvp-btn {
+  margin-top: var(--spacing-md);
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.rsvp-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .pagination {

@@ -1,0 +1,46 @@
+/* Register Page - Elevated admin flow */
+
+.register-container {
+    width: min(660px, 100%);
+    margin: 0 auto;
+    padding: clamp(2rem, 4vw, 4rem) 1.25rem;
+}
+
+.register-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(31, 111, 235, 0.15);
+    box-shadow: var(--shadow-md);
+    padding: clamp(2.25rem, 4vw, 3rem);
+    text-align: left;
+}
+
+.register-card .eyebrow {
+    margin: 0 0 0.35rem;
+}
+
+.register-card h1 {
+    margin: 0;
+}
+
+.register-subtitle {
+    color: var(--neutral-500);
+    margin: 0.5rem 0 1.75rem;
+}
+
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+.register-button {
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .register-card {
+        padding: 2rem 1.25rem;
+    }
+}

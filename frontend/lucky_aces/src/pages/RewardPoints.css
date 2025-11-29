@@ -1,0 +1,277 @@
+/* Reward Points Page - Apple-inspired Design */
+
+:root {
+    --primary-blue: #0071e3;
+    --success-green: #34c759;
+    --warning-orange: #ff9500;
+    --neutral-text: #1d1d1f;
+    --neutral-text-light: #6e6e73;
+    --neutral-border: #d2d2d7;
+    --neutral-bg: #f5f5f7;
+}
+
+.reward-points-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.reward-points-container h1 {
+    color: var(--neutral-text);
+    font-size: 2.5rem;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.loading {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.loading h2 {
+    color: var(--neutral-text);
+    font-weight: 500;
+}
+
+.points-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.points-card {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--neutral-border);
+    text-align: center;
+}
+
+.points-card h3 {
+    color: var(--neutral-text-light);
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.points-value {
+    color: var(--primary-blue);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.points-label {
+    color: var(--neutral-text-light);
+    font-size: 14px;
+}
+
+.points-history {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--neutral-border);
+}
+
+.points-history h2 {
+    color: var(--neutral-text);
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 24px;
+}
+
+.reward-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 24px;
+}
+
+.reward-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.reward-form label {
+    font-weight: 600;
+    color: var(--neutral-text);
+}
+
+.reward-form input {
+    padding: 12px 14px;
+    border: 1px solid var(--neutral-border);
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.2s ease;
+}
+
+.reward-form input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--neutral-bg);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.history-item:hover {
+    background: #ededf0;
+}
+
+.history-details {
+    flex: 1;
+}
+
+.history-type {
+    color: var(--neutral-text);
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+
+.history-date {
+    color: var(--neutral-text-light);
+    font-size: 13px;
+}
+
+.history-points {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.points-positive {
+    color: var(--success-green);
+}
+
+.points-negative {
+    color: var(--warning-orange);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-state p {
+    color: var(--neutral-text-light);
+    font-size: 1.1rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-primary {
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary:hover {
+    background: #0077ed;
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--primary-blue);
+    border: 2px solid var(--primary-blue);
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-secondary:hover {
+    background: rgba(0, 113, 227, 0.05);
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.pagination button {
+    background: var(--neutral-bg);
+    color: var(--neutral-text);
+    border: 1px solid var(--neutral-border);
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: #e8e8ed;
+}
+
+.pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pagination-info {
+    color: var(--neutral-text-light);
+    font-size: 15px;
+}
+
+@media screen and (max-width: 768px) {
+    .reward-points-container {
+        padding: 24px 16px;
+    }
+
+    .reward-points-container h1 {
+        font-size: 2rem;
+    }
+
+    .points-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .history-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
