@@ -30,8 +30,6 @@ enum PromotionType {
 enum NotificationType {
   info
   success
-  warning
-  error
 }
 
 model User {
@@ -117,6 +115,5 @@ model Notification {
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   type      NotificationType @default(info)
   message   String // text content
-  read      Boolean          @default(false) // whether read
   createdAt DateTime         @default(now()) // creation time
 }

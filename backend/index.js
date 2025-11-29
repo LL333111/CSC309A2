@@ -102,7 +102,6 @@ async function sendNotification(userId, type, message) {
             userId,
             type,
             message,
-            read: false,
         },
     });
 
@@ -256,6 +255,8 @@ app.route("/users")
             console.log(error);
             return res.status(499).json({ message: "Failed to create new user" });
         }
+        await sendNotification(req.user.id, "success", `Successfully registered an account for ${newUser.utorid}!`);
+        await sendNotification(newUser.id, "info", `Welcome to Lucky Aces, ${newUser.utorid}!`);
         return res.status(201).json({
             id: newUser.id,
             utorid: newUser.utorid,
@@ -458,7 +459,7 @@ app.route("/users/me")
                 avatarUrl: true,
             }
         });
-        await sendNotification(req.user.id, "info", `${req.user.utorid}, your profile has been updated!`);
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, your profile has been updated!`);
         res.status(200).json(result);
     })
     .get(bearerToken, async (req, res) => {
@@ -561,6 +562,7 @@ app.route("/users/me/password")
                 password: newPassword
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, your password has been updated!`);
         res.status(200).json();
     })
     .all((req, res) => {
@@ -740,6 +742,8 @@ app.route("/users/:userId")
             console.log(error);
             return res.status(499).json({ message: "Failed to update user" });
         }
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully updated to user with ID ${userId}!`);
+        await sendNotification(userId, "info", `Your statuses has ben updated!`);
         res.status(200).json(result);
     })
     .all((req, res) => {
@@ -1022,6 +1026,7 @@ app.route("/events")
                 guests: true
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, successfully created an event with the ID ${result.id}!`);
         res.status(201).json(result);
     })
     .get(bearerToken, async (req, res) => {
@@ -1403,6 +1408,8 @@ app.route("/events/:eventId")
             data.published = published;
             select.published = true;
         }
+        select.organizers = true;
+        select.guests = true;
         // update
         let result = await prisma.event.update({
             where: {
@@ -1411,6 +1418,11 @@ app.route("/events/:eventId")
             data: data,
             select: select
         });
+        let organizerIdList = result.organizers.map(obj => obj.id)
+        let guestIdList = result.guests.map(obj => obj.id)
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, successfully updated the event with ID ${eventId}!`);
+        organizerIdList.length !== 0 && await sendNotificationToMany(organizerIdList, "info", `The event with ID ${eventId} that you were responsible for has been updated!`);
+        guestIdList.length !== 0 && await sendNotificationToMany(guestIdList, "info", `The event with ID ${eventId} that you RSVPed for has been updated!`);
         res.status(200).json(result);
     })
     .delete(bearerToken, async (req, res) => {
@@ -1482,6 +1494,9 @@ app.route("/events/:eventId")
                 id: eventId
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, successfully updated the event with ID ${eventId}!`);
+        organizerIds.length !== 0 && await sendNotificationToMany(organizerIds, "info", `The event with ID ${eventId} that you were responsible for has been deleted!`);
+        guestsIds.length !== 0 && await sendNotificationToMany(guestsIds, "info", `The event with ID ${eventId} that you RSVPed for has been deleted!`);
         res.status(204).json();
     })
     .all((req, res) => {
@@ -1584,6 +1599,8 @@ app.route("/events/:eventId/organizers")
                 organizers: true
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully added the organizer!`);
+        await sendNotification(user.id, "info", `You have become the organizer of event ${result.id}!`);
         res.status(201).json(result);
     })
     .all((req, res) => {
@@ -1660,6 +1677,8 @@ app.route("/events/:eventId/organizers/:userId")
                 }
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully removed the organizer!`);
+        await sendNotification(user.id, "info", `You have been removed the organizer of event ${result.id}!`);
         res.status(204).json();
     })
     .all((req, res) => {
@@ -1789,6 +1808,8 @@ app.route("/events/:eventId/guests")
             guestAdded: user,
             numGuests: newEvent.numGuests
         };
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully added the guest!`);
+        await sendNotification(user.id, "info", `You have become the guest of event ${result.id}!`);
         res.status(201).json(result);
     })
     .all((req, res) => {
@@ -1889,6 +1910,7 @@ app.route("/events/:eventId/guests/me")
             guestAdded: user,
             numGuests: newEvent.numGuests
         };
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully RSVPed to event with ID ${eventId}!`);
         res.status(201).json(result);
     })
     .delete(bearerToken, async (req, res) => {
@@ -1955,6 +1977,7 @@ app.route("/events/:eventId/guests/me")
                 numGuests: { decrement: 1 }
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully cancel RSVPed to event with ID ${eventId}!`);
         res.status(204).json();
     })
     .all((req, res) => {
@@ -2032,6 +2055,8 @@ app.route("/events/:eventId/guests/:userId")
                 numGuests: { decrement: 1 }
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully removed the guest!`);
+        await sendNotification(user.id, "info", `You have been removed the guest of event ${result.id}!`);
         res.status(204).json();
     })
     .all((req, res) => {
@@ -2139,7 +2164,7 @@ app.route("/events/:eventId/transactions")
                     createdBy: true
                 }
             });
-            await prisma.user.update({
+            let updateUser = await prisma.user.update({
                 where: {
                     utorid: utorid
                 },
@@ -2157,6 +2182,8 @@ app.route("/events/:eventId/transactions")
                     pointsAwarded: { increment: amount }
                 }
             });
+            await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully reward points!`);
+            await sendNotification(updateUser.id, "info", `You have received the points awarded by Event ${eventId}!`);
             return res.status(201).json({
                 id: transaction.id,
                 recipient: transaction.recipient,
@@ -2235,6 +2262,8 @@ app.route("/events/:eventId/transactions")
                     createdBy: transaction.createdBy
                 });
             }
+            await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully reward points!`);
+            await sendNotificationToMany(guestsIds, "info", `You have received the points awarded by Event ${eventId}!`);
             return res.status(201).json(result);
         }
     })
@@ -2339,6 +2368,7 @@ app.route("/promotions")
                 }
             });
         }
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully created promotion!`);
         return res.status(201).json(result);
     })
     .get(bearerToken, async (req, res) => {
@@ -2631,6 +2661,7 @@ app.route("/promotions/:promotionId")
         always.name = result.name;
         always.type = result.type;
         const merged = { ...always, ...data };
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully updated promotion!`);
         return res.status(200).json(merged);
     })
     .delete(bearerToken, async (req, res) => {
@@ -2673,6 +2704,7 @@ app.route("/promotions/:promotionId")
             console.log(error);
             return res.status(404).json({ message: "Failed to delete promotion becuae not Found the promotion" });
         }
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully delete promotion!`);
         return res.status(204).json({ "Success": "No Content" });
     })
     .all((req, res) => {
@@ -2904,7 +2936,7 @@ app.route("/transactions")
                     return res.status(499).json({ message: "Failed to update user points" });
                 }
             }
-            await prisma.user.update({
+            let updateuser = await prisma.user.update({
                 where: { utorid: utorid },
                 data: {
                     pastTransactions: {
@@ -2913,6 +2945,8 @@ app.route("/transactions")
                 }
             });
             created.promotionIds = created.promotionIds.map((promotion) => promotion.id);
+            await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully created a purchase transaction for ${utorid}!`);
+            await sendNotification(updateuser.id, "info", `A purchase transaction has been created for you!`);
             return res.status(201).json(created);
         } else if (type === "adjustment") {
             if (!amount || typeof amount !== "number" || !Number.isInteger(amount) || Number.isNaN(amount)) {
@@ -2958,8 +2992,9 @@ app.route("/transactions")
                 return res.status(499).json({ message: "Failed to create adjustment transaction" });
             }
             // adjust points to user
+            let updateuser;
             try {
-                await prisma.user.update({
+                updateuser = await prisma.user.update({
                     where: { utorid: utorid },
                     data: {
                         points: { increment: amount },
@@ -2971,6 +3006,8 @@ app.route("/transactions")
                 return res.status(499).json({ message: "Failed to update user points" });
             }
             created.promotionIds = created.promotionIds.map((promotion) => promotion.id);
+            await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully created an adjustment transaction for ${utorid}!`);
+            await sendNotification(updateuser.id, "info", `A adjustment transaction has been created for you!`);
             return res.status(201).json(created);
         }
     })
@@ -3236,13 +3273,13 @@ app.route("/transactions/:transactionId/suspicious")
             if (deduction === null || deduction === undefined) {
                 return res.status(400).json({ "Bad Request": "Transaction amount is zero, cannot set to suspicious" });
             }
-            // set user to suspicious
             await prisma.user.update({
                 where: { id: req.user.id },
                 data: {
                     points: { decrement: deduction }
                 }
             });
+            await sendNotification(req.user.id, "success", `${req.user.utorid}, The transaction ${updateTransaction.id} has been successfully changed from a suspicious state!`);
             return res.status(200).json(updateTransaction);
         } else {
             // set suspicious to false
@@ -3269,6 +3306,7 @@ app.route("/transactions/:transactionId/suspicious")
                     points: { increment: increment }
                 }
             });
+            await sendNotification(req.user.id, "success", `${req.user.utorid}, The transaction ${updateTransaction.id} has been successfully changed from a suspicious state!`);
             return res.status(200).json(updateTransaction);
         }
     })
@@ -3323,10 +3361,12 @@ app.route("/transactions/:transactionId/processed")
             }
         });
         // update user's points
-        await prisma.user.update({
+        let updateUser = await prisma.user.update({
             where: { utorid: transaction.utorid },
             data: { points: { decrement: transaction.amount } }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully processed the redemption transaction with ID ${updatedTransaction.id}!`);
+        await sendNotification(updateUser.id, "info", `Your Redemption transaction with ID ${updatedTransaction.id} has been processed!`);
         return res.status(200).json(updatedTransaction);
     })
     .all((req, res) => {
@@ -3395,6 +3435,7 @@ app.route("/users/me/transactions")
                 }
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully created the transaction for redem ${transaction.amount} points!`);
         // redemption transaction must be processed by cashier later though path
         return res.status(201).json(transaction);
     })
@@ -3667,13 +3708,15 @@ app.route("/users/:userId/transactions")
             return res.status(499).json({ message: "Failed to create new user" });
         }
         // add points to receiver
-        await prisma.user.update({
+        let receiver = await prisma.user.update({
             where: { id: userId },
             data: {
                 points: { increment: amount },
                 pastTransactions: { connect: { id: receiverTransaction.id } }
             }
         });
+        await sendNotification(req.user.id, "success", `${req.user.utorid}, successfully transfered ${senderTransaction.sent} points to ${senderTransaction.recipient}!`);
+        await sendNotification(receiver.id, "info", `${receiver.utorid}, You received ${receiverTransaction.sent} points from ${receiverTransaction.sender} transfer!`);
         return res.status(201).json(senderTransaction);
     })
     .all((req, res) => {

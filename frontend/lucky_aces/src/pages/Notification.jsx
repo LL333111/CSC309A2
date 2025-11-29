@@ -56,7 +56,7 @@ function Notification() {
     <div className="register-container" data-surface="flat">
       {_loading ? (
         <div className="loading">
-          <h2>Loading cashier tools...</h2>
+          <h2>Loading...</h2>
         </div>
       ) : (
         <>
@@ -85,8 +85,8 @@ function Notification() {
                           <p>{notification.message}</p>
                         </div>
                         <div className="event-detail-item">
-                          <strong>Read</strong>
-                          <p>{notification.read}</p>
+                          <strong>Created At</strong>
+                          <p>{notification.createdAt}</p>
                         </div>
                       </div>
                     </article>

@@ -1,5 +1,5 @@
 import "./style.css"
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLoggedInUser } from "../../contexts/LoggedInUserContext";
 import { useSocket } from "../../contexts/SocketContext";
@@ -7,7 +7,7 @@ import { useSocket } from "../../contexts/SocketContext";
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const [notificationToast, setNotificationToast] = useState(null);
+  const [notificationToasts, setNotificationToasts] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -44,6 +44,10 @@ const Navbar = () => {
     navigate(path);
   };
 
+  const removeToast = (id) => {
+    setNotificationToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
   const accountActive = matchPath("/profile");
   const transactionsActive = [
     "/your_transactions",
@@ -71,32 +75,42 @@ const Navbar = () => {
 
   useEffect(() => {
     if (newNotification !== null) {
-      setNotificationToast(newNotification.message);
+      const toastId = Date.now();
+      const newToast = {
+        id: toastId,
+        message: newNotification.message,
+        timestamp: new Date().toLocaleTimeString()
+      };
 
-      // disappear after 5 seconds.
-      const timer = setTimeout(() => {
-        setNotificationToast(null);
-      }, 5000);
-
-      return () => clearTimeout(timer);
+      setNotificationToasts(prev => [...prev, newToast]);
     }
   }, [newNotification]);
 
   return (
     <div>
-      {notificationToast && (
-        <div className="notification-toast">
-          <div className="toast-content">
-            <span>New Notification: {notificationToast}</span>
-            <button
-              className="toast-close"
-              onClick={() => setNotificationToast(null)}
-            >
-              X
-            </button>
+      <div className="notifications-container">
+        {notificationToasts.map((toast, index) => (
+          <div
+            key={toast.id}
+            className="notification-toast"
+          >
+            <div className="toast-content">
+              <div>
+                <span>New Notification: {toast.message}</span>
+                <div style={{ fontSize: '0.8em', opacity: 0.8 }}>
+                  {new Date(newNotification.createdAt).toLocaleTimeString()}
+                </div>
+              </div>
+              <button
+                className="toast-close"
+                onClick={() => removeToast(toast.id)}
+              >
+                ✕
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
 
       <nav className="navbar">
         <div className="nav-container">
