@@ -12,7 +12,7 @@ function CreateRedemptionTransaction() {
   const [success, _setSuccess] = useState(false);
   const [forbidden, _setForbidden] = useState(false);
 
-  const { token, loading } = useLoggedInUser();
+  const { token, loading, setUpdate } = useLoggedInUser();
 
   // page protection
   useEffect(() => {
@@ -43,6 +43,7 @@ function CreateRedemptionTransaction() {
         _setForbidden(false);
         setAmountInput(0);
         setRemarkInput("");
+        setUpdate((prev) => !prev);
         break
     }
   }
