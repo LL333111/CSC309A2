@@ -5,14 +5,14 @@ import { useParams } from 'react-router-dom';
 import "./TransactionFormPages.css";
 
 function CreateTransferTransaction() {
-  const { utorid } = useParams();
+  const { id } = useParams();
 
   const [_loading, _setLoading] = useState(true);
-  const [recipientIDInput, setRecipientIDInput] = useState(utorid === undefined ? "" : utorid);
+  const [recipientIDInput, setRecipientIDInput] = useState(id === undefined ? "" : id);
   const [amountInput, setAmountInput] = useState(0);
   const [remarkInput, setRemarkInput] = useState("");
 
-  const [utoridShow, _setUtoridShow] = useState("");
+  const [idShow, _setIdShow] = useState("");
   const [badRequest, _setBadRequest] = useState(false);
   const [noUser, _setNoUser] = useState(false);
   const [forbidden, _setForbidden] = useState(false);
@@ -52,7 +52,7 @@ function CreateTransferTransaction() {
         _setSuccess(false);
         break;
       case 201:
-        _setUtoridShow(recipientIDInput);
+        _setIdShow(recipientIDInput);
         _setBadRequest(false);
         _setNoUser(false);
         _setForbidden(false);
@@ -83,14 +83,14 @@ function CreateTransferTransaction() {
           <div className="transaction-feedback">
             {success && (
               <div className="success-message">
-                {`Successfully transferred points to ${utoridShow}.`}
+                {`Successfully transferred points to ${idShow}.`}
               </div>
             )}
             {forbidden && (
               <div className="error-message">You must be verified before sending transfers.</div>
             )}
             {noUser && (
-              <div className="error-message">No user exists with the provided UTORid.</div>
+              <div className="error-message">No user exists with the provided ID.</div>
             )}
           </div>
 
@@ -102,10 +102,10 @@ function CreateTransferTransaction() {
                 type="text"
                 value={recipientIDInput}
                 onChange={(e) => setRecipientIDInput(e.target.value)}
-                placeholder="Enter UTORid"
+                placeholder="Enter ID"
                 required
               />
-              {badRequest && <p className="field-error">Please provide a valid recipient UTORid.</p>}
+              {badRequest && <p className="field-error">Please provide a valid recipient ID.</p>}
             </div>
             <div className="form-group">
               <label htmlFor="amountInput">Amount</label>
