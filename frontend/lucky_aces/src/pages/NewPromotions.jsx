@@ -125,171 +125,188 @@ const NewPromotions = () => {
 
     if (_loading) {
         return (
-            <div className="new-promotion-container">
-                <h2>Loading...</h2>
+            <div className="page-shell new-promotion-page">
+                <div className="loading-container" data-surface="flat">
+                    <h2>Loading...</h2>
+                    <p>Preparing the promotion builder.</p>
+                </div>
             </div>
         );
     }
 
     if (role < 3) {
         return (
-            <div className="new-promotion-container">
-                <div className="error-message">
-                    <h2>Access Denied</h2>
+            <div className="page-shell new-promotion-page">
+                <div className="access-block" data-surface="flat">
+                    <h2>Access denied</h2>
                     <p>You must be a Manager or higher to create promotions.</p>
                 </div>
             </div>
         );
     }
 
+    const typeLabel = formData.type === 'automatic' ? 'Automatic' : 'One-time';
+
     return (
-        <div className="new-promotion-container">
-            <h1>Create New Promotion</h1>
-            <form onSubmit={handleSubmit} className="promotion-form">
-                <div className="form-group">
-                    <label htmlFor="name">Promotion Name *</label>
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        placeholder='Enter promotion name here...'
-                        required
-                    />
+        <div className="page-shell new-promotion-page">
+            <header className="new-promotion-header" data-surface="flat">
+                <div>
+                    <p className="eyebrow">Engagement · Promotions</p>
+                    <h1 className="page-title">Create Promotion</h1>
+                    <p className="page-subtitle">Define the reward rules, window, and optional spend thresholds.</p>
                 </div>
-
-                <div className="form-group">
-                    <label htmlFor="description">Description *</label>
-                    <textarea
-                        id="description"
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        placeholder='Enter promotion description here...'
-                        rows="4"
-                        required
-                    />
+                <div className="header-meta">
+                    <span className={`form-type-pill ${formData.type === 'automatic' ? 'is-automatic' : 'is-one-time'}`}>{typeLabel}</span>
                 </div>
+            </header>
 
-                <div className="form-group">
-                    <label htmlFor="type">Type *</label>
-                    <select
-                        id="type"
-                        name="type"
-                        value={formData.type}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="automatic">Automatic</option>
-                        <option value="one-time">One-time</option>
-                    </select>
-                </div>
-
-                <div className="form-row">
+            <section className="creation-card" data-surface="flat">
+                <form onSubmit={handleSubmit} className="promotion-form">
                     <div className="form-group">
-                        <label htmlFor="startDate">Start Date *</label>
+                        <label htmlFor="name">Promotion Name *</label>
                         <input
-                            type="date"
-                            id="startDate"
-                            name="startDate"
-                            value={formData.startDate}
+                            type="text"
+                            id="name"
+                            name="name"
+                            value={formData.name}
                             onChange={handleChange}
+                            placeholder='Enter promotion name here...'
                             required
                         />
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="startTime">Start Time *</label>
-                        <input
-                            type="time"
-                            id="startTime"
-                            name="startTime"
-                            value={formData.startTime}
+                        <label htmlFor="description">Description *</label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            value={formData.description}
                             onChange={handleChange}
-                            required
-                        />
-                    </div>
-                </div>
-
-                <div className="form-row">
-                    <div className="form-group">
-                        <label htmlFor="endDate">End Date *</label>
-                        <input
-                            type="date"
-                            id="endDate"
-                            name="endDate"
-                            value={formData.endDate}
-                            onChange={handleChange}
+                            placeholder='Enter promotion description here...'
+                            rows="4"
                             required
                         />
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="endTime">End Time *</label>
-                        <input
-                            type="time"
-                            id="endTime"
-                            name="endTime"
-                            value={formData.endTime}
+                        <label htmlFor="type">Type *</label>
+                        <select
+                            id="type"
+                            name="type"
+                            value={formData.type}
                             onChange={handleChange}
                             required
-                        />
+                        >
+                            <option value="automatic">Automatic</option>
+                            <option value="one-time">One-time</option>
+                        </select>
                     </div>
-                </div>
 
-                <div className="form-group">
-                    <label htmlFor="minSpending">Minimum Spending (optional)</label>
-                    <input
-                        type="number"
-                        id="minSpending"
-                        name="minSpending"
-                        value={formData.minSpending}
-                        onChange={handleChange}
-                        step="0.01"
-                        min="0"
-                        placeholder="e.g., 50.00"
-                    />
-                </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="startDate">Start Date *</label>
+                            <input
+                                type="date"
+                                id="startDate"
+                                name="startDate"
+                                value={formData.startDate}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
 
-                <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="startTime">Start Time *</label>
+                            <input
+                                type="time"
+                                id="startTime"
+                                name="startTime"
+                                value={formData.startTime}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="endDate">End Date *</label>
+                            <input
+                                type="date"
+                                id="endDate"
+                                name="endDate"
+                                value={formData.endDate}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="endTime">End Time *</label>
+                            <input
+                                type="time"
+                                id="endTime"
+                                name="endTime"
+                                value={formData.endTime}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                    </div>
+
                     <div className="form-group">
-                        <label htmlFor="rate">Rate (optional)</label>
+                        <label htmlFor="minSpending">Minimum Spending (optional)</label>
                         <input
                             type="number"
-                            id="rate"
-                            name="rate"
-                            value={formData.rate}
+                            id="minSpending"
+                            name="minSpending"
+                            value={formData.minSpending}
                             onChange={handleChange}
                             step="0.01"
                             min="0"
-                            placeholder="e.g., 0.05 for 5%"
+                            placeholder="e.g., 50.00"
                         />
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="points">Points (optional)</label>
-                        <input
-                            type="number"
-                            id="points"
-                            name="points"
-                            value={formData.points}
-                            onChange={handleChange}
-                            min="1"
-                            placeholder="e.g., 100"
-                        />
-                    </div>
-                </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="rate">Rate (optional)</label>
+                            <input
+                                type="number"
+                                id="rate"
+                                name="rate"
+                                value={formData.rate}
+                                onChange={handleChange}
+                                step="0.01"
+                                min="0"
+                                placeholder="e.g., 0.05 for 5%"
+                            />
+                        </div>
 
-                <div className="form-actions">
-                    <button type="submit" className="submit-btn" disabled={submitting}>
-                        {submitting ? 'Creating...' : 'Create Promotion'}
-                    </button>
-                    <button type="button" className="cancel-btn" onClick={() => navigate('/all_promotions')} disabled={submitting}>
-                        Cancel
-                    </button>
-                </div>
-            </form>
+                        <div className="form-group">
+                            <label htmlFor="points">Points (optional)</label>
+                            <input
+                                type="number"
+                                id="points"
+                                name="points"
+                                value={formData.points}
+                                onChange={handleChange}
+                                min="1"
+                                placeholder="e.g., 100"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-actions">
+                        <button type="submit" className="submit-btn" disabled={submitting}>
+                            {submitting ? 'Creating...' : 'Create Promotion'}
+                        </button>
+                        <button type="button" className="cancel-btn" onClick={() => navigate('/all_promotions')} disabled={submitting}>
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </section>
         </div>
     );
 };

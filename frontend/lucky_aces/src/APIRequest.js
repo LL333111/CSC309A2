@@ -1,4 +1,4 @@
-const API = "http://localhost:3001";
+const API = "";
 
 // /auth/tokens
 export async function login(utorid, password) {
@@ -250,7 +250,7 @@ export async function getAllEvents(name, page, started, ended, location, showFul
   }
 }
 
-export async function createEvent(name, description, location, date, startTime, endTime, capacity, points, token) {
+export async function createEvent(name, description, location, startTime, endTime, capacity, points, token) {
   try {
     const body = {
       name,

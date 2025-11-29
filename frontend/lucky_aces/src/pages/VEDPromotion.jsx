@@ -49,6 +49,21 @@ function VEDPromotion() {
         return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
     };
 
+    const formatTypeLabel = (value) => {
+        if (!value) return '';
+        const normalized = value.toLowerCase();
+        if (normalized === "automatic") return "Automatic";
+        if (normalized === "one-time") return "One-time";
+        return value;
+    };
+
+    const renderTypeBadge = (value) => {
+        if (!value) return null;
+        const normalized = value.toLowerCase();
+        const modifier = normalized === "one-time" ? "is-one-time" : "is-automatic";
+        return <span className={`promotion-type-pill ${modifier}`}>{formatTypeLabel(value)}</span>;
+    };
+
     const [promotionData, setPromotionData] = useState({
         id: '',
         name: '',
@@ -233,9 +248,7 @@ function VEDPromotion() {
                             <p className="page-subtitle">Update rules, rewards, and scheduling for this promotion.</p>
                         </div>
                         <div className="hero-meta">
-                            {promotionData.type && (
-                                <span className="status-chip status-info">{promotionData.type}</span>
-                            )}
+                            {renderTypeBadge(promotionData.type)}
                         </div>
                     </div>
 
@@ -304,7 +317,9 @@ function VEDPromotion() {
                         {new Date() >= new Date(copyPromotionData.startTime) && (
                             <div className="form-group">
                                 <label htmlFor="typeInput">Type: </label>
-                                <span className="readonly-field">{promotionData.type || ''}</span>
+                                {promotionData.type ? renderTypeBadge(promotionData.type) : (
+                                    <span className="readonly-field">—</span>
+                                )}
                             </div>
                         )}
 

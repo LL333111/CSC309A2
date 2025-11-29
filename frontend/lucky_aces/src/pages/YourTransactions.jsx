@@ -291,6 +291,8 @@ function YourTransactions() {
                       const secondaryParty = getSecondaryParty(transaction);
                       const promotionSummary = getPromotionSummary(transaction);
                       const typeLabel = capitalize(transaction.type);
+                      const typeKey = transaction.type || "other";
+                      const chipClass = `table-chip transaction-type transaction-type-${typeKey}`;
 
                       return (
                         <tr key={transaction.id}>
@@ -301,7 +303,7 @@ function YourTransactions() {
                             </div>
                           </td>
                           <td>
-                            <span className="table-chip is-muted">{typeLabel}</span>
+                            <span className={chipClass}>{typeLabel}</span>
                           </td>
                           <td>
                             <div className="table-meta-stack">

@@ -292,25 +292,32 @@ function AllEvents() {
                             </div>
                           </div>
                         )}
-                        {status !== "upcoming" && (
-                          <div className="event-inline-actions">
-                            <button
-                              type="button"
-                              className="btn-secondary"
-                              onClick={() => navigate(`/reward_points/${event.id}`)}
-                            >
-                              Reward Points
-                            </button>
-                          </div>
-                        )}
                       </div>
-                      <button onClick={() => navigate(`/edit_events_users/${event.id}`)}>Edit Event Users</button>
-                      <button
-                        className="ved-btn"
-                        onClick={() => navigate(`/ved_event/${event.id}`)}
-                      >
-                        View · Edit · Delete
-                      </button>
+                      <div className="event-card-actions">
+                        {status !== "upcoming" && (
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            onClick={() => navigate(`/reward_points/${event.id}`)}
+                          >
+                            Reward Points
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => navigate(`/edit_events_users/${event.id}`)}
+                        >
+                          Edit Event Users
+                        </button>
+                        <button
+                          type="button"
+                          className="ved-btn"
+                          onClick={() => navigate(`/ved_event/${event.id}`)}
+                        >
+                          View · Edit · Delete
+                        </button>
+                      </div>
                     </article>
                   );
                 })

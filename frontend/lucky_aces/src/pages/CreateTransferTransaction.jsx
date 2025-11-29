@@ -18,7 +18,7 @@ function CreateTransferTransaction() {
   const [forbidden, _setForbidden] = useState(false);
   const [success, _setSuccess] = useState(false);
 
-  const { token, loading } = useLoggedInUser();
+  const { token, loading, setUpdate } = useLoggedInUser();
 
   // page protection
   useEffect(() => {
@@ -60,6 +60,7 @@ function CreateTransferTransaction() {
         setRecipientIDInput("");
         setAmountInput(0);
         setRemarkInput("");
+        setUpdate((prev) => !prev);
         break
     }
   }
@@ -76,7 +77,7 @@ function CreateTransferTransaction() {
           <div>
             <p className="eyebrow">Wallet · Transfer</p>
             <h1 className="page-title">Create Transfer Transaction</h1>
-            <p className="page-subtitle single-form-subtitle">Send points securely between verified community members.</p>
+            <p className="page-subtitle single-form-subtitle">Send points securely between members.</p>
           </div>
 
           <div className="transaction-feedback">
