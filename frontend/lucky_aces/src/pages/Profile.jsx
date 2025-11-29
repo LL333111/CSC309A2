@@ -170,7 +170,7 @@ function Profile() {
                   </div>
                   <div className="info-item">
                     <label>Role:</label>
-                    <span>{user.role === 1 ? 'Regular User' : user.role === 2 ? 'Cashier' : user.role === 3 ? 'Manager' : 'Unknown'}</span>
+                    <span>{user.role}</span>
                   </div>
                   <div className="info-item">
                     <label>Verified:</label>
