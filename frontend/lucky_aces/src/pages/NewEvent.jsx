@@ -14,7 +14,6 @@ const NewEvent = () => {
         name: '',
         description: '',
         location: '',
-        date: '',
         startTime: '',
         endTime: '',
         capacity: '',
@@ -49,22 +48,32 @@ const NewEvent = () => {
             return;
         }
 
-        // Validate that start time is before end time
-        if (formData.startTime >= formData.endTime) {
-            alert("End time must be after start time");
+        if (!formData.startTime || !formData.endTime) {
+            alert("Start time and end time are required");
             return;
         }
 
         // Capacity is optional - null means unlimited
         const capacityNum = formData.capacity ? parseInt(formData.capacity) : null;
 
-        // Combine date and time into the format backend expects: YYYY-MM-DDTHH:MM:SS.microseconds+TZ:TZ
-        const startDateTime = `${formData.date}T${formData.startTime}:00.000000+00:00`;
-        const endDateTime = `${formData.date}T${formData.endTime}:00.000000+00:00`;
+        const startISO = `${formData.startTime}:00.000000+00:00`;
+        const endISO = `${formData.endTime}:00.000000+00:00`;
+
+        const startDate = new Date(formData.startTime);
+        const endDate = new Date(formData.endTime);
+
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            alert("Please provide valid start and end timestamps");
+            return;
+        }
+
+        if (startDate >= endDate) {
+            alert("End time must be after start time");
+            return;
+        }
 
         // Validate that start time is in the future
         const now = new Date();
-        const startDate = new Date(startDateTime);
         if (startDate <= now) {
             alert("Event start time must be in the future");
             return;
@@ -74,8 +83,8 @@ const NewEvent = () => {
             name: formData.name,
             description: formData.description,
             location: formData.location,
-            startTime: startDateTime,
-            endTime: endDateTime,
+            startTime: startISO,
+            endTime: endISO,
             capacity: capacityNum,
             points: pointsNum
         });
@@ -87,9 +96,8 @@ const NewEvent = () => {
                 formData.name,
                 formData.description,
                 formData.location,
-                null, // date is not needed separately
-                startDateTime,
-                endDateTime,
+                startISO,
+                endISO,
                 capacityNum,
                 pointsNum,
                 token
@@ -170,23 +178,11 @@ const NewEvent = () => {
                     />
                 </div>
 
-                <div className="form-group">
-                    <label htmlFor="date">Event Date</label>
-                    <input
-                        type="date"
-                        id="date"
-                        name="date"
-                        value={formData.date}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
                 <div className="form-row">
                     <div className="form-group">
                         <label htmlFor="startTime">Start Time</label>
                         <input
-                            type="time"
+                            type="datetime-local"
                             id="startTime"
                             name="startTime"
                             value={formData.startTime}
@@ -198,7 +194,7 @@ const NewEvent = () => {
                     <div className="form-group">
                         <label htmlFor="endTime">End Time</label>
                         <input
-                            type="time"
+                            type="datetime-local"
                             id="endTime"
                             name="endTime"
                             value={formData.endTime}
