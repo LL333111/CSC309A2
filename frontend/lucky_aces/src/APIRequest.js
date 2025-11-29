@@ -806,3 +806,24 @@ export async function removeGuest(eventId, userId, token) {
     alert("remove guests API request error");
   }
 }
+
+// /notifications
+export async function getNotifications(page, token) {
+  try {
+    const response = await fetch(`${API}/notifications?page=${page}&limit=5`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to get notifications ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("get notifications API request error: ", error);
+    alert("get notifications API request error");
+  }
+}
