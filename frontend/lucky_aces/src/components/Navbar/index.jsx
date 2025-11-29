@@ -1,15 +1,18 @@
 import "./style.css"
-import { useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLoggedInUser } from "../../contexts/LoggedInUserContext";
+import { useSocket } from "../../contexts/SocketContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [notificationToast, setNotificationToast] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   const { role } = useLoggedInUser();
+  const { unreadNotification, setUnreadNotification, newNotification } = useSocket();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -31,6 +34,14 @@ const Navbar = () => {
       return location.pathname === "/";
     }
     return location.pathname === targetPath || location.pathname.startsWith(`${targetPath}/`);
+  };
+
+  const handleNotification = (sectionId, path, e) => {
+    e.preventDefault();
+    setIsMenuOpen(false);
+    setActiveDropdown(null);
+    setUnreadNotification(false);
+    navigate(path);
   };
 
   const accountActive = matchPath("/profile");
@@ -56,9 +67,37 @@ const Navbar = () => {
     "/all_events",
     "/all_transactions"
   ].some(matchPath);
+  const notificationsActive = matchPath("/notifications");
+
+  useEffect(() => {
+    if (newNotification !== null) {
+      setNotificationToast(newNotification.message);
+
+      // disappear after 5 seconds.
+      const timer = setTimeout(() => {
+        setNotificationToast(null);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [newNotification]);
 
   return (
     <div>
+      {notificationToast && (
+        <div className="notification-toast">
+          <div className="toast-content">
+            <span>New Notification: {notificationToast}</span>
+            <button
+              className="toast-close"
+              onClick={() => setNotificationToast(null)}
+            >
+              X
+            </button>
+          </div>
+        </div>
+      )}
+
       <nav className="navbar">
         <div className="nav-container">
           <ul className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
@@ -122,6 +161,15 @@ const Navbar = () => {
                 <li className="nav-item">
                   <p className={`nav-link ${matchPath("/your_promotions") ? 'active' : ''}`}
                     onClick={(e) => { handleNavClick("YourPromotions", "/your_promotions", e); }}>Promotions</p>
+                </li>
+
+                {/* Notifications */}
+                <li className="nav-item">
+                  <p className={`nav-link ${notificationsActive ? 'active' : ''} ${unreadNotification ? 'has-notification' : ''}`}
+                    onClick={(e) => { handleNotification("Notifications", "/notifications", e); }}>
+                    Notifications
+                    {unreadNotification && <span className="notification-badge"></span>}
+                  </p>
                 </li>
               </>
             )}

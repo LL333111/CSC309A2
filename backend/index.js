@@ -33,11 +33,28 @@ require('dotenv').config();
 
 const jwt = require('jsonwebtoken');
 const { v1: uuidv4 } = require('uuid');
-const { tr, no, ca, id } = require("zod/v4/locales");
+const { tr, no, ca, id, be } = require("zod/v4/locales");
 const { promise, number } = require("zod/v4");
+
+// add websocket package
+const http = require("http");
+const { Server } = require("socket.io");
 
 // add cors package
 const cors = require('cors');
+
+// add websocker here
+const server = http.createServer(app);
+
+// init socket.io
+const io = new Server(server, {
+    cors: {
+        origin: 'http://localhost:3000', // React dev server
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true
+    }
+});
 
 // Set up cors to allow requests from React frontend
 app.use(cors({
@@ -75,6 +92,48 @@ function isValidBirthday(dateString) {
     let start = new Date(1900, 0, 1);
     let end = new Date(2025, 11, 31);
     return date >= start && date <= end;
+}
+
+async function sendNotification(userId, type, message) {
+    if (!io) return;
+
+    const notification = await prisma.notification.create({
+        data: {
+            userId,
+            type,
+            message,
+            read: false,
+        },
+    });
+
+    const room = `user_${userId}`;
+    console.log("send notification to", room);
+
+    io.to(room).emit("notification", {
+        id: notification.id,
+        type: notification.type,
+        message: notification.message,
+        createdAt: notification.createdAt,
+    });
+
+    return notification;
+}
+
+async function sendNotificationToMany(userIds, type, message) {
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+        return [];
+    }
+
+    // Make sure that each ID appears only once.
+    const uniqueIds = [...new Set(userIds)];
+
+    const results = [];
+    for (const id of uniqueIds) {
+        const n = await sendNotification(id, type, message);
+        results.push(n);
+    }
+
+    return results;
 }
 
 // Middleware
@@ -399,6 +458,7 @@ app.route("/users/me")
                 avatarUrl: true,
             }
         });
+        await sendNotification(req.user.id, "info", `${req.user.utorid}, your profile has been updated!`);
         res.status(200).json(result);
     })
     .get(bearerToken, async (req, res) => {
@@ -3620,12 +3680,91 @@ app.route("/users/:userId/transactions")
         res.status(405).json({ "Method Not Allowed": "Try Post" });
     });
 
+app.route("/notifications")
+    .get(bearerToken, async (req, res) => {
+        // check authorization first
+        if (!req.role) {
+            return res.status(401).json({ "Unauthorized": "No authorization" });
+        }
+        // check role
+        if (req.role != "manager" && req.role !== "superuser" && req.role !== "cashier" && req.role !== "regular") {
+            return res.status(403).json({ "Forbidden": "Not permitted to create transactions" });
+        }
+        let { page, limit } = req.query;
+        if (page !== undefined) {
+            page = parseInt(page);
+            if (Number.isNaN(page) || page <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid page" });
+            }
+        } else { // no input page
+            page = 1;
+        }
+        if (limit !== undefined) {
+            limit = parseInt(limit);
+            if (Number.isNaN(limit) || limit <= 0) {
+                return res.status(400).json({ "Bad Request": "Invalid limit" });
+            }
+        } else { // no input limit
+            limit = 10;
+        }
+        // retrieve notifications from database
+        let user = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            include: {
+                notifications: { orderBy: { createdAt: 'desc' } }
+            }
+        });
+        let notifications = user.notifications;
+        return res.status(200).json({
+            count: notifications.length,
+            results: notifications.slice((page - 1) * limit, ((page - 1) * limit) + limit)
+        });
+    })
+    .all((req, res) => {
+        res.status(405).json({ "Method Not Allowed": "Try Get" });
+    });
 
-const server = app.listen(port, () => {
+io.on("connection", (socket) => {
+    const token = socket.handshake.auth?.token;
+
+    try {
+        // user = { id, utorid, role }
+        const user = jwt.verify(token, process.env.JWT_SECRET);
+        socket.user = user;
+
+        // join a room named after the user ID
+        const room = `user_${socket.user.id}`;
+        socket.join(room);
+
+        console.log(`Socket ${socket.id} joined room ${room}`);
+
+        socket.on("disconnect", () => {
+            console.log("Socket disconnected:", socket.id);
+        });
+
+    } catch (err) {
+        console.error("Invalid token:", err.message);
+        socket.disconnect(true);
+    }
+});
+
+app.set("io", io);
+
+
+server.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
 
-server.on('error', (err) => {
+server.on("error", (err) => {
     console.error(`cannot start server: ${err.message}`);
     process.exit(1);
 });
+
+// const server = app.listen(port, () => {
+//     console.log(`Server running on port ${port}`);
+// });
+
+// server.on('error', (err) => {
+//     console.error(`cannot start server: ${err.message}`);
+//     process.exit(1);
+// });

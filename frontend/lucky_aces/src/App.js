@@ -1,6 +1,7 @@
 import './App.css';
 import { Routes, Route, BrowserRouter } from "react-router-dom"
 import { LoggedInUserContextProvider } from './contexts/LoggedInUserContext';
+import { SocketProvider } from './contexts/SocketContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -24,6 +25,7 @@ import RewardPoints from './pages/RewardPoints';
 import QRInitDetail from './pages/QRInitDetail';
 import EditEventsUsers from './pages/EditEventsUsers';
 import NotFound from './pages/NotFound';
+import Notification from './pages/Notification';
 
 import NeedLogin from './NeedLogin';
 import UpdateUser from './pages/UpdateUsers';
@@ -37,47 +39,50 @@ import EventRSVP from './pages/EventRSVP';
 function App() {
   return (
     <LoggedInUserContextProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />} >
-            <Route index element={<Home />} />
-            <Route path="login" element={<Login />} />
+      <SocketProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Layout />} >
+              <Route index element={<Home />} />
+              <Route path="login" element={<Login />} />
 
-            {/* need log in routes */}
-            <Route path="profile" element={<NeedLogin min_role={1}><Profile /></NeedLogin>} />
-            <Route path="register" element={<NeedLogin min_role={2}><Register /></NeedLogin>} />
-            <Route path="qr_init_transaction" element={<NeedLogin min_role={1}><QRInitTransaction /></NeedLogin>} />
-            <Route path="qr_init_detail/:utorid" element={<NeedLogin min_role={1}><QRInitDetail /></NeedLogin>} />
-            <Route path="transfer_transaction" element={<NeedLogin min_role={1}><CreateTransferTransaction /></NeedLogin>} />
-            <Route path="transfer_transaction/:utorid" element={<NeedLogin min_role={1}><CreateTransferTransaction /></NeedLogin>} />
-            <Route path="purchase_transaction" element={<NeedLogin min_role={2}><CreatePurchaseTransaction /></NeedLogin>} />
-            <Route path="purchase_transaction/:utorid" element={<NeedLogin min_role={2}><CreatePurchaseTransaction /></NeedLogin>} />
-            <Route path="redemption_transaction" element={<NeedLogin min_role={1}><CreateRedemptionTransaction /></NeedLogin>} />
-            <Route path="all_unprocessed_redemption_transaction" element={<NeedLogin min_role={1}><AllUnprocessedRedemption /></NeedLogin>} />
-            <Route path="all_promotions" element={<NeedLogin min_role={3}><AllPromotions /></NeedLogin>} />
-            <Route path="new_promotion" element={<NeedLogin min_role={3}><NewPromotions /></NeedLogin>} />
-            <Route path="your_promotions" element={<NeedLogin min_role={1}><YourPromotions /></NeedLogin>} />
-            <Route path="all_events" element={<NeedLogin min_role={3}><AllEvents /></NeedLogin>} />
-            <Route path="new_event" element={<NeedLogin min_role={3}><NewEvent /></NeedLogin>} />
-            <Route path="published_events" element={<NeedLogin min_role={1}><PublishedEvents /></NeedLogin>} />
-            <Route path="all_users" element={<NeedLogin min_role={3}><AllUsers /></NeedLogin>} />
-            <Route path="all_transactions" element={<NeedLogin min_role={3}><AllTransactions /></NeedLogin>} />
-            <Route path="your_transactions" element={<NeedLogin min_role={1}><YourTransactions /></NeedLogin>} />
-            <Route path="process_redemption" element={<NeedLogin min_role={2}><ProcessRedemption /></NeedLogin>} />
-            <Route path="process_redemption/:transactionId" element={<NeedLogin min_role={2}><ProcessRedemption /></NeedLogin>} />
-            <Route path="update_user/:userId" element={<NeedLogin min_role={3}><UpdateUser /></NeedLogin>} />
-            <Route path="specific_transaction/:transactionId" element={<NeedLogin min_role={3}><SpecificTransaction /></NeedLogin>} />
-            <Route path="organizer_events" element={<NeedLogin min_role={1}><OrganizerEvents /></NeedLogin>} />
-            <Route path="reward_points/:eventId" element={<NeedLogin min_role={1}><RewardPoints /></NeedLogin>} />
-            <Route path="ved_event/:eventId" element={<NeedLogin min_role={3}><VEDEvent /></NeedLogin>} />
-            <Route path="ved_promotion/:promotionId" element={<NeedLogin min_role={3}><VEDPromotion /></NeedLogin>} />
-            <Route path="event_rsvp/:eventId" element={<NeedLogin min_role={1}><EventRSVP /></NeedLogin>} />
-            <Route path="edit_events_users/:eventId" element={<NeedLogin min_role={1}><EditEventsUsers /></NeedLogin>} />
+              {/* need log in routes */}
+              <Route path="profile" element={<NeedLogin min_role={1}><Profile /></NeedLogin>} />
+              <Route path="register" element={<NeedLogin min_role={2}><Register /></NeedLogin>} />
+              <Route path="qr_init_transaction" element={<NeedLogin min_role={1}><QRInitTransaction /></NeedLogin>} />
+              <Route path="qr_init_detail/:utorid" element={<NeedLogin min_role={1}><QRInitDetail /></NeedLogin>} />
+              <Route path="transfer_transaction" element={<NeedLogin min_role={1}><CreateTransferTransaction /></NeedLogin>} />
+              <Route path="transfer_transaction/:utorid" element={<NeedLogin min_role={1}><CreateTransferTransaction /></NeedLogin>} />
+              <Route path="purchase_transaction" element={<NeedLogin min_role={2}><CreatePurchaseTransaction /></NeedLogin>} />
+              <Route path="purchase_transaction/:utorid" element={<NeedLogin min_role={2}><CreatePurchaseTransaction /></NeedLogin>} />
+              <Route path="redemption_transaction" element={<NeedLogin min_role={1}><CreateRedemptionTransaction /></NeedLogin>} />
+              <Route path="all_unprocessed_redemption_transaction" element={<NeedLogin min_role={1}><AllUnprocessedRedemption /></NeedLogin>} />
+              <Route path="all_promotions" element={<NeedLogin min_role={3}><AllPromotions /></NeedLogin>} />
+              <Route path="new_promotion" element={<NeedLogin min_role={3}><NewPromotions /></NeedLogin>} />
+              <Route path="your_promotions" element={<NeedLogin min_role={1}><YourPromotions /></NeedLogin>} />
+              <Route path="all_events" element={<NeedLogin min_role={3}><AllEvents /></NeedLogin>} />
+              <Route path="new_event" element={<NeedLogin min_role={3}><NewEvent /></NeedLogin>} />
+              <Route path="published_events" element={<NeedLogin min_role={1}><PublishedEvents /></NeedLogin>} />
+              <Route path="all_users" element={<NeedLogin min_role={3}><AllUsers /></NeedLogin>} />
+              <Route path="all_transactions" element={<NeedLogin min_role={3}><AllTransactions /></NeedLogin>} />
+              <Route path="your_transactions" element={<NeedLogin min_role={1}><YourTransactions /></NeedLogin>} />
+              <Route path="process_redemption" element={<NeedLogin min_role={2}><ProcessRedemption /></NeedLogin>} />
+              <Route path="process_redemption/:transactionId" element={<NeedLogin min_role={2}><ProcessRedemption /></NeedLogin>} />
+              <Route path="update_user/:userId" element={<NeedLogin min_role={3}><UpdateUser /></NeedLogin>} />
+              <Route path="specific_transaction/:transactionId" element={<NeedLogin min_role={3}><SpecificTransaction /></NeedLogin>} />
+              <Route path="organizer_events" element={<NeedLogin min_role={1}><OrganizerEvents /></NeedLogin>} />
+              <Route path="reward_points/:eventId" element={<NeedLogin min_role={1}><RewardPoints /></NeedLogin>} />
+              <Route path="ved_event/:eventId" element={<NeedLogin min_role={3}><VEDEvent /></NeedLogin>} />
+              <Route path="ved_promotion/:promotionId" element={<NeedLogin min_role={3}><VEDPromotion /></NeedLogin>} />
+              <Route path="event_rsvp/:eventId" element={<NeedLogin min_role={1}><EventRSVP /></NeedLogin>} />
+              <Route path="edit_events_users/:eventId" element={<NeedLogin min_role={1}><EditEventsUsers /></NeedLogin>} />
+              <Route path="notifications" element={<NeedLogin min_role={1}><Notification /></NeedLogin>} />
 
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </SocketProvider>
     </LoggedInUserContextProvider>
     // <Auth />
   );
