@@ -102,6 +102,15 @@ function EditEventsUsers() {
     return date.toLocaleString();
   };
 
+  const renderStateCard = (title, message) => (
+    <div className="page-shell manage-event-page">
+      <section className="state-card" data-surface="flat">
+        <h2>{title}</h2>
+        {message && <p>{message}</p>}
+      </section>
+    </div>
+  );
+
   const handleAddGuest = async () => {
     if (!guestUtoridInput.trim()) {
       setError("Please enter a UTORid");
@@ -208,96 +217,105 @@ function EditEventsUsers() {
   };
 
   if (_loading) {
-    return (
-      <div className="container">
-        <h2>Loading...</h2>
-      </div>
-    );
+    return renderStateCard("Loading...", "Please wait while we fetch event details.");
   }
 
   if (!token) {
-    return (
-      <div className="container">
-        <h2>Please log in to access this page</h2>
-      </div>
-    );
+    return renderStateCard("Please log in to access this page", "");
   }
 
   if (!event) {
-    return (
-      <div className="container">
-        <h2>Event not found</h2>
-      </div>
-    );
+    return renderStateCard("Event not found", "Double-check the link and try again.");
   }
 
-  // Check if user has any permissions
   if (!hasOrganizerPermissions() && !hasManagerPermissions()) {
-    return (
-      <div className="container">
-        <h2>Access Denied</h2>
-        <p>You don't have permission to manage this event.</p>
-      </div>
-    );
+    return renderStateCard("Access Denied", "You don't have permission to manage this event.");
   }
 
   return (
-    <div className="container">
-      <h2 className="title">Manage Event: {event.name}</h2>
-
-      {/* Event Details */}
-      <div className="eventDetails">
-        <h3 className="sectionTitle">Event Details</h3>
-        <div className="detailsGrid">
-          <div className="detailItem">
-            <label className="detailLabel">Description:</label>
-            <span className="detailValue">{event.description || "No description"}</span>
+    <div className="page-shell manage-event-page">
+      <header className="manage-event-hero" data-surface="flat">
+        <div className="hero-text">
+          <p className="eyebrow">Management · Events</p>
+          <h1 className="page-title">{event.name}</h1>
+          <p className="page-subtitle">Add or remove organizers and guests for this event.</p>
+        </div>
+        <div className="hero-meta">
+          <div className="hero-meta-item">
+            <span>Event ID</span>
+            <strong>#{event.id}</strong>
           </div>
-          <div className="detailItem">
-            <label className="detailLabel">Location:</label>
-            <span className="detailValue">{event.location || "No location specified"}</span>
+          <div className="hero-meta-item">
+            <span>Capacity</span>
+            <strong>
+              {event.numGuests || 0}
+              {event.capacity ? ` / ${event.capacity}` : " · No limit"}
+            </strong>
           </div>
-          <div className="detailItem">
-            <label className="detailLabel">Start Time:</label>
-            <span className="detailValue">{formatDateTime(event.startTime)}</span>
-          </div>
-          <div className="detailItem">
-            <label className="detailLabel">End Time:</label>
-            <span className="detailValue">{formatDateTime(event.endTime)}</span>
+          <div className="hero-meta-item">
+            <span>Published</span>
+            <strong>{isEventPublished() ? "Yes" : "No"}</strong>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Event Status Info */}
-      <div className="eventStatus">
-        <h4 className="subtitle">Event Status</h4>
-        <ul className="statusList">
-          <li className="statusItem">Published: {isEventPublished() ? "Yes" : "No"}</li>
-          <li className="statusItem">Started: {isEventStarted() ? "Yes" : "No"}</li>
-          <li className="statusItem">Ended: {isEventEnded() ? "Yes" : "No"}</li>
-          <li className="statusItem">
-            Capacity: {event.numGuests || 0}
-            {event.capacity ? ` / ${event.capacity}` : " (No limit)"}
-            {isEventFull() && " - FULL"}
-          </li>
-        </ul>
-      </div>
+      <section className="event-overview-card">
+        <div className="detail-grid">
+          <div className="detail-card">
+            <span className="detail-label">Description</span>
+            <p className="detail-value">{event.description || "No description"}</p>
+          </div>
+          <div className="detail-card">
+            <span className="detail-label">Location</span>
+            <p className="detail-value">{event.location || "No location specified"}</p>
+          </div>
+          <div className="detail-card">
+            <span className="detail-label">Start Time</span>
+            <p className="detail-value">{formatDateTime(event.startTime)}</p>
+          </div>
+          <div className="detail-card">
+            <span className="detail-label">End Time</span>
+            <p className="detail-value">{formatDateTime(event.endTime)}</p>
+          </div>
+        </div>
+        <div className="status-panel">
+          <h4>Event Status</h4>
+          <ul className="status-list">
+            <li className="status-item">Published: {isEventPublished() ? "Yes" : "No"}</li>
+            <li className="status-item">Started: {isEventStarted() ? "Yes" : "No"}</li>
+            <li className="status-item">Ended: {isEventEnded() ? "Yes" : "No"}</li>
+            <li className="status-item">
+              Capacity: {event.numGuests || 0}
+              {event.capacity ? ` / ${event.capacity}` : " (No limit)"}
+              {isEventFull() && " · Full"}
+            </li>
+          </ul>
+        </div>
+      </section>
 
-      {/* Guest Management Section - Visible to both organizer and manager/superuser */}
-      <div className="section">
-        <h3 className="sectionTitle">Guest Management</h3>
-        <div className="inputGroup">
+      <section className="management-card">
+        <div className="section-heading">
+          <div>
+            <h3>Guest Management</h3>
+            <p>Invite or remove attendees. Guests can only be added to published events.</p>
+          </div>
+          <span className="badge badge-blue">
+            Guests · {event.numGuests || 0}
+            {event.capacity ? ` / ${event.capacity}` : ""}
+          </span>
+        </div>
+        <div className="management-inputs">
           <input
             type="text"
             placeholder="Enter UTORid to add as guest"
             value={guestUtoridInput}
             onChange={(e) => setGuestUtoridInput(e.target.value)}
-            className="input"
             disabled={!canAddGuest()}
           />
           <button
+            type="button"
             onClick={handleAddGuest}
-            className="btn btnPrimary"
+            className="btn-primary"
             disabled={!canAddGuest()}
             title={!canAddGuest() ?
               (!isEventPublished() ? "Event is not published" :
@@ -308,46 +326,59 @@ function EditEventsUsers() {
             Add Guest
           </button>
         </div>
-        <h4 className="subtitle">Current Guests ({event.numGuests || 0})</h4>
+        <h4 className="list-title">Current Guests</h4>
         {event.guests && event.guests.length > 0 ? (
-          <div className="list">
+          <div className="entity-list">
             {event.guests.map(guest => (
-              <div key={guest.id} className="listItem">
-                <span className="listText">{guest.utorid} - {guest.name || guest.email}</span>
-                {/* Only manager/superuser can remove guests */}
+              <div key={guest.id} className="entity-list-item">
+                <div className="entity-meta">
+                  <span className="entity-name">{guest.name || guest.email || guest.utorid}</span>
+                  <span className="entity-id">{guest.utorid}</span>
+                </div>
                 {hasManagerPermissions() && (
-                  <button
-                    onClick={() => handleRemoveGuest(guest.id, guest.utorid)}
-                    className="btn btnDanger btnSmall"
-                    disabled={isEventEnded()}
-                    title={isEventEnded() ? "Event has ended" : "Remove guest"}
-                  >
-                    Remove
-                  </button>
+                  <div className="entity-actions">
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveGuest(guest.id, guest.utorid)}
+                      className="btn-danger btn-compact"
+                      disabled={isEventEnded()}
+                      title={isEventEnded() ? "Event has ended" : "Remove guest"}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 )}
               </div>
             ))}
           </div>
         ) : (
-          <p className="empty">No guests registered for this event.</p>
+          <p className="empty-state-text">No guests registered for this event.</p>
         )}
-      </div>
-      {/* Organizer Management Section - Only visible to manager/superuser */}
+      </section>
+
       {hasManagerPermissions() && (
-        <div className="section">
-          <h3 className="sectionTitle">Organizer Management</h3>
-          <div className="inputGroup">
+        <section className="management-card">
+          <div className="section-heading">
+            <div>
+              <h3>Organizer Management</h3>
+              <p>Only managers and superusers can manage organizers.</p>
+            </div>
+            <span className="badge badge-green">
+              Organizers · {event.organizers ? event.organizers.length : 0}
+            </span>
+          </div>
+          <div className="management-inputs">
             <input
               type="text"
               placeholder="Enter UTORid to add as organizer"
               value={organizerUtoridInput}
               onChange={(e) => setOrganizerUtoridInput(e.target.value)}
-              className="input"
               disabled={!canAddOrganizer()}
             />
             <button
+              type="button"
               onClick={handleAddOrganizer}
-              className="btn btnPrimary"
+              className="btn-primary"
               disabled={!canAddOrganizer()}
               title={!canAddOrganizer() ? "Event has ended" : "Add organizer"}
             >
@@ -355,77 +386,110 @@ function EditEventsUsers() {
             </button>
           </div>
 
-          <h4 className="subtitle">Current Organizers ({event.organizers ? event.organizers.length : 0})</h4>
+          <h4 className="list-title">Current Organizers</h4>
           {event.organizers && event.organizers.length > 0 ? (
-            <div className="list">
+            <div className="entity-list">
               {event.organizers.map(organizer => (
-                <div key={organizer.id} className="listItem">
-                  <span className="listText">{organizer.utorid} - {organizer.name || organizer.email}</span>
-                  <button
-                    onClick={() => handleRemoveOrganizer(organizer.id, organizer.utorid)}
-                    className="btn btnDanger btnSmall"
-                    disabled={isEventEnded()}
-                    title={isEventEnded() ? "Event has ended" : "Remove organizer"}
-                  >
-                    Remove
-                  </button>
+                <div key={organizer.id} className="entity-list-item">
+                  <div className="entity-meta">
+                    <span className="entity-name">{organizer.name || organizer.email || organizer.utorid}</span>
+                    <span className="entity-id">{organizer.utorid}</span>
+                  </div>
+                  <div className="entity-actions">
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveOrganizer(organizer.id, organizer.utorid)}
+                      className="btn-danger btn-compact"
+                      disabled={isEventEnded()}
+                      title={isEventEnded() ? "Event has ended" : "Remove organizer"}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="empty">No organizers assigned to this event.</p>
+            <p className="empty-state-text">No organizers assigned to this event.</p>
           )}
-        </div>
+        </section>
       )}
 
-      {/* Permission Info */}
-      <div className="permissions">
-        <h4 className="subtitle">Your Permissions</h4>
-        <ul className="permissionsList">
-          {hasOrganizerPermissions() && (
+      <section className="permissions-card">
+        <h3>Your Permissions</h3>
+        <ul className="permissions-list">
+          {hasOrganizerPermissions() && role < 3 && (
             <>
-              <li className={`permissionItem ${canAddGuest() ? "allowed" : "disallowed"}`}>
-                {canAddGuest() ? "✓" : "✗"} Add guests to this event
-                {!canAddGuest() && (
-                  <span className="reason">
-                    {!isEventPublished() ? " (Event not published)" :
-                      isEventEnded() ? " (Event ended)" :
-                        isEventFull() ? " (Event full)" : ""}
-                  </span>
-                )}
+              <li className={`permission-line ${canAddGuest() ? "allowed" : "denied"}`}>
+                <span className="status-chip">{canAddGuest() ? "✓" : "✗"}</span>
+                <div>
+                  <p>Add guests to this event</p>
+                  {!canAddGuest() && (
+                    <p className="reason-text">
+                      {!isEventPublished() ? "Event is not published." :
+                        isEventEnded() ? "Event has ended." :
+                          isEventFull() ? "Event is full." : ""}
+                    </p>
+                  )}
+                </div>
               </li>
-              <li className="permissionItem disallowed">✗ Cannot remove guests</li>
-              <li className="permissionItem disallowed">✗ Cannot manage organizers</li>
+              <li className="permission-line denied">
+                <span className="status-chip">✗</span>
+                <div>
+                  <p>Remove guests from this event</p>
+                  <p className="reason-text">Requires manager or superuser access.</p>
+                </div>
+              </li>
+              <li className="permission-line denied">
+                <span className="status-chip">✗</span>
+                <div>
+                  <p>Manage event organizers</p>
+                  <p className="reason-text">Only managers and superusers can manage organizers.</p>
+                </div>
+              </li>
             </>
           )}
+
           {hasManagerPermissions() && (
             <>
-              <li className={`permissionItem ${canAddGuest() ? "allowed" : "disallowed"}`}>
-                {canAddGuest() ? "✓" : "✗"} Add guests to this event
-                {!canAddGuest() && (
-                  <span className="reason">
-                    {!isEventPublished() ? " (Event not published)" :
-                      isEventEnded() ? " (Event ended)" :
-                        isEventFull() ? " (Event full)" : ""}
-                  </span>
-                )}
+              <li className={`permission-line ${canAddGuest() ? "allowed" : "denied"}`}>
+                <span className="status-chip">{canAddGuest() ? "✓" : "✗"}</span>
+                <div>
+                  <p>Add guests to this event</p>
+                  {!canAddGuest() && (
+                    <p className="reason-text">
+                      {!isEventPublished() ? "Event is not published." :
+                        isEventEnded() ? "Event has ended." :
+                          isEventFull() ? "Event is full." : ""}
+                    </p>
+                  )}
+                </div>
               </li>
-              <li className={`permissionItem ${!isEventEnded() ? "allowed" : "disallowed"}`}>
-                {!isEventEnded() ? "✓" : "✗"} Remove guests from this event
-                {isEventEnded() && <span className="reason"> (Event ended)</span>}
+              <li className={`permission-line ${!isEventEnded() ? "allowed" : "denied"}`}>
+                <span className="status-chip">{!isEventEnded() ? "✓" : "✗"}</span>
+                <div>
+                  <p>Remove guests from this event</p>
+                  {isEventEnded() && <p className="reason-text">Event has ended.</p>}
+                </div>
               </li>
-              <li className={`permissionItem ${canAddOrganizer() ? "allowed" : "disallowed"}`}>
-                {canAddOrganizer() ? "✓" : "✗"} Add organizers to this event
-                {!canAddOrganizer() && <span className="reason"> (Event ended)</span>}
+              <li className={`permission-line ${canAddOrganizer() ? "allowed" : "denied"}`}>
+                <span className="status-chip">{canAddOrganizer() ? "✓" : "✗"}</span>
+                <div>
+                  <p>Add organizers to this event</p>
+                  {!canAddOrganizer() && <p className="reason-text">Event has ended.</p>}
+                </div>
               </li>
-              <li className={`permissionItem ${!isEventEnded() ? "allowed" : "disallowed"}`}>
-                {!isEventEnded() ? "✓" : "✗"} Remove organizers from this event
-                {isEventEnded() && <span className="reason"> (Event ended)</span>}
+              <li className={`permission-line ${!isEventEnded() ? "allowed" : "denied"}`}>
+                <span className="status-chip">{!isEventEnded() ? "✓" : "✗"}</span>
+                <div>
+                  <p>Remove organizers from this event</p>
+                  {isEventEnded() && <p className="reason-text">Event has ended.</p>}
+                </div>
               </li>
             </>
           )}
         </ul>
-      </div>
+      </section>
     </div>
   );
 }

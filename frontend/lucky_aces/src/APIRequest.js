@@ -1,4 +1,4 @@
-const API = "http://localhost:3001";
+const API = "";
 
 // /auth/tokens
 export async function login(utorid, password) {
