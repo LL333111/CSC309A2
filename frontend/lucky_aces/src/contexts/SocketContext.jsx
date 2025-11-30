@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { useLoggedInUser } from "./LoggedInUserContext";
 import { io } from "socket.io-client";
 
+const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:3001";
 const SocketContext = createContext(null);
 
 export function SocketProvider({ children }) {
@@ -46,7 +47,7 @@ export function SocketProvider({ children }) {
     // const socket = io(import.meta.env.VITE_BACKEND_WS_URL, {
     //   auth: { token },
     // });
-    const socket = io("http://localhost:3001", {
+    const socket = io(REACT_APP_BACKEND_URL, {
       auth: { token },
     });
 
