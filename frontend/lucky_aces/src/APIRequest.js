@@ -8,6 +8,7 @@ export async function login(utorid, password) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer `,
       },
       body: JSON.stringify({
         utorid,
