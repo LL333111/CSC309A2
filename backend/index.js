@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-const FRONTEND_URL = "https://luckyaces309.up.railway.app";
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
 const port = (() => {
     const args = process.argv;
@@ -54,21 +54,16 @@ const io = new Server(server, {
         origin: FRONTEND_URL, // React dev server
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
-        credentials: true,
-        preflightContinue: false,
-        optionsSuccessStatus: 204,
+        credentials: true
     }
 });
-console.log("cors enabled for:", FRONTEND_URL);
 
 // Set up cors to allow requests from React frontend
 app.use(cors({
     origin: FRONTEND_URL,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', "PATCH", 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', "PATCH"],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
+    credentials: true
 }));
 
 // recording (like constant)
