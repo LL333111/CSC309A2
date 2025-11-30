@@ -64,7 +64,7 @@ function AllUnprocessedRedemption() {
   };
 
   const selectedRedemption = redemptionList.find((item) => item.id === activeQrId);
-  const qrLink = `${REACT_APP_BACKEND_URL}process_redemption/${selectedRedemption ? selectedRedemption.id : ""}`;
+  const qrLink = `${REACT_APP_BACKEND_URL}/process_redemption/${selectedRedemption ? selectedRedemption.id : ""}`;
 
   return (
     <div className="page-shell redemptions-page">
