@@ -68,6 +68,8 @@ let lastResetAt = "0000-00-00T00:00:00.000Z";
 let lastResetIP = "";
 
 // function
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 function isValidBirthday(dateString) {
     // check YYYY-MM-DD
     let regex = /^(19[0-9]{2}|20[0-1][0-9]|202[0-5])-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/;
@@ -113,7 +115,7 @@ async function sendNotification(userId, type, message) {
         message: notification.message,
         createdAt: notification.createdAt,
     });
-
+    await wait(200);
     return notification;
 }
 
