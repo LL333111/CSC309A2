@@ -3,8 +3,6 @@ import { useLoggedInUser } from '../contexts/LoggedInUserContext'
 import { useState, useEffect } from 'react';
 import "./QRInitTransaction.css";
 
-const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:3001";
-
 function QRInitTransaction() {
   const [_loading, _setLoading] = useState(true);
 
@@ -18,7 +16,7 @@ function QRInitTransaction() {
     return () => clearTimeout(timer);
   }, [loading]);
 
-  const qrValue = user ? `${REACT_APP_BACKEND_URL}/qr_init_detail/${user.utorid}` : "";
+  const qrValue = user ? `https://luckyaces309.up.railway.app/qr_init_detail/${user.utorid}` : "";
 
   return (
     <div className="page-shell qr-init-page" data-surface="flat">

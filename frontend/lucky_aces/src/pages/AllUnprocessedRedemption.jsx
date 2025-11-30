@@ -4,8 +4,6 @@ import { getAllUnprocessedRedemption } from "../APIRequest";
 import { QRCodeSVG } from "qrcode.react";
 import "./AllUnprocessedRedemption.css";
 
-const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:3001";
-
 function AllUnprocessedRedemption() {
   const [_loading, _setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -64,7 +62,7 @@ function AllUnprocessedRedemption() {
   };
 
   const selectedRedemption = redemptionList.find((item) => item.id === activeQrId);
-  const qrLink = `${REACT_APP_BACKEND_URL}/process_redemption/${selectedRedemption ? selectedRedemption.id : ""}`;
+  const qrLink = `https://luckyaces309.up.railway.app/process_redemption/${selectedRedemption ? selectedRedemption.id : ""}`;
 
   return (
     <div className="page-shell redemptions-page">
