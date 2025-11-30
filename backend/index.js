@@ -3209,20 +3209,27 @@ app.route("/transactions/:transactionId")
         if (!id || isNaN(id)) {
             return res.status(400).json({ "Bad Request": "Invalid transactionId" });
         }
+        let selectField = {
+            id: true,
+            utorid: true,
+            type: true,
+            spent: true,
+            amount: true,
+            promotionIds: { select: { id: true } },
+            suspicious: true,
+            remark: true,
+            createdBy: true,
+            relatedId: true,
+            sender: true,
+            recipient: true,
+            sent: true,
+            redeemed: true,
+            processed: true,
+            processedBy: true,
+        }
         const result = await prisma.transaction.findUnique({
             where: { id: id },
-            select: {
-                id: true,
-                utorid: true,
-                type: true,
-                spent: true,
-                amount: true,
-                promotionIds: { select: { id: true } },
-                suspicious: true,
-                remark: true,
-                createdBy: true,
-                relatedId: true,
-            }
+            select: selectField
         });
         if (!result) {
             return res.status(404).json({ "Not Found": "Transaction not found" });

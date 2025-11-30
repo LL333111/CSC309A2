@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
 import "./QRInitDetail.css";
 
+const REACT_APP_FRONTEND_URL = process.env.REACT_APP_FRONTEND_URL || "http://localhost:3001";
+
 function QRInitDetail() {
   const { utorid } = useParams();
   const navigate = useNavigate();

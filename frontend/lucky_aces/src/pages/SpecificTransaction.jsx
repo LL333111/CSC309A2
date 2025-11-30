@@ -136,11 +136,6 @@ function SpecificTransaction() {
         }
     }
 
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleString();
-    }
-
     return (
         <div className="specific-transaction-container">
             {_loading || !transactionData ? (
@@ -174,16 +169,15 @@ function SpecificTransaction() {
                         <div className="transaction-details-grid">
                             <p><strong>Transaction ID:</strong> {transactionData.id}</p>
                             <p><strong>Type:</strong> {transactionData.type}</p>
-                            <p><strong>Created At:</strong> {formatDate(transactionData.createdAt)}</p>
 
                             {transactionData.type === "purchase" && (
                                 <>
                                     <p><strong>User (UTORid):</strong> {transactionData.utorid}</p>
                                     <p><strong>Spent:</strong> ${transactionData.spent}</p>
-                                    <p><strong>Points Earned:</strong> {transactionData.amount}</p>
+                                    <p><strong>Points Earned:</strong> {transactionData.earned}</p>
                                     <p><strong>Promotions Used:</strong> {transactionData.promotionIds?.length === 0 ? "None" : transactionData.promotionIds?.map(p => p.id).join(', ')}</p>
-                                    <p><strong>Remark:</strong> {transactionData.remark || "None"}</p>
                                     <p><strong>Created By:</strong> {transactionData.createdBy}</p>
+                                    <p><strong>Remark:</strong> {transactionData.remark || "None"}</p>
                                 </>
                             )}
 
@@ -193,8 +187,8 @@ function SpecificTransaction() {
                                     <p><strong>Amount:</strong> {transactionData.amount}</p>
                                     <p><strong>Related Transaction:</strong> {transactionData.relatedId}</p>
                                     <p><strong>Promotions:</strong> {transactionData.promotionIds?.length === 0 ? "None" : transactionData.promotionIds?.map(p => p.id).join(', ')}</p>
-                                    <p><strong>Remark:</strong> {transactionData.remark || "None"}</p>
                                     <p><strong>Created By:</strong> {transactionData.createdBy}</p>
+                                    <p><strong>Remark:</strong> {transactionData.remark || "None"}</p>
                                 </>
                             )}
 
@@ -211,19 +205,19 @@ function SpecificTransaction() {
                                 <>
                                     <p><strong>User (UTORid):</strong> {transactionData.utorid}</p>
                                     <p><strong>Points Redeemed:</strong> {transactionData.redeemed}</p>
-                                    <p><strong>Remark:</strong> {transactionData.remark || "None"}</p>
                                     <p><strong>Created By:</strong> {transactionData.createdBy}</p>
                                     <p><strong>Processed:</strong> {transactionData.relatedId ? `Yes (ID: ${transactionData.relatedId})` : "Unprocessed"}</p>
+                                    <p><strong>Remark:</strong> {transactionData.remark || "None"}</p>
                                 </>
                             )}
 
                             {transactionData.type === "event" && (
                                 <>
                                     <p><strong>Recipient:</strong> {transactionData.recipient}</p>
-                                    <p><strong>Points Awarded:</strong> {transactionData.awarded}</p>
+                                    <p><strong>Points Awarded:</strong> {transactionData.amount}</p>
                                     <p><strong>Event ID:</strong> {transactionData.relatedId}</p>
-                                    <p><strong>Remark:</strong> {transactionData.remark || "None"}</p>
                                     <p><strong>Created By:</strong> {transactionData.createdBy}</p>
+                                    <p><strong>Remark:</strong> {transactionData.remark || "None"}</p>
                                 </>
                             )}
                         </div>
