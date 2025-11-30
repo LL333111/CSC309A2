@@ -3,6 +3,12 @@
 require('dotenv').config();
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+const corsOptions = {
+    origin: FRONTEND_URL,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+};
 
 const port = (() => {
     const args = process.argv;
@@ -50,21 +56,12 @@ const server = http.createServer(app);
 
 // init socket.io
 const io = new Server(server, {
-    cors: {
-        origin: FRONTEND_URL, // React dev server
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
-        credentials: true
-    }
+    cors: corsOptions
 });
 
 // Set up cors to allow requests from React frontend
-app.use(cors({
-    origin: FRONTEND_URL,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', "PATCH"],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-}));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // recording (like constant)
 let lastResetAt = "0000-00-00T00:00:00.000Z";
