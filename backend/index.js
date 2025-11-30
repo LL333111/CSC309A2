@@ -54,16 +54,21 @@ const io = new Server(server, {
         origin: FRONTEND_URL, // React dev server
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
-        credentials: true
+        credentials: true,
+        preflightContinue: false,
+        optionsSuccessStatus: 204,
     }
 });
+console.log("cors enabled for:", FRONTEND_URL);
 
 // Set up cors to allow requests from React frontend
 app.use(cors({
     origin: FRONTEND_URL,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', "PATCH"],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', "PATCH", 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
 }));
 
 // recording (like constant)
