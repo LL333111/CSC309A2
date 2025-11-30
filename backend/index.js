@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 'use strict';
+require('dotenv').config();
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+const corsOptions = {
+    origin: FRONTEND_URL,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+};
 
 const port = (() => {
     const args = process.argv;
@@ -31,7 +38,6 @@ app.use(express.json());
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-require('dotenv').config();
 
 const jwt = require('jsonwebtoken');
 const { v1: uuidv4 } = require('uuid');
@@ -50,26 +56,12 @@ const server = http.createServer(app);
 
 // init socket.io
 const io = new Server(server, {
-    cors: {
-        origin: FRONTEND_URL, // React dev server
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
-        credentials: true,
-        preflightContinue: false,
-        optionsSuccessStatus: 204,
-    }
+    cors: corsOptions
 });
-console.log("cors enabled for:", FRONTEND_URL);
 
 // Set up cors to allow requests from React frontend
-app.use(cors({
-    origin: FRONTEND_URL,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', "PATCH", 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-}));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // recording (like constant)
 let lastResetAt = "0000-00-00T00:00:00.000Z";
