@@ -84,7 +84,8 @@ function Login() {
         <div className="register-link">
           <p>Need a cashier or manager account? Ask an authenticated manager inside the dashboard.</p>
           <p>
-            <Link to="/">Return to homepage</Link>
+            <Link to="/">Return to homepage</Link><br />
+            <Link to="/reset_token">Forget Password?</Link>
           </p>
         </div>
       </div>

@@ -26,6 +26,8 @@ import QRInitDetail from './pages/QRInitDetail';
 import EditEventsUsers from './pages/EditEventsUsers';
 import NotFound from './pages/NotFound';
 import Notification from './pages/Notification';
+import ResetToken from './pages/ResetToken';
+import Reset from './pages/Reset';
 
 import NeedLogin from './NeedLogin';
 import UpdateUser from './pages/UpdateUsers';
@@ -45,6 +47,8 @@ function App() {
             <Route path="/" element={<Layout />} >
               <Route index element={<Home />} />
               <Route path="login" element={<Login />} />
+              <Route path="reset_token" element={<ResetToken />} />
+              <Route path="reset/:resetToken" element={<Reset />} />
 
               {/* need log in routes */}
               <Route path="profile" element={<NeedLogin min_role={1}><Profile /></NeedLogin>} />

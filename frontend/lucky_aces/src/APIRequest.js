@@ -827,3 +827,50 @@ export async function getNotifications(page, token) {
     alert("get notifications API request error");
   }
 }
+
+// /auth/resets
+export async function resetToken(utorid) {
+  try {
+    // request
+    const response = await fetch(`${REACT_APP_BACKEND_URL}/auth/resets`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        utorid,
+      })
+    });
+
+    if (!response.ok) {
+      return response.status;
+    } else {
+      const data = await response.json();
+      return data;
+    }
+  } catch (error) {
+    console.error("get reset token API request error: ", error);
+    alert("get reset token API request error");
+  }
+}
+
+// /auth/resets/:resetToken
+export async function resetPassword(utorid, password, resetToken) {
+  try {
+    // request
+    const response = await fetch(`${REACT_APP_BACKEND_URL}/auth/resets/${resetToken}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        utorid,
+        password,
+      })
+    });
+    return response.status;
+  } catch (error) {
+    console.error("reset password API request error: ", error);
+    alert("reset password API request error");
+  }
+}

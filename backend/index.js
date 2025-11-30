@@ -423,7 +423,6 @@ app.route("/users/me")
             let allUsers = await prisma.user.findMany();
             const hasDuplicate = allUsers.some(user => user.email === email);
             if (hasDuplicate) {
-                console.log(11);
                 return res.status(400).json({ "Bad Request": "Need Unique email" });
             }
             data.email = email;
@@ -864,7 +863,8 @@ app.route("/auth/resets")
         const resetToken = uuidv4();
         lastResetIP = req.ip;
         lastResetAt = new Date();
-        const expiresAt = new Date(lastResetAt + (7 * 24 * 60 * 60 * 1000)).toISOString();
+        const expiresAt = new Date();
+        expiresAt.setDate(lastResetAt.getDate() + 7);
         let updateUser;
         try {
             updateUser = await prisma.user.update({
@@ -873,7 +873,7 @@ app.route("/auth/resets")
                 },
                 data: {
                     resetToken,
-                    expiresAt,
+                    expiresAt: expiresAt.toISOString(),
                 }
             })
         } catch (error) {
@@ -934,7 +934,7 @@ app.route("/auth/resets/:resetToken")
             return res.status(401).json({ "Unauthorized": "Token does not match user" });
         }
         // error handle - 410 Gone
-        if (user.expiresAt === "gone") {
+        if (new Date(user.expiresAt).toLocaleString() < new Date().toLocaleString()) {
             return res.status(410).json({ "Gone": "Token expired" });
         }
         // reset password
@@ -943,7 +943,8 @@ app.route("/auth/resets/:resetToken")
                 id: user.id
             },
             data: {
-                password: password
+                password: password,
+                expiresAt: (new Date()).toISOString(),
             }
         });
         res.status(200).json();
