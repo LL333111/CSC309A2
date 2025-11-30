@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+const FRONTEND_URL = "https://luckyaces309.up.railway.app";
 
 const port = (() => {
     const args = process.argv;

@@ -1,4 +1,4 @@
-const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:3001";
+const REACT_APP_BACKEND_URL = "https://luckyacesbackend.up.railway.app";
 
 // /auth/tokens
 export async function login(utorid, password) {
