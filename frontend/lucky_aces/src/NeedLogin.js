@@ -13,12 +13,12 @@ function NeedLogin({ children, min_role }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       _setLoading(loading);
-    }, 100);
+    }, 500);
     return () => clearTimeout(timer);
   }, [loading]);
 
   useEffect(() => {
-    if (hasChecked.current || _loading) return;
+    if (hasChecked.current || _loading || loading) return;
 
     const checkAuth = () => {
       // check login

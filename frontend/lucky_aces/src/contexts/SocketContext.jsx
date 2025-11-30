@@ -44,9 +44,6 @@ export function SocketProvider({ children }) {
   );
 
   function createSocket(token) {
-    // const socket = io(import.meta.env.VITE_BACKEND_WS_URL, {
-    //   auth: { token },
-    // });
     const socket = io(REACT_APP_BACKEND_URL, {
       auth: { token },
     });
