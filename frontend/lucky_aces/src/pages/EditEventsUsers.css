@@ -157,6 +157,18 @@
   min-width: 180px;
 }
 
+.manage-event-page .btn-primary:disabled {
+  background: var(--neutral-300);
+  color: var(--neutral-600);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.manage-event-page .btn-primary:disabled:hover {
+  transform: none;
+}
+
 .list-title {
   margin: 0;
   font-size: 1rem;
