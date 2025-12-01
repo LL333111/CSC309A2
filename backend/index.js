@@ -1680,7 +1680,7 @@ app.route("/events/:eventId/organizers/:userId")
             }
         });
         await sendNotification(req.user.id, "success", `${req.user.utorid}, Successfully removed the organizer!`);
-        await sendNotification(user.id, "info", `You have been removed the organizer of event ${result.id}!`);
+        await sendNotification(user.id, "info", `You have been removed the organizer of event ${eventId}!`);
         res.status(204).json();
     })
     .all((req, res) => {
