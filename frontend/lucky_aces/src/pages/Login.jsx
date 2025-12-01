@@ -19,6 +19,11 @@ function Login() {
     e.preventDefault();
 
     const response = await APIlogin(utoridInput, passwordInput);
+    if (!response) {
+      // Network/server error already surfaced by API helper
+      return;
+    }
+
     if (typeof (response) === "number") {
       switch (response) {
         case 400:
@@ -37,10 +42,11 @@ function Login() {
           _setBadRequest(false);
           break
       }
-    } else {
-      login(response.token, response.expiresAt);
-      navigate("/profile");
+      return;
     }
+
+    login(response.token, response.expiresAt);
+    navigate("/profile");
   }
 
   return (
@@ -82,7 +88,6 @@ function Login() {
         </form>
 
         <div className="register-link">
-          <p>Need a cashier or manager account? Ask an authenticated manager inside the dashboard.</p>
           <p>
             <Link to="/">Return to homepage</Link><br />
             <Link to="/reset_token">Forget Password?</Link>

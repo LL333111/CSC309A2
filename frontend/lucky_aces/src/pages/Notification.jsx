@@ -1,7 +1,7 @@
 import { useLoggedInUser } from "../contexts/LoggedInUserContext";
 import { useState, useEffect } from "react";
 import { getNotifications } from "../APIRequest";
-import "./Register.css";
+import "./Notification.css";
 
 function Notification() {
   const [_loading, _setLoading] = useState(true);
@@ -53,7 +53,7 @@ function Notification() {
   }
 
   return (
-    <div className="register-container" data-surface="flat">
+    <div className="page-shell notification-page" data-surface="flat">
       {_loading ? (
         <div className="loading">
           <h2>Loading...</h2>
@@ -84,7 +84,7 @@ function Notification() {
                           <strong>Message</strong>
                           <p>{notification.message}</p>
                         </div>
-                        <div className="event-detail-item">
+                        <div className="notification-detail-item">
                           <strong>Created At</strong>
                           <p>{notification.createdAt}</p>
                         </div>
