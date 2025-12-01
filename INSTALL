@@ -1,6 +1,134 @@
-# This text file should explain how to deploy your website.
+Lucky Aces – Installation & Deployment Guide
+===========================================
 
-# You should write detailed description on:
+Overview & Architecture
+-----------------------
+- **Frontend**: React SPA in `frontend/lucky_aces`, bootstrapped with Create React App and bundled by `react-scripts`.
+- **Backend**: Node.js + Express app in `backend/`, uses Prisma for data access, Socket.IO for notifications, and stores data in `prisma/dev.db` by default.
+- **Data Layer**: Prisma schema (`backend/prisma/schema.prisma`) with checked-in migrations and optional seed data via `npm run seed`.
+- **Transport**: REST/JSON endpoints plus Socket.IO websockets, protected by CORS using the `FRONTEND_URL` environment variable.
 
-# 1. All the packages you need to install
-# 2. How to configure various servers (e.g., Nginx, Apache, etc)
+Prerequisites
+-------------
+Please install the follow packegs
+1. **Node.js 20 LTS + npm 10+** :
+	```bash
+	curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+	sudo apt-get install -y nodejs
+	node -v  
+	npm -v    
+	```
+2. **Git 2.40+** :
+	```bash
+	sudo apt-get install -y git
+	git --version
+	```
+3. **SQLite 3.40+** :
+	```bash
+	sudo apt-get install -y sqlite3
+	sqlite3 --version
+	```
+4. **Prisma CLI** :
+	```bash
+	npm install -g prisma@6.18.0
+	prisma -v
+	```
+
+
+Environment Variables
+---------------------
+Create `.env` files before running either tier. All secrets in production must be non-default.
+
+### Backend (`backend/.env`)
+```
+FRONTEND_URL=http://localhost:3000        
+JWT_SECRET=replace-with-long-random-string
+```
+Run `cp backend/.env.example backend/.env` if you create a template; otherwise author it manually.
+
+Start the backend with an explicit port argument: `node index.js 3001`. 
+
+### Frontend (`frontend/lucky_aces/.env`)
+```
+REACT_APP_BACKEND_URL=http://localhost:3001   
+```
+
+Local Development Workflow
+--------------------------
+1. **Clone & install dependencies**
+	```bash
+	git clone https://github.com/LL333111/CSC309A2.git
+	cd CSC309A2
+	```
+
+2. **Backend setup** (`/backend`)
+	```bash
+	cd backend
+	npm install
+	npx prisma generate
+	npx prisma migrate deploy   
+	npm run seed                
+	node index.js 3001          
+	```
+	- The API serves at `http://localhost:3001`.
+	- Database lives in `prisma/dev.db`; delete it to reset (`rm prisma/dev.db* && npm run seed`).
+
+3. **Frontend setup** (`/frontend/lucky_aces`)
+	```bash
+	cd frontend/lucky_aces
+	npm install
+	npm start
+	```
+	- CRA dev server runs on `http://localhost:3000` and proxies unknown requests to the backend defined in `package.json#proxy` (default `http://localhost:3001`).
+	- To run React tests: `npm test`; to lint/format rely on CRA defaults.
+
+4. **Full-stack verification**
+	- Visit `http://localhost:3000` to access Lucky Aces.
+	- Log in with any seeded credentials (see “Demo Accounts & URLs”).
+	- Watch backend logs for Prisma query output and Socket.IO notifications.
+
+Demo Accounts & URLs
+--------------------
+Seed data (`npm run seed`) creates the following demo logins, all with password `123456cC!`:
+
+| Role      | UTORid   | Email                       |
+|-----------|----------|-----------------------------|
+| superuser | super001 | mock.000@mail.utoronto.ca   |
+| manager   | mana001  | mock.001@mail.utoronto.ca   |
+| manager   | mana002  | mock.002@mail.utoronto.ca   |
+| cashier   | cash001  | mock.003@mail.utoronto.ca   |
+| cashier   | cash002  | mock.004@mail.utoronto.ca   |
+| cashier   | cash003  | mock.005@mail.utoronto.ca   |
+| regular   | regul001 | mock.006@mail.utoronto.ca   |
+| regular   | regul002 | mock.007@mail.utoronto.ca   |
+| regular   | regul003 | mock.008@mail.utoronto.ca   |
+| regular   | regul004 | mock.009@mail.utoronto.ca   |
+
+Key URLs (default dev values):
+- Frontend SPA: `http://localhost:3000`
+- Backend REST: `http://localhost:3001`
+
+
+Production Deployment (Railway)
+--------------------------------
+If you prefer a managed deployment instead of running your own VM, Railway can host both tiers:
+
+1. **Project layout**
+	- Create a new Railway project and connect it to your GitHub repo.
+	- Add two services: `backend` and `frontend` .
+
+2. **Backend service**
+	- Build command: `npm install`.
+	- Start command: choose Railway's setting option pointing to `backend` with start command `npx prisma db push --force-reset && npx prisma generate && node ./prisma/seed.js && node index.js 8081` 
+	- Environment variables :
+		- `FRONTEND_URL=https://<your-railway-frontend-domain>`
+		- `JWT_SECRET=<generate-long-secret>`
+
+3. **Frontend service**
+	- Build command: `npm install && CI=false npm run build`.
+	- Start/serve: choose Railway’s setting option pointing to `frontend/lucky_aces/build` with start command `npx serve -s build -l $PORT`
+	- Environment variable: `REACT_APP_BACKEND_URL=https://<backend-domain>` (Railway auto-injects during build).
+
+4. **Deploy flow**
+	- Every push to `main` (or a selected branch) triggers a Railway build/deploy.
+	- Use Railway logs to monitor Prisma migrations and Node output; re-run `npm run seed` locally if you need to reseed the managed SQLite volume.
