@@ -45,11 +45,12 @@ export const LoggedInUserContextProvider = ({ children }) => {
           setUser(null);
           setRole(0);
           setToken(null);
+        } else {
+          // local storage has token
+          getUser(localStorage.getItem("token"));
+          setToken(localStorage.getItem("token"));
+          setExpiresAt(localStorage.getItem("tokenExpiresAt"));
         }
-        // local storage has token
-        getUser(localStorage.getItem("token"));
-        setToken(localStorage.getItem("token"));
-        setExpiresAt(localStorage.getItem("tokenExpiresAt"));
       }
     } else {
       getUser(token);
